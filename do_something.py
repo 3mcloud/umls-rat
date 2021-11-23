@@ -3,7 +3,30 @@ import json
 import sys
 
 from umlst.lookup import Lookup
+from umlst.util import Result
 
+
+def find_definitions(result: Result):
+    definitions = result['definitions']
+    if definitions:
+        return definitions
+
+    dpa = result['defaultPreferredAtom']
+    if dpa:
+        c = dpa['concept']
+        print(dpa)
+        pass
+
+    concepts = result['concepts']
+    if concepts:
+        for c in concepts:
+            return find_definitions(c['uri'])
+            print(resolved)
+            pass
+        pass
+    # now what?
+
+    pass
 
 def main():
     parser = argparse.ArgumentParser()
@@ -16,12 +39,14 @@ def main():
 
     lu = Lookup(args.api_key)
 
-    xxx = {
+    stuff = {
         'old back': lu.find('450807008'),
         'bite': lu.find('782161000'),
     }
 
-    print(json.dumps(xxx, indent=2))
+    print(stuff)
+
+    xxx = find_definitions(stuff['bite'])
 
     pass
 

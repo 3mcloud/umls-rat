@@ -1,9 +1,6 @@
-from typing import Dict
-
 import requests
 
-from umlst.auth import Authenticator
-from umlst.util import result_iterator
+from umlst.util import Authenticator, Result
 
 
 class Lookup(Authenticator):
@@ -15,7 +12,7 @@ class Lookup(Authenticator):
     def _make_full_uri(self, source_vocab: str, concept_id: str):
         return f'{self._base_uri}/rest/content/{self._base_version}/source/{source_vocab}/{concept_id}'
 
-    def find(self, concept_id: str) -> Dict:
+    def find(self, concept_id: str) -> Result:
         """
         /content/current/source/SNOMEDCT_US/9468002
         """
@@ -26,7 +23,7 @@ class Lookup(Authenticator):
             raise ValueError(f"Request failed: {r.content}")
 
         rc = r.json()
-        results = list(result_iterator(rc))
+        results = list(Result(self, rc))
 
         assert len(results) == 1, "Should only get one concept per CID"
 
