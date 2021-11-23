@@ -1,79 +1,16 @@
-import functools
-import json
-from typing import Dict, List, Optional
-
-import requests
-
-from umlst.util import Authenticator
-
-_NONE = "NONE"
+from umlst.auth import Authenticator
+from umlst.result import Result, get_result
 
 
-@functools.lru_cache()
-def get_result(auth: Authenticator, uri: str) -> Optional[List['Result']]:
-    params = {'ticket': auth.get_ticket()}
-    r = requests.get(uri, params=params, verify=False)
-    print(r.content)
-    if r.status_code != 200:
-        print(f"Request failed: {r.content}")
-        return None
-    data = r.json()
-    the_result = data["result"]
-    if "results" in the_result:
-        the_result = the_result["results"]
-
-    if isinstance(the_result, List):
-        return [Result(auth, elem) for elem in the_result]
-    elif isinstance(the_result, Dict):
-        return [Result(auth, the_result)]
-    else:
-        raise AssertionError(f"WTF type is this? {type(the_result)}")
-
-
-class Result(object):
-    def __init__(self, auth: Authenticator, data: Dict):
-        self._auth = auth
-        self.data = data
-
-    # def __iter__(self):
-    #     the_result = self.data["result"]
-    #     if "results" in the_result:
-    #         for data in the_result["results"]:
-    #             yield Result(self._auth, data)
-    #     else:
-    #         yield Result(self._auth, the_result)
-
-    def get_value(self, item: str):
-        value = self.data.get(item)
-        if isinstance(value, str):
-            if value.startswith("http"):
-                return get_result(self._auth, value)
-            elif value == _NONE:
-                return None
-            else:
-                return value
-        else:
-            return value
-
-    def __getitem__(self, item):
-        return self.get_value(item)
-
-    def __str__(self):
-        return json.dumps(self.data, indent=2)
-
-    def __repr__(self):
-        return str(self)
-
-
-class Lookup(Authenticator):
-    def __init__(self, api_key: str):
-        super(Lookup, self).__init__(api_key=api_key)
+class Lookup(object):
+    def __init__(self, auth: Authenticator):
+        self.auth = auth
         self.version = 'current'
 
 
 class ConceptLookup(Lookup):
-    def __init__(self, api_key: str):
-        super(ConceptLookup, self).__init__(api_key=api_key)
+    def __init__(self, auth: Authenticator):
+        super(ConceptLookup, self).__init__(auth=auth)
 
     def _make_full_uri(self, source_vocab: str, concept_id: str):
         return f'http://uts-ws.nlm.nih.gov/rest/content/{self.version}/source/{source_vocab}/{concept_id}'
@@ -83,7 +20,7 @@ class ConceptLookup(Lookup):
         /content/current/source/SNOMEDCT_US/9468002
         """
 
-        results = get_result(self, self._make_full_uri('SNOMEDCT_US', concept_id))
+        results = get_result(self.auth, self._make_full_uri('SNOMEDCT_US', concept_id))
         # params = {'ticket': self.get_ticket()}
         # r = requests.get(self._make_full_uri('SNOMEDCT_US', concept_id),
         #                  params=params, verify=False)
@@ -99,13 +36,13 @@ class ConceptLookup(Lookup):
 
 
 class DefinitionsLookup(Lookup):
-    def __init__(self, concept_lookup: ConceptLookup):
-        super(DefinitionsLookup, self).__init__(api_key=concept_lookup.api_key)
-        self.clu = concept_lookup
+    def __init__(self, auth: Authenticator):
+        super(DefinitionsLookup, self).__init__(auth=auth)
+        self.clu = ConceptLookup(auth)
 
     def _check_for_definitions(self, cuid: str):
         # https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0155502/definitions?
-        results = get_result(self,
+        results = get_result(self.auth,
                              f"https://uts-ws.nlm.nih.gov/rest/content/{self.version}/CUI/{cuid}/definitions")
         if results is None:
             return None

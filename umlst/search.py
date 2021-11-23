@@ -1,6 +1,6 @@
 import requests
 
-from umlst.util import Authenticator
+from umlst.auth import Authenticator
 
 
 class Search(Authenticator):

@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from umlst.auth import Authenticator
 from umlst.lookup import ConceptLookup, DefinitionsLookup
 
 
@@ -60,8 +61,8 @@ def main():
 
     # search = Search(args.api_key)
     # res = search.find("back")
-
-    clu = ConceptLookup(args.api_key)
+    auth = Authenticator(args.api_key)
+    # clu = ConceptLookup(auth)
 
     stuff = {
         # 'old back': '450807008',
@@ -69,23 +70,17 @@ def main():
         'depression': '35489007',
     }
 
-    dlu = DefinitionsLookup(clu)
+    dlu = DefinitionsLookup(auth)
 
-    def printem(k, v):
-        ds = dlu.find(v)
-        print(f"*****   {k}   *****")
-        for x, d in enumerate(ds):
-            print(f"({x + 1}) {d}")
+    with open('cheese.txt', 'w', encoding='utf-8') as ofp:
+        def printem(k, v):
+            ds = dlu.find(v)
+            print(f"*****   {k}   *****", file=ofp)
+            for x, d in enumerate(ds):
+                print(f"({x + 1}) {d}", file=ofp)
 
-    for k, v in stuff.items():
-        printem(k, v)
-    #
-    # bite_defs = dlu.find('782161000')
-    # print(f"bite defs = {bite_defs}")
-    #
-    # depression_defs = dlu.find('35489007')
-    # print(f"depression defs = {depression_defs}")
-    pass
+        for k, v in stuff.items():
+            printem(k, v)
 
 
 if __name__ == '__main__':

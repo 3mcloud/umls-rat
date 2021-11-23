@@ -1,21 +1,6 @@
-#!/usr/bin/python
-## 6/16/2017 - remove PyQuery dependency
-## 5/19/2016 - update to allow for authentication based on api-key, rather than username/pw
-## See https://documentation.uts.nlm.nih.gov/rest/authentication.html for full explanation
-import functools
-import json
 import re
-from typing import Dict, Iterable, List
 
 import requests
-
-# from xml.dom.minidom import parseString
-# from xml.dom.pulldom import parseString
-
-
-# from pyquery import PyQuery as pq
-# import lxml.html as lh
-# from lxml.html import fromstring
 
 uri = "https://utslogin.nlm.nih.gov"
 # option 1 - username/pw authentication at /cas/v1/tickets
@@ -59,5 +44,3 @@ class Authenticator(object):
             raise ValueError(f"Request failed: {r.content}")
         st = r.text
         return st
-
-
