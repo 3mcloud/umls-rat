@@ -24,35 +24,35 @@ _FORM_ACTION_PAT = re.compile(r'<form action="(.+?)" method="POST">')
 
 
 class Authenticator(object):
-  def __init__(self, api_key: str):
-    # self.username=username
-    # self.password=password
-    self.apikey = api_key
-    self._auth_svc = "http://umlsks.nlm.nih.gov"
-    self._auth_target = self._get_auth_target()
+    def __init__(self, api_key: str):
+        # self.username=username
+        # self.password=password
+        self.api_key = api_key
+        self._auth_svc = "http://umlsks.nlm.nih.gov"
+        self._auth_target = self._get_auth_target()
 
-  def _get_auth_target(self):
-    # params = {'username': self.username,'password': self.password}
-    params = {'apikey': self.apikey}
-    h = {"Content-type": "application/x-www-form-urlencoded",
-         "Accept": "text/plain", "User-Agent": "python"}
-    r = requests.post(uri + auth_endpoint, data=params, headers=h, verify=False)
-    if r.status_code != 201:
-      raise ValueError(f"Request failed: {r.content}")
-    response_text = r.text
-    print(response_text)
-    # <form action="https://utslogin.nlm.nih.gov/cas/v1/api-key/TGT-909652-QxfVOYJY4vH7J0fdhGtvqbDAdqwnJnYEMg7HHobnUMaFfm7Zir-cas"
-    # method="POST">
-    match = _FORM_ACTION_PAT.search(response_text)
-    result = match.group(1)
-    return result
+    def _get_auth_target(self):
+        # params = {'username': self.username,'password': self.password}
+        params = {'apikey': self.api_key}
+        h = {"Content-type": "application/x-www-form-urlencoded",
+             "Accept": "text/plain", "User-Agent": "python"}
+        r = requests.post(uri + auth_endpoint, data=params, headers=h, verify=False)
+        if r.status_code != 201:
+            raise ValueError(f"Request failed: {r.content}")
+        response_text = r.text
+        print(response_text)
+        # <form action="https://utslogin.nlm.nih.gov/cas/v1/api-key/TGT-909652-QxfVOYJY4vH7J0fdhGtvqbDAdqwnJnYEMg7HHobnUMaFfm7Zir-cas"
+        # method="POST">
+        match = _FORM_ACTION_PAT.search(response_text)
+        result = match.group(1)
+        return result
 
-  def get_ticket(self):
-    params = {'service': self._auth_svc}
-    h = {"Content-type": "application/x-www-form-urlencoded",
-         "Accept": "text/plain", "User-Agent": "python"}
-    r = requests.post(self._auth_target, data=params, headers=h, verify=False)
-    if r.status_code != 200:
-      raise ValueError(f"Request failed: {r.content}")
-    st = r.text
-    return st
+    def get_ticket(self):
+        params = {'service': self._auth_svc}
+        h = {"Content-type": "application/x-www-form-urlencoded",
+             "Accept": "text/plain", "User-Agent": "python"}
+        r = requests.post(self._auth_target, data=params, headers=h, verify=False)
+        if r.status_code != 200:
+            raise ValueError(f"Request failed: {r.content}")
+        st = r.text
+        return st
