@@ -1,3 +1,5 @@
+from typing import List
+
 from umlst.auth import Authenticator
 from umlst.result import Result, get_result
 
@@ -35,55 +37,92 @@ class ConceptLookup(Lookup):
         return results[0]
 
 
+NON_ENGLISH = {"MSHSPA", "MSHPOR", "MSHSWE", "MSHCZE"}
+
+
 class DefinitionsLookup(Lookup):
     def __init__(self, auth: Authenticator):
         super(DefinitionsLookup, self).__init__(auth=auth)
         self.clu = ConceptLookup(auth)
 
-    def _check_for_definitions(self, cuid: str):
+    def _defs_for_cuid(self, cuid: str):
         # https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0155502/definitions?
         results = get_result(self.auth,
                              f"https://uts-ws.nlm.nih.gov/rest/content/{self.version}/CUI/{cuid}/definitions")
         if results is None:
             return None
 
-        return [r['value'] for r in results]
+        return [r.data for r in results]
 
-    def _get_definitions(self, result: Result):
+    def _defs_for_result(self, result: Result):
         concept = result['concept']
         if concept:
             concept = concept.pop()
-            return self._check_for_definitions(concept['ui'])
+            return self._defs_for_cuid(concept['ui'])
 
         concepts = result['concepts']
         if concepts:
             for c in concepts:
-                defs = self._check_for_definitions(c['ui'])
+                defs = self._defs_for_cuid(c['ui'])
                 if defs:
                     return defs
 
         return []
 
     def get_definitions(self, result: Result):
-        ids = self._get_definitions(result)
-        if ids:
-            return ids
+        defs = self._defs_for_result(result)
+        if defs:
+            return defs
 
-        # look in parents?
-
+        # look in parent concepts
         parents = result['parents']
-        assert parents
+        if not parents:
+            # no parents; check relations
+            relations = result['relations']
+            # print(relations)
+            sy_rels = [_ for _ in relations if _['relationLabel'] == 'SY']
+            if not sy_rels:
+                raise ValueError(f"No parents or SY relations for result:\n{result}")
+            for rel in sy_rels:
+                rel_res = rel['relatedId']
+                assert len(rel_res) == 1
+                defs = self.get_definitions(rel_res[0])
+                if defs:
+                    return defs
+            raise ValueError("Could not find definitions")
+
+        assert parents, f"No parents for\n: {result}"
         for p in parents:
-            ids = self._get_definitions(p)
-            if ids:
-                return ids
+            defs = self._defs_for_result(p)
+            if defs:
+                return defs
 
         for p in parents:
-            ids = self.get_definitions(p)
-            if ids:
-                return ids
+            defs = self.get_definitions(p)
+            if defs:
+                return defs
 
-    def find(self, snomed_concept: str):
+    def find_all(self, snomed_concept: str) -> List:
         res = self.clu.find(snomed_concept)
 
         return self.get_definitions(res)
+
+    def find_best(self, snomed_concept_id: str) -> str:
+        ds = self.find_all(snomed_concept_id)
+        # filter out non english
+        longest_by_source = dict()
+        for d in ds:
+            source, value = d['rootSource'], d['value']
+            incumbent = longest_by_source.get(source)
+            if incumbent is None or len(value) > len(incumbent):
+                longest_by_source[source] = value
+
+        if "MSH" in longest_by_source:
+            return longest_by_source["MSH"]
+
+        english_only = {k: v for k, v in longest_by_source.items() if k not in NON_ENGLISH}
+        # choose the longest TODO something else?
+        s = sorted(english_only.keys(),
+                   key=len,
+                   reverse=True)
+        return s[0]

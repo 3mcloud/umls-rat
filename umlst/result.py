@@ -11,7 +11,7 @@ from umlst.auth import Authenticator
 def get_result(auth: Authenticator, uri: str) -> Optional[List['Result']]:
     params = {'ticket': auth.get_ticket()}
     r = requests.get(uri, params=params, verify=False)
-    print(r.content)
+    # print(r.content)
     if r.status_code != 200:
         print(f"Request failed: {r.content}")
         return None

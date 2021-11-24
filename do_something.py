@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from umlst.auth import Authenticator
-from umlst.lookup import ConceptLookup, DefinitionsLookup
+from umlst.lookup import DefinitionsLookup
 
 
 # def xxxxxxxxx(result: Result):
@@ -65,19 +65,23 @@ def main():
     # clu = ConceptLookup(auth)
 
     stuff = {
-        # 'old back': '450807008',
-        'bite': '782161000',
+        'old back': '450807008',
+        # 'bite': '782161000',
         'depression': '35489007',
     }
 
     dlu = DefinitionsLookup(auth)
 
+
+
     with open('cheese.txt', 'w', encoding='utf-8') as ofp:
         def printem(k, v):
-            ds = dlu.find(v)
+            desc = dlu.find_best(v)
             print(f"*****   {k}   *****", file=ofp)
-            for x, d in enumerate(ds):
-                print(f"({x + 1}) {d}", file=ofp)
+            print(f"{desc}\n", file=ofp)
+
+            # for x, d in enumerate(desc):
+            #     print(f"({x + 1}) {d}", file=ofp)
 
         for k, v in stuff.items():
             printem(k, v)
