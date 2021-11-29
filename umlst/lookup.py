@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from umlst.auth import Authenticator
 from umlst.result import Result, get_result
@@ -110,7 +110,7 @@ class DefinitionsLookup(Lookup):
     def find_best(self, snomed_concept_id: str) -> str:
         ds = self.find_all(snomed_concept_id)
         # filter out non english
-        longest_by_source = dict()
+        longest_by_source = dict()  # type: Dict[str,str]
         for d in ds:
             source, value = d['rootSource'], d['value']
             incumbent = longest_by_source.get(source)
@@ -121,8 +121,9 @@ class DefinitionsLookup(Lookup):
             return longest_by_source["MSH"]
 
         english_only = {k: v for k, v in longest_by_source.items() if k not in NON_ENGLISH}
+        assert english_only, "No English language descriptions!!"
         # choose the longest TODO something else?
-        s = sorted(english_only.keys(),
+        s = sorted(english_only.values(),
                    key=len,
                    reverse=True)
         return s[0]

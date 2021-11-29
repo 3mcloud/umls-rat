@@ -67,12 +67,10 @@ def main():
     stuff = {
         'old back': '450807008',
         # 'bite': '782161000',
-        'depression': '35489007',
+        # 'depression': '35489007',
     }
 
-    dlu = DefinitionsLookup(auth)
-
-
+    dlu = DefinitionsLookup(auth, "MSH")
 
     with open('cheese.txt', 'w', encoding='utf-8') as ofp:
         def printem(k, v):
