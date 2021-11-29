@@ -70,7 +70,7 @@ def main():
         # 'depression': '35489007',
     }
 
-    dlu = DefinitionsLookup(auth, "MSH")
+    dlu = DefinitionsLookup(auth)
 
     with open('cheese.txt', 'w', encoding='utf-8') as ofp:
         def printem(k, v):
