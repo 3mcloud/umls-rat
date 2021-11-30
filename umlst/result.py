@@ -33,14 +33,14 @@ _NONE = "NONE"
 
 class Result(object):
     def __init__(self, auth: Authenticator, data: Dict):
-        self._auth = auth
+        self.auth = auth
         self.data = data
 
     def get_value(self, item: str):
         value = self.data.get(item)
         if isinstance(value, str):
             if value.startswith("http"):
-                return get_result(self._auth, value)
+                return get_result(self.auth, value)
             elif value == _NONE:
                 return None
             else:

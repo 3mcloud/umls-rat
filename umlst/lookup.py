@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from umlst.auth import Authenticator
 from umlst.result import Result, get_result
@@ -37,6 +37,74 @@ class ConceptLookup(Lookup):
         return results[0]
 
 
+def _get_umls_concept(result: Result) -> Optional[Result]:
+    for c_field in ('concept', 'concepts'):
+        concept_res = result[c_field]
+        if not concept_res: continue
+        for c in concept_res:
+            # check for valid UI
+            if c['ui']:
+                return c
+
+
+def _find_umls(result: Result) -> Result:
+    umls = _get_umls_concept(result)
+    if umls: return umls
+
+    # if we didn't find a UMLS concept directly, there should be a SY relation
+    relations = result['relations']
+    sy_rels = [_ for _ in relations if _['relationLabel'] == 'SY']
+    if not sy_rels:
+        raise ValueError(f"No parents or SY relations for:\n{result}")
+
+    for rel in sy_rels:
+        rel_res = rel['relatedId']
+        assert len(rel_res) == 1
+        return _get_umls_concept(rel_res[0])
+
+    raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
+
+
+def find_umls(auth: Authenticator, concept_id: str) -> Result:
+    snomed_res = ConceptLookup(auth).find(concept_id)
+    assert snomed_res
+
+    base_res = _find_umls(snomed_res)
+    uri_res = base_res['uri']
+    if uri_res:
+        assert len(uri_res) == 1
+        return uri_res.pop()
+    else:
+        return base_res
+
+
+def _defs_for_cuid(result: Result):
+    version = 'latest'
+    # https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0155502/definitions?
+    results = get_result(result.auth,
+                         f"https://uts-ws.nlm.nih.gov/rest/content/{version}/CUI/{result['ui']}/definitions")
+    if results is None:
+        return None
+
+    return [r.data for r in results]
+
+
+def find_definitions(auth: Authenticator, concept_id: str) -> List[Dict]:
+    umls = find_umls(auth, concept_id)
+
+    definitions = _defs_for_cuid(umls)
+    if definitions: return definitions
+
+    relations = umls['relations']
+    if not relations:
+        # WTF is going on here?
+        relations = get_result(auth, f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{umls['ui']}/relations")
+        print(relations)
+        pass
+
+    pass
+
+
 NON_ENGLISH = {"MSHSPA", "MSHPOR", "MSHSWE", "MSHCZE"}
 
 
@@ -64,15 +132,13 @@ class DefinitionsLookup(Lookup):
         if concepts:
             for c in concepts:
                 defs = self._defs_for_cuid(c['ui'])
-                if defs:
-                    return defs
+                if defs: return defs
 
         return []
 
     def get_definitions(self, result: Result):
         defs = self._defs_for_result(result)
-        if defs:
-            return defs
+        if defs: return defs
 
         # look in parent concepts
         parents = result['parents']
