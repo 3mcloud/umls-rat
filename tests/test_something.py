@@ -26,6 +26,15 @@ def test_something():
     assert definition
 
 
+def test_cache():
+    auth = Authenticator(rklopfer_api_key)
+    res1 = result.get_result(auth, f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044")
+    res1.pop()
+    res1.append("shit")
+    res2 = result.get_result(auth, f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044")
+    assert res1 != res2
+
+
 def test_find_umls_wrist():
     auth = Authenticator(rklopfer_api_key)
 

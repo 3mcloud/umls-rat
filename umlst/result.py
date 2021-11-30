@@ -1,3 +1,4 @@
+import copy
 import functools
 import json
 from collections import namedtuple
@@ -11,8 +12,8 @@ KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 
 @functools.lru_cache()
-def get_result(auth: Authenticator, uri: str,
-               add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
+def _get_result(auth: Authenticator, uri: str,
+                add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
     params = {'ticket': auth.get_ticket()}
     if add_params:
         params.update({str(key): str(value) for key, value in add_params})
@@ -32,6 +33,11 @@ def get_result(auth: Authenticator, uri: str,
         return [Result(auth, the_result)]
     else:
         raise AssertionError(f"WTF type is this? {type(the_result)}")
+
+
+def get_result(auth: Authenticator, uri: str,
+               add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
+    return copy.deepcopy(_get_result(auth, uri, add_params))
 
 
 _NONE = "NONE"
