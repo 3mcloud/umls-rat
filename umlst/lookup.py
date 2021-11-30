@@ -1,7 +1,8 @@
 from typing import List, Dict, Optional
 
 from umlst.auth import Authenticator
-from umlst.result import Result, get_result
+from umlst.result import Result, get_results
+from umlst.util import Vocabularies
 
 
 class Lookup(object):
@@ -14,23 +15,12 @@ class ConceptLookup(Lookup):
     def __init__(self, auth: Authenticator):
         super(ConceptLookup, self).__init__(auth=auth)
 
-    def _make_full_uri(self, source_vocab: str, concept_id: str):
-        return f'http://uts-ws.nlm.nih.gov/rest/content/{self.version}/source/{source_vocab}/{concept_id}'
-
-    def find(self, concept_id: str) -> Result:
+    def find(self, source_vocab: str, concept_id: str) -> Result:
         """
         /content/current/source/SNOMEDCT_US/9468002
         """
-
-        results = get_result(self.auth, self._make_full_uri('SNOMEDCT_US', concept_id))
-        # params = {'ticket': self.get_ticket()}
-        # r = requests.get(self._make_full_uri('SNOMEDCT_US', concept_id),
-        #                  params=params, verify=False)
-        # if r.status_code != 200:
-        #     raise ValueError(f"Request failed: {r.content}")
-        #
-        # rc = r.json()
-        # results = list(Result(self, rc))
+        uri = f'http://uts-ws.nlm.nih.gov/rest/content/{self.version}/source/{source_vocab}/{concept_id}'
+        results = get_results(self.auth, uri)
 
         assert len(results) == 1, "Should only get one concept per CID"
 
@@ -65,8 +55,8 @@ def _find_umls(result: Result) -> Result:
     raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
 
 
-def find_umls(auth: Authenticator, concept_id: str) -> Result:
-    snomed_res = ConceptLookup(auth).find(concept_id)
+def find_umls(auth: Authenticator, source_vocab: str, concept_id: str) -> Result:
+    snomed_res = ConceptLookup(auth).find(source_vocab, concept_id)
     assert snomed_res
 
     base_res = _find_umls(snomed_res)
@@ -78,40 +68,22 @@ def find_umls(auth: Authenticator, concept_id: str) -> Result:
         return base_res
 
 
-def _defs_for_cuid(result: Result):
-    version = 'latest'
-    # https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0155502/definitions?
-    results = get_result(result.auth,
-                         f"https://uts-ws.nlm.nih.gov/rest/content/{version}/CUI/{result['ui']}/definitions")
-    if results is None:
-        return None
-
-    return [r.data for r in results]
-
-
-def _definitions_for_umls_result(auth: Authenticator, umls: Result):
-    definitions = _defs_for_cuid(umls)
+def _definitions_for_umls_result(umls: Result):
+    definitions = umls['definitions']
     if definitions: return definitions
 
-    preferred_atom = umls['defaultPreferredAtom']
-    if preferred_atom:
-        preferred_atom = preferred_atom.pop()
-        print(preferred_atom)
-
     relations = umls['relations']
-    if not relations:
-        # WTF is going on here?
-        relations = get_result(auth,
-                               f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{umls['ui']}/relations")
-        print(relations)
-        pass
+    if relations:
+        for rel in relations:
+            definitions = rel["relatedId"][0]["uri"][0]["definitions"]
+            if definitions: return definitions
 
-    pass
+    raise AssertionError("Disaster!!!!")
 
 
-def find_definitions(auth: Authenticator, concept_id: str) -> List[Dict]:
-    umls = find_umls(auth, concept_id)
-    defs = _definitions_for_umls_result(auth, umls)
+def find_definitions(auth: Authenticator, source_vocab: str, concept_id: str) -> List[Dict]:
+    umls = find_umls(auth, source_vocab, concept_id)
+    defs = _definitions_for_umls_result(umls)
     return defs
 
 
@@ -123,25 +95,16 @@ class DefinitionsLookup(Lookup):
         super(DefinitionsLookup, self).__init__(auth=auth)
         self.clu = ConceptLookup(auth)
 
-    def _defs_for_cuid(self, cuid: str):
-        # https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0155502/definitions?
-        results = get_result(self.auth,
-                             f"https://uts-ws.nlm.nih.gov/rest/content/{self.version}/CUI/{cuid}/definitions")
-        if results is None:
-            return None
-
-        return [r.data for r in results]
-
     def _defs_for_result(self, result: Result):
         concept = result['concept']
         if concept:
             concept = concept.pop()
-            return self._defs_for_cuid(concept['ui'])
+            return concept['definitions']
 
         concepts = result['concepts']
         if concepts:
             for c in concepts:
-                defs = self._defs_for_cuid(c['ui'])
+                defs = c['definitions']
                 if defs: return defs
 
         return []
@@ -179,7 +142,7 @@ class DefinitionsLookup(Lookup):
                 return defs
 
     def find_all(self, snomed_concept: str) -> List:
-        res = self.clu.find(snomed_concept)
+        res = self.clu.find(Vocabularies.SNOMEDCT, snomed_concept)
 
         return self.get_definitions(res)
 

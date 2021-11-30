@@ -13,7 +13,7 @@ KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 @functools.lru_cache()
 def _get_result(auth: Authenticator, uri: str,
-                add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
+                add_params: Optional[Tuple[KeyValuePair]] = None) -> List['Result']:
     params = {'ticket': auth.get_ticket()}
     if add_params:
         params.update({str(key): str(value) for key, value in add_params})
@@ -21,7 +21,8 @@ def _get_result(auth: Authenticator, uri: str,
     r = requests.get(uri, params=params, verify=False)
     if r.status_code != 200:
         print(f"Request failed: {r.content}")
-        return None
+        return []
+
     data = r.json()
     the_result = data["result"]
     if "results" in the_result:
@@ -35,8 +36,8 @@ def _get_result(auth: Authenticator, uri: str,
         raise AssertionError(f"WTF type is this? {type(the_result)}")
 
 
-def get_result(auth: Authenticator, uri: str,
-               add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
+def get_results(auth: Authenticator, uri: str,
+                add_params: Optional[Tuple[KeyValuePair]] = None) -> List['Result']:
     return copy.deepcopy(_get_result(auth, uri, add_params))
 
 
@@ -52,7 +53,7 @@ class Result(object):
         value = self.data.get(item)
         if isinstance(value, str):
             if value.startswith("http"):
-                return get_result(self.auth, value)
+                return get_results(self.auth, value)
             elif value == _NONE:
                 return None
             else:
