@@ -89,20 +89,30 @@ def _defs_for_cuid(result: Result):
     return [r.data for r in results]
 
 
-def find_definitions(auth: Authenticator, concept_id: str) -> List[Dict]:
-    umls = find_umls(auth, concept_id)
-
+def _definitions_for_umls_result(auth: Authenticator, umls: Result):
     definitions = _defs_for_cuid(umls)
     if definitions: return definitions
+
+    preferred_atom = umls['defaultPreferredAtom']
+    if preferred_atom:
+        preferred_atom = preferred_atom.pop()
+        print(preferred_atom)
 
     relations = umls['relations']
     if not relations:
         # WTF is going on here?
-        relations = get_result(auth, f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{umls['ui']}/relations")
+        relations = get_result(auth,
+                               f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/{umls['ui']}/relations")
         print(relations)
         pass
 
     pass
+
+
+def find_definitions(auth: Authenticator, concept_id: str) -> List[Dict]:
+    umls = find_umls(auth, concept_id)
+    defs = _definitions_for_umls_result(auth, umls)
+    return defs
 
 
 NON_ENGLISH = {"MSHSPA", "MSHPOR", "MSHSWE", "MSHCZE"}

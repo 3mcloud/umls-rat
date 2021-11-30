@@ -1,17 +1,23 @@
 import functools
 import json
-from typing import Dict, List, Optional
+from collections import namedtuple
+from typing import Dict, List, Optional, Tuple
 
 import requests
 
 from umlst.auth import Authenticator
 
+KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
+
 
 @functools.lru_cache()
-def get_result(auth: Authenticator, uri: str) -> Optional[List['Result']]:
+def get_result(auth: Authenticator, uri: str,
+               add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional[List['Result']]:
     params = {'ticket': auth.get_ticket()}
+    if add_params:
+        params.update({str(key): str(value) for key, value in add_params})
+
     r = requests.get(uri, params=params, verify=False)
-    # print(r.content)
     if r.status_code != 200:
         print(f"Request failed: {r.content}")
         return None
