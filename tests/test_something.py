@@ -1,7 +1,7 @@
 from umlst import lookup
 from umlst.auth import Authenticator
 from umlst.lookup import DefinitionsLookup
-from umlst.result import KeyValuePair, API
+from umlst.api import KeyValuePair, API
 from umlst.util import Vocabularies
 
 rklopfer_api_key = 'cf4e9f8f-a40c-4225-94e9-24ca9282b887'

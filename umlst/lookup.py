@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 
-from umlst.result import Result, API
+from umlst.api import Result, API
 from umlst.util import Vocabularies
 
 
@@ -68,7 +68,7 @@ def find_umls(auth: API, source_vocab: str, concept_id: str) -> Result:
 
 
 def _definitions_for_umls_result(umls: Result):
-    definitions = umls['definitions']
+    definitions = umls.api.get_definitions(umls['ui'])
     if definitions: return definitions
 
     relations = umls['relations']
