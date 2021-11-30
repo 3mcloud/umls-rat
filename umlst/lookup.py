@@ -1,26 +1,25 @@
 from typing import List, Dict, Optional
 
-from umlst.auth import Authenticator
-from umlst.result import Result, get_results
+from umlst.result import Result, API
 from umlst.util import Vocabularies
 
 
 class Lookup(object):
-    def __init__(self, auth: Authenticator):
-        self.auth = auth
+    def __init__(self, api: API):
+        self.api = api
         self.version = 'current'
 
 
 class ConceptLookup(Lookup):
-    def __init__(self, auth: Authenticator):
-        super(ConceptLookup, self).__init__(auth=auth)
+    def __init__(self, api: API):
+        super(ConceptLookup, self).__init__(api=api)
 
     def find(self, source_vocab: str, concept_id: str) -> Result:
         """
         /content/current/source/SNOMEDCT_US/9468002
         """
         uri = f'http://uts-ws.nlm.nih.gov/rest/content/{self.version}/source/{source_vocab}/{concept_id}'
-        results = get_results(self.auth, uri)
+        results = self.api.get_results(uri)
 
         assert len(results) == 1, "Should only get one concept per CID"
 
@@ -55,7 +54,7 @@ def _find_umls(result: Result) -> Result:
     raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
 
 
-def find_umls(auth: Authenticator, source_vocab: str, concept_id: str) -> Result:
+def find_umls(auth: API, source_vocab: str, concept_id: str) -> Result:
     snomed_res = ConceptLookup(auth).find(source_vocab, concept_id)
     assert snomed_res
 
@@ -81,8 +80,8 @@ def _definitions_for_umls_result(umls: Result):
     raise AssertionError("Disaster!!!!")
 
 
-def find_definitions(auth: Authenticator, source_vocab: str, concept_id: str) -> List[Dict]:
-    umls = find_umls(auth, source_vocab, concept_id)
+def find_definitions(api: API, source_vocab: str, concept_id: str) -> List[Dict]:
+    umls = find_umls(api, source_vocab, concept_id)
     defs = _definitions_for_umls_result(umls)
     return defs
 
@@ -91,20 +90,23 @@ NON_ENGLISH = {"MSHSPA", "MSHPOR", "MSHSWE", "MSHCZE"}
 
 
 class DefinitionsLookup(Lookup):
-    def __init__(self, auth: Authenticator):
-        super(DefinitionsLookup, self).__init__(auth=auth)
-        self.clu = ConceptLookup(auth)
+    def __init__(self, api: API):
+        super(DefinitionsLookup, self).__init__(api=api)
+        self.clu = ConceptLookup(api)
+
+    def _get_defs_for_concept(self, result: Result):
+        return self.api.get_definitions(result['ui'])
 
     def _defs_for_result(self, result: Result):
         concept = result['concept']
         if concept:
             concept = concept.pop()
-            return concept['definitions']
+            return self._defs_for_result(result)
 
         concepts = result['concepts']
         if concepts:
             for c in concepts:
-                defs = c['definitions']
+                defs = self._get_defs_for_concept(c)
                 if defs: return defs
 
         return []
@@ -131,7 +133,7 @@ class DefinitionsLookup(Lookup):
             raise ValueError("Could not find definitions")
 
         assert parents, f"No parents for\n: {result}"
-        for p in parents:
+        for p in parents[::-1]:
             defs = self._defs_for_result(p)
             if defs:
                 return defs
