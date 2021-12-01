@@ -1,6 +1,7 @@
 import copy
 import functools
 import json
+import logging
 from collections import namedtuple
 from typing import Dict, List, Optional, Tuple
 
@@ -17,6 +18,10 @@ class API(object):
         self.version = 'current'
         self._rest_uri = 'https://uts-ws.nlm.nih.gov/rest'
 
+    @property
+    def logger(self):
+        return logging.getLogger(self.__class__.__name__)
+
     @functools.lru_cache()
     def _get_result(self, uri: str,
                     add_params: Optional[Tuple[KeyValuePair]] = None) -> List['Result']:
@@ -26,7 +31,7 @@ class API(object):
 
         r = requests.get(uri, params=params, verify=False)
         if r.status_code != 200:
-            print(f"Request failed: {r.content}")
+            self.logger.debug(f"Request failed: {r.content}")
             return []
 
         data = r.json()
@@ -42,7 +47,7 @@ class API(object):
             raise AssertionError(f"WTF type is this? {type(the_result)}")
 
     def get_results(self, uri: str,
-                    add_params: Optional[Tuple[KeyValuePair]] = None) -> List['Result']:
+                    add_params: Optional[Tuple[KeyValuePair, ...]] = None) -> List['Result']:
         """Get data from arbitrary URI wrapped in a list of Results"""
         return copy.deepcopy(self._get_result(uri, add_params))
 
@@ -57,12 +62,14 @@ class API(object):
         else:
             return None
 
+    #### UMLS ####
     @property
     def _start_uri(self) -> str:
+        """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
         return f'{self._rest_uri}/content/{self.version}'
 
-    def get_umls_concept(self, cui: str) -> 'Result':
-        """https://documentation.uts.nlm.nih.gov/rest/concept/"""
+    def get_concept(self, cui: str) -> 'Result':
+        """https://documentation.uts.nlm.nih.gov/rest/concept/index.html"""
         uri = f'{self._start_uri}/CUI/{cui}'
         return self.get_single_result(uri)
 
@@ -70,6 +77,33 @@ class API(object):
         """https://documentation.uts.nlm.nih.gov/rest/definitions/index.html"""
         uri = f'{self._start_uri}/CUI/{cui}/definitions'
         return self.get_results(uri)
+
+    def get_relations(self, cui: str):
+        """https://documentation.uts.nlm.nih.gov/rest/relations/index.html"""
+        uri = f'{self._start_uri}/CUI/{cui}/relations'
+        return self.get_results(uri)
+
+    def get_related_concepts(self, cui: str):
+        """
+        I see what you mean. We don't have a documented way to recreate what the web interface does without making several calls, but the web interface uses:
+
+        https://uts-api.nlm.nih.gov/content/angular/current/CUI/C4517971/relatedConcepts?relationLabels=RB,PAR,RN,CHD&ticket=
+
+        This aggregates broader and narrower relations for a particular UMLS Concept.
+
+        Because this is not documented it may change at any time, but I don't expect it to change in the near future.
+        """
+        uri = f'https://uts-api.nlm.nih.gov/content/angular/current/CUI/{cui}/relatedConcepts'
+        results = self.get_results(uri)
+        return results
+
+    ### Source Asserted ####
+    def get_source_concept(self, source_vocab: str, concept_id: str):
+        """
+        https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
+        """
+        uri = f'{self._start_uri}/source/{source_vocab}/{concept_id}'
+        return self.get_single_result(uri)
 
 
 _NONE = "NONE"
