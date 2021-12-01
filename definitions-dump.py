@@ -45,7 +45,7 @@ def main():
 
     os.makedirs(vocab_name, exist_ok=True)
     with open(os.path.join(vocab_name, f'{code}.json'), 'w', encoding='utf-8') as ofp:
-        json.dump([_.data for _ in definitions], ofp, indent=2)
+        json.dump(definitions, ofp, indent=2)
 
 
 if __name__ == '__main__':
