@@ -1,10 +1,9 @@
-from umlst import lookup
-from umlst.api import API
-from umlst.auth import Authenticator
-from umlst.util import Vocabularies
+from umlsrat import lookup
+from umlsrat.api import API
+from umlsrat.util import Vocabularies
 
 rklopfer_api_key = 'cf4e9f8f-a40c-4225-94e9-24ca9282b887'
-api = API(Authenticator(rklopfer_api_key))
+api = API(rklopfer_api_key)
 
 
 def do_lookup(snomed_code: str) -> str:
@@ -29,13 +28,11 @@ def test_find_umls_old_back():
 def test_definitions_bfs():
     cui = lookup.find_umls(api, Vocabularies.SNOMEDCT, '450807008')
     defs = lookup.definitions_bfs(api, cui, num_defs=1)
-    print(defs)
     assert defs
 
 
 def test_undocumented_call():
     concepts = api.get_related_concepts('C4517971')
-    print(concepts)
     assert concepts
     assert len(concepts) == 5
 

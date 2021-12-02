@@ -13,8 +13,8 @@ KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 
 class API(object):
-    def __init__(self, auth: Authenticator):
-        self.auth = auth
+    def __init__(self, api_key: str):
+        self.auth = Authenticator(api_key)
         self.version = 'current'
         self._rest_uri = 'https://uts-ws.nlm.nih.gov/rest'
 
