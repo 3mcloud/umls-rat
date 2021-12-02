@@ -3,7 +3,6 @@ import os.path
 from typing import Optional
 
 from umlsrat.api.metathesaurus import MetaThesaurus, Result
-from umlsrat.vocab_info import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
 
