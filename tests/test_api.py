@@ -1,7 +1,7 @@
-from umlsrat.api import API
+from umlsrat.api.metathesaurus import MetaThesaurus
 
 rklopfer_api_key = 'cf4e9f8f-a40c-4225-94e9-24ca9282b887'
-api = API(rklopfer_api_key)
+api = MetaThesaurus(rklopfer_api_key)
 
 
 def test_cache():

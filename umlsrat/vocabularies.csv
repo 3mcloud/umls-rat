@@ -1,0 +1,223 @@
+Vocabulary,Abbreviation,Last Updated,Language,Restriction Level
+AI/RHEUM,AIR,1995AA,ENG,0
+Alternative Billing Concepts,ALT,2009AA,ENG,3
+Alcohol and Other Drug Thesaurus,AOD,2002AC,ENG,0
+Authorized Osteopathic Thesaurus,AOT,2006AD,ENG,0
+Anatomical Therapeutic Chemical Classification System,ATC,2021AB,ENG,0
+Beth Israel Problem List,BI,1999AA,ENG,2
+Clinical Care Classification,CCC,2018AA,ENG,1
+Clinical Problem Statements,CCPSS,2000AA,ENG,3
+Clinical Classifications Software Refined for ICD-10-CM,CCSR_ICD10CM,2021AA,ENG,0
+Clinical Classifications Software Refined for ICD-10-PCS,CCSR_ICD10PCS,2021AA,ENG,0
+Clinical Classifications Software,CCS,2005AC,ENG,0
+Race & Ethnicity - CDC,CDCREC,2021AB,ENG,0
+CDT,CDT,2021AB,ENG,3
+Consumer Health Vocabulary,CHV,2012AA,ENG,0
+COSTAR,COSTAR,2002AD,ENG,0
+Medical Entities Dictionary,CPM,2003AC,ENG,2
+CPT Spanish,CPTSP,2001AC,SPA,3
+CPT - Current Procedural Terminology,CPT,2021AA,ENG,3
+CRISP Thesaurus,CSP,2006AB,ENG,0
+COSTART,CST,1999AA,ENG,0
+Vaccines Administered,CVX,2021AB,ENG,0
+Diseases Database,DDB,2001AA,ENG,3
+ICD-10 German,DMDICD10,1997AA,GER,1
+UMDNS German,DMDUMD,1999AA,GER,1
+DrugBank,DRUGBANK,2021AB,ENG,0
+"Diagnostic and Statistical Manual of Mental Disorders, Fifth Edition",DSM-5,2016AB,ENG,3
+DXplain,DXP,1995AA,ENG,0
+Foundational Model of Anatomy,FMA,2019AB,ENG,0
+Gene Ontology,GO,2021AB,ENG,0
+Gold Standard Drug Database,GS,2021AB,ENG,3
+CDT in HCPCS,HCDT,2021AA,ENG,3
+HCPCS - Healthcare Common Procedure Coding System,HCPCS,2021AA,ENG,0
+CPT in HCPCS,HCPT,2021AA,ENG,3
+HUGO Gene Nomenclature Committee,HGNC,2021AB,ENG,0
+HL7 Version 2.5,HL7V2.5,2005AC,ENG,0
+HL7 Version 3.0,HL7V3.0,2021AB,ENG,0
+ICPC2E ICD10 Relationships,HLREL,2001AA,,3
+Human Phenotype Ontology,HPO,2021AB,ENG,0
+"ICD-10, American English Equivalents",ICD10AE,1998AA,ENG,3
+"ICD-10, Australian Modification, Americanized English Equivalents",ICD10AMAE,2002AD,ENG,3
+"ICD-10, Australian Modification",ICD10AM,2000AB,ENG,3
+"International Classification of Diseases, Tenth Revision, Clinical Modification",ICD10CM,2021AB,ENG,4
+"ICD10, Dutch Translation",ICD10DUT,2004AB,DUT,3
+ICD-10 Procedure Coding System,ICD10PCS,2021AB,ENG,0
+"International Classification of Diseases and Related Health Problems, Tenth Revision",ICD10,2004AB,ENG,3
+"International Classification of Diseases, Ninth Revision, Clinical Modification",ICD9CM,2015AA,ENG,0
+"International Classification of Functioning, Disability and Health for Children and Youth",ICF-CY,2009AA,ENG,4
+"International Classification of Functioning, Disability and Health",ICF,2009AA,ENG,4
+International Classification for Nursing Practice,ICNP,2019AB,ENG,3
+ICPC2E Dutch,ICPC2EDUT,2004AB,DUT,3
+"International Classification of Primary Care, 2nd Edition, Electronic",ICPC2EENG,2004AB,ENG,3
+"ICPC2-ICD10 Thesaurus, Dutch Translation",ICPC2ICD10DUT,2005AB,DUT,3
+ICPC2-ICD10 Thesaurus,ICPC2ICD10ENG,2005AB,ENG,3
+ICPC-2 PLUS,ICPC2P,2006AB,ENG,3
+ICPC Basque,ICPCBAQ,2000AA,BAQ,0
+ICPC Danish,ICPCDAN,1999AA,DAN,0
+ICPC Dutch,ICPCDUT,1999AA,DUT,0
+ICPC Finnish,ICPCFIN,1999AA,FIN,0
+ICPC French,ICPCFRE,2000AA,FRE,0
+ICPC German,ICPCGER,2000AA,GER,0
+ICPC Hebrew,ICPCHEB,2000AA,HEB,0
+ICPC Hungarian,ICPCHUN,1999AA,HUN,0
+ICPC Italian,ICPCITA,1999AA,ITA,0
+ICPC Norwegian,ICPCNOR,1999AA,NOR,0
+ICPC Portuguese,ICPCPOR,1999AA,POR,0
+ICPC Spanish,ICPCSPA,2000AA,SPA,0
+ICPC Swedish,ICPCSWE,2000AA,SWE,0
+International Classification of Primary Care,ICPC,1998AA,ENG,0
+Congenital Mental Retardation Syndromes,JABL,2000AA,ENG,1
+Korean Standard Classification of Disease Version 5,KCD5,2009AA,KOR,3
+"Library of Congress Subject Headings, Northwestern University subset",LCH_NW,2014AB,ENG,0
+Library of Congress Subject Headings,LCH,1992AA,ENG,0
+"LOINC Linguistic Variant - German, Austria",LNC-DE-AT,2021AB,GER,0
+"LOINC Linguistic Variant - German, Germany",LNC-DE-DE,2021AB,GER,0
+"LOINC Linguistic Variant - Greek, Greece",LNC-EL-GR,2021AB,GRE,0
+"LOINC Linguistic Variant - Spanish, Argentina",LNC-ES-AR,2021AB,SPA,0
+"LOINC Linguistic Variant - Spanish, Spain",LNC-ES-ES,2021AB,SPA,0
+"LOINC Linguistic Variant - Estonian, Estonia",LNC-ET-EE,2021AB,EST,0
+"LOINC Linguistic Variant - French, Belgium",LNC-FR-BE,2021AB,FRE,0
+"LOINC Linguistic Variant - French, Canada",LNC-FR-CA,2021AB,FRE,0
+"LOINC Linguistic Variant - French, France",LNC-FR-FR,2021AB,FRE,0
+"LOINC Linguistic Variant - Italian, Italy",LNC-IT-IT,2021AB,ITA,0
+"LOINC Linguistic Variant - Korea, Korean",LNC-KO-KR,2021AB,KOR,0
+"LOINC Linguistic Variant - Dutch, Netherlands",LNC-NL-NL,2021AB,DUT,0
+"LOINC Linguistic Variant - Portuguese, Brazil",LNC-PT-BR,2021AB,POR,0
+"LOINC Linguistic Variant - Russian, Russia",LNC-RU-RU,2021AB,RUS,0
+"LOINC Linguistic Variant - Turkish, Turkey",LNC-TR-TR,2021AB,TUR,0
+"LOINC Linguistic Variant - Chinese, China",LNC-ZH-CN,2021AB,CHI,0
+LOINC,LNC,2021AB,ENG,0
+Glossary of Clinical Epidemiologic Terms,MCM,1992AA,ENG,0
+MedDRA Brazilian Portuguese,MDRBPO,2021AB,POR,3
+MedDRA Czech,MDRCZE,2021AB,CZE,3
+MedDRA Dutch,MDRDUT,2021AB,DUT,3
+MedDRA French,MDRFRE,2021AB,FRE,3
+MedDRA German,MDRGER,2021AB,GER,3
+MedDRA Hungarian,MDRHUN,2021AB,HUN,3
+MedDRA Italian,MDRITA,2021AB,ITA,3
+MedDRA Japanese,MDRJPN,2021AB,JPN,3
+MedDRA Korean,MDRKOR,2021AB,KOR,3
+MedDRA Portuguese,MDRPOR,2021AB,POR,3
+MedDRA Russian,MDRRUS,2021AB,RUS,3
+MedDRA Spanish,MDRSPA,2021AB,SPA,3
+MedDRA,MDR,2021AB,ENG,3
+Medication Reference Terminology,MED-RT,2021AB,ENG,0
+MEDCIN,MEDCIN,2021AB,ENG,3
+MedlinePlus Spanish Health Topics,MEDLINEPLUS_SPA,2021AA,SPA,0
+MedlinePlus Health Topics,MEDLINEPLUS,2021AA,ENG,0
+Multum,MMSL,2021AB,ENG,1
+Micromedex,MMX,2021AB,ENG,3
+MeSH Czech,MSHCZE,2021AA,CZE,3
+MeSH Dutch,MSHDUT,2005AB,DUT,3
+MeSH Finnish,MSHFIN,2008AA,FIN,3
+MeSH French,MSHFRE,2021AA,FRE,3
+MeSH German,MSHGER,2021AB,GER,0
+MeSH Italian,MSHITA,2019AA,ITA,3
+MeSH Japanese,MSHJPN,2015AB,JPN,3
+MeSH Latvian,MSHLAV,2012AA,LAV,3
+MeSH Norwegian,MSHNOR,2019AA,NOR,3
+MeSH Polish,MSHPOL,2021AA,POL,3
+MeSH Portuguese,MSHPOR,2021AB,POR,3
+MeSH Russian,MSHRUS,2021AA,RUS,3
+MeSH Croatian,MSHSCR,2019AA,SCR,3
+MeSH Spanish,MSHSPA,2021AB,SPA,3
+MeSH Swedish,MSHSWE,2021AB,SWE,3
+MeSH,MSH,2021AB,ENG,0
+Metathesaurus CMS Formulary Reference File,MTHCMSFRF,2021AB,ENG,0
+ICD-9-CM Entry Terms,MTHICD9,2015AA,ENG,0
+ICPC2E American English Equivalents,MTHICPC2EAE,2004AB,ENG,3
+"ICPC2E-ICD10 Thesaurus, American English Equivalents",MTHICPC2ICD10AE,2005AB,ENG,3
+Minimal Standard Terminology French (UMLS),MTHMSTFRE,2002AA,FRE,0
+Minimal Standard Terminology Italian (UMLS),MTHMSTITA,2002AA,ITA,0
+Minimal Standard Terminology (UMLS),MTHMST,2002AA,ENG,0
+FDA Structured Product Labels,MTHSPL,2021AB,ENG,0
+Metathesaurus Names,MTH,1990AA,ENG,0
+Manufacturers of Vaccines,MVX,2021AB,ENG,0
+NANDA-I Taxonomy,NANDA-I,2018AA,ENG,3
+NCBI Taxonomy,NCBI,2021AB,ENG,0
+NCI SEER ICD Mappings,NCISEER,2002AD,,0
+American College of Cardiology/American Heart Association Clinical Data Terminology,NCI_ACC-AHA,2021AB,ENG,0
+"Biomedical Research Integrated Domain Group Model, 3.0.3",NCI_BRIDG_3_0_3,2021AB,ENG,0
+"Biomedical Research Integrated Domain Group Model, 5.3",NCI_BRIDG_5_3,2021AB,ENG,0
+Biomedical Research Integrated Domain Group Model Subset,NCI_BRIDG,2021AB,ENG,0
+"BioCarta online maps of molecular pathways, adapted for NCI use",NCI_BioC,2021AB,ENG,0
+Chemical Biology and Drug Development Vocabulary,NCI_CBDD,2021AB,ENG,0
+Childhood Cancer Predisposition Study Terminology,NCI_CCPS,2021AB,ENG,0
+U.S. Centers for Disease Control and Prevention Terms,NCI_CDC,2021AB,ENG,0
+CDISC Glossary Terminology,NCI_CDISC-GLOSS,2021AB,ENG,0
+CDISC Terminology,NCI_CDISC,2021AB,ENG,0
+Cellosaurus,NCI_CELLOSAURUS,2021AB,ENG,0
+Cancer Research Center of Hawaii Nutrition Terminology,NCI_CRCH,2021AB,ENG,0
+Common Terminology Criteria for Adverse Events 3.0,NCI_CTCAE_3,2021AB,ENG,0
+Common Terminology Criteria for Adverse Events 5.0,NCI_CTCAE_5,2021AB,ENG,0
+Common Terminology Criteria for Adverse Events 4.3 Subset,NCI_CTCAE,2021AB,ENG,0
+Clinical Trial Data Commons,NCI_CTDC,2021AB,ENG,0
+Cancer Therapy Evaluation Program - Simple Disease Classification,NCI_CTEP-SDC,2021AB,ENG,0
+Clinical Trials Reporting Program Terms,NCI_CTRP,2021AB,ENG,0
+Content Archive Resource Exchange Lexicon,NCI_CareLex,2021AB,ENG,0
+NCI Division of Cancer Prevention Program Terms,NCI_DCP,2021AB,ENG,0
+Digital Imaging Communications in Medicine Terms,NCI_DICOM,2021AB,ENG,0
+NCI Developmental Therapeutics Program,NCI_DTP,2021AB,ENG,0
+European Directorate for the Quality of Medicines & Healthcare Terms,NCI_EDQM-HC,2021AB,ENG,0
+FDA Terminology,NCI_FDA,2021AB,ENG,0
+Global Alignment of Immunization Safety Assessment in Pregnancy Terms,NCI_GAIA,2021AB,ENG,0
+NCI Genomic Data Commons Terms,NCI_GDC,2021AB,ENG,0
+"Geopolitical Entities, Names, and Codes (GENC) Standard Edition 1",NCI_GENC,2021AB,ENG,0
+NCI Integrated Canine Data Commons Terms,NCI_ICDC,2021AB,ENG,0
+International Conference on Harmonization Terms,NCI_ICH,2021AB,ENG,0
+International Neonatal Consortium,NCI_INC,2021AB,ENG,0
+"Jackson Laboratories Mouse Terminology, adapted for NCI use",NCI_JAX,2021AB,ENG,0
+KEGG Pathway Database Terms,NCI_KEGG,2021AB,ENG,0
+NCI Dictionary of Cancer Terms,NCI_NCI-GLOSS,2021AB,ENG,0
+NCI HUGO Gene Nomenclature,NCI_NCI-HGNC,2021AB,ENG,0
+NCI Health Level 7,NCI_NCI-HL7,2021AB,ENG,0
+NCPDP Terminology,NCI_NCPDP,2021AB,ENG,0
+NICHD Terminology,NCI_NICHD,2021AB,ENG,0
+Pediatric Cancer Data Commons,NCI_PCDC,2021AB,ENG,0
+Prostate Imaging Reporting and Data System Terms,NCI_PI-RADS,2021AB,ENG,0
+National Cancer Institute Nature Pathway Interaction Database Terms,NCI_PID,2021AB,ENG,0
+Registry Nomenclature Information System,NCI_RENI,2021AB,ENG,0
+Unified Code for Units of Measure,NCI_UCUM,2021AB,ENG,0
+Zebrafish Model Organism Database Terms,NCI_ZFin,2021AB,ENG,0
+Cancer Data Standards Registry and Repository,NCI_caDSR,2021AB,ENG,0
+NCI Thesaurus,NCI,2021AB,ENG,0
+FDB MedKnowledge,NDDF,2021AB,ENG,3
+Neuronames Brain Hierarchy,NEU,2021AB,ENG,3
+Nursing Interventions Classification,NIC,2018AB,ENG,3
+Nursing Outcomes Classification,NOC,2018AB,ENG,3
+National Uniform Claim Committee - Health Care Provider Taxonomy,NUCCHCPT,2021AA,ENG,3
+Online Mendelian Inheritance in Man,OMIM,2021AB,ENG,0
+Omaha System,OMS,2007AC,ENG,1
+Patient Care Data Set,PCDS,1999AA,ENG,3
+Physician Data Query,PDQ,2019AA,ENG,0
+Perioperative Nursing Data Set,PNDS,2018AB,ENG,3
+Pharmacy Practice Activity Classification,PPAC,1999AA,ENG,3
+Psychological Index Terms,PSY,2005AB,ENG,3
+Quick Medical Reference,QMR,1998AA,ENG,0
+Clinical Concepts by R A Miller,RAM,2000AA,ENG,0
+Read Codes Am Engl,RCDAE,2000AA,ENG,3
+Read Codes Am Synth,RCDSA,2000AA,ENG,3
+Read Codes Synth,RCDSY,2000AA,ENG,3
+Read Codes,RCD,2000AA,ENG,3
+RXNORM,RXNORM,2021AB,ENG,0
+SNOMED CT Spanish Edition,SCTSPA,2021AB,SPA,9
+SNOMED Intl 1998,SNMI,1999AA,ENG,9
+SNOMED 1982,SNM,1991AA,ENG,9
+"SNOMED CT, US Edition",SNOMEDCT_US,2021AB,ENG,9
+"SNOMED CT, Veterinary Extension",SNOMEDCT_VET,2021AB,ENG,9
+Source of Payment Typology,SOP,2021AA,ENG,0
+Standard Product Nomenclature,SPN,2004AA,ENG,0
+Source Terminology Names (UMLS),SRC,1995AA,ENG,0
+Traditional Korean Medical Terms,TKMT,2011AB,KOR,0
+UltraSTAR,ULT,1995AA,ENG,3
+UMDNS,UMD,2021AA,ENG,1
+USP Model Guidelines,USPMG,2020AA,ENG,0
+USP Compendial Nomenclature,USP,2021AB,ENG,0
+Digital Anatomist,UWDA,2003AC,ENG,0
+National Drug File,VANDF,2021AB,ENG,0
+WHOART French,WHOFRE,1999AA,FRE,2
+WHOART German,WHOGER,1999AA,GER,2
+WHOART Portuguese,WHOPOR,1999AA,POR,2
+WHOART Spanish,WHOSPA,1999AA,SPA,2
+WHOART,WHO,1999AA,ENG,2

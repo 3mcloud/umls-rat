@@ -35,24 +35,14 @@ def _find_umls(result: Result) -> Result:
     raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
 
 
-def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> str:
+def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optional[str]:
     """
     Get the UMLS CUI for a concept from a source vocabulary.
     """
-    # uri = f"https://uts-ws.nlm.nih.gov/rest/search/current"
-    # add_params = (
-    #     KeyValuePair('string', concept_id),
-    #     KeyValuePair('sabs', source_vocab),
-    #     KeyValuePair('inputType', 'code'),
-    #     KeyValuePair('searchType', 'exact'),
-    #     KeyValuePair('includeObsolete', 'true'),
-    #     KeyValuePair('includeSuppressible', 'true'),
-    # )
-    # search_res = api.get_single_result(uri, add_params)
-    # concept_res = search_res['uri'].pop()
-    # return concept_res
     source_res = api.get_source_concept(source_vocab, concept_id)
-    assert source_res
+    if not source_res:
+        logger.info(f"Concept not found: {source_vocab}/{concept_id}")
+        return None
 
     concept_res = _find_umls(source_res)
     return concept_res['ui']

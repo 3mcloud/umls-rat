@@ -7,7 +7,7 @@ import sys
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import definitions_bfs
 from umlsrat.lookup.umls import find_umls
-from umlsrat.vocabs import find_vocab_abbr
+from umlsrat.vocab_info import get_vocab_info
 
 
 def main():
@@ -30,12 +30,12 @@ def main():
     api = MetaThesaurus(args.api_key)
 
     code = args.code
-    vocab_name = find_vocab_abbr(args.vocab)
+    vocab_name = get_vocab_info(args.vocab)
     num_defs = args.num_defs
     target_vocabs = args.target_vocabs
 
     if target_vocabs:
-        target_vocabs = [find_vocab_abbr(_) for _ in target_vocabs.split(',')]
+        target_vocabs = [get_vocab_info(_) for _ in target_vocabs.split(',')]
 
     cui = find_umls(api, vocab_name, code)
     definitions = definitions_bfs(api,
