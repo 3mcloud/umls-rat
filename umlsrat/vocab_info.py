@@ -54,7 +54,7 @@ def get_vocab_info(abbrev: str) -> Optional[NamedTuple]:
     return voc_info.get(norm)
 
 
-def validate_abbrev(abbrev: str) -> str:
+def validate_vocab_abbrev(abbrev: str) -> str:
     info = get_vocab_info(abbrev)
     if not info:
         message = "Unknown vocabulary abbreviation: '{}'. Try one of these: {}".format(

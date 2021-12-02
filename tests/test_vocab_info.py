@@ -1,4 +1,4 @@
-from umlsrat.vocab_info import get_vocab_info, validate_abbrev
+from umlsrat.vocab_info import get_vocab_info, validate_vocab_abbrev
 
 
 def test_get_info():
@@ -6,4 +6,4 @@ def test_get_info():
     assert info
 
 def test_validate_valid():
-    validate_abbrev('msh')
+    validate_vocab_abbrev('msh')

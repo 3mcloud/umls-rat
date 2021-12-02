@@ -3,6 +3,7 @@ import os.path
 from typing import Optional
 
 from umlsrat.api.metathesaurus import MetaThesaurus, Result
+from umlsrat.vocab_info import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -39,7 +40,7 @@ def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optiona
     """
     Get the UMLS CUI for a concept from a source vocabulary.
     """
-    source_res = api.get_source_concept(source_vocab, concept_id)
+    source_res = api.get_source_concept(validate_vocab_abbrev(source_vocab), concept_id)
     if not source_res:
         logger.info(f"Concept not found: {source_vocab}/{concept_id}")
         return None
