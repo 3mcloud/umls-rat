@@ -3,7 +3,7 @@ import os.path
 from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
-from umlst.api import Result, API
+from umlsrat.api import Result, API
 
 logger = logging.getLogger(os.path.basename(__file__))
 

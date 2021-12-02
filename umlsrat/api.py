@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from umlst.auth import Authenticator
+from umlsrat.auth import Authenticator
 
 KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 

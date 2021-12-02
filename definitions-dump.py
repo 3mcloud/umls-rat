@@ -4,10 +4,10 @@ import logging
 import os
 import sys
 
-from umlst import lookup
-from umlst.api import API
-from umlst.auth import Authenticator
-from umlst.util import Vocabularies
+from umlsrat import lookup
+from umlsrat.api import API
+from umlsrat.auth import Authenticator
+from umlsrat.util import Vocabularies
 
 
 def main():
