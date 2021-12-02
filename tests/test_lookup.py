@@ -40,3 +40,7 @@ def test_lookup_wrist():
 def test_find_umls_wrist():
     umlsc = find_umls(api, 'SNOMEDCT_US', '10937761000119101')
     assert umlsc
+
+def test_find_umls_xxx():
+    concept = find_umls(api, 'SNOMEDCT_US', '282024004')
+    assert concept

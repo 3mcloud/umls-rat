@@ -5,7 +5,7 @@ import csv
 import functools
 import os
 from collections import namedtuple, OrderedDict
-from typing import NamedTuple, Optional, Tuple
+from typing import NamedTuple, Optional, Tuple, List
 
 _THIS_DIR = os.path.dirname(os.path.normpath(__file__))
 _VOCABULARIES_CSV = os.path.join(_THIS_DIR, 'vocabularies.csv')
@@ -62,3 +62,10 @@ def validate_vocab_abbrev(abbrev: str) -> str:
         )
         raise ValueError(message)
     return info.Abbreviation
+
+
+@functools.lru_cache(maxsize=2)
+def vocabs_for_language(lang: str) -> List[str]:
+    return [info.Abbreviation
+            for info in VOCAB_INFO().values()
+            if info.Language == lang]

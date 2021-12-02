@@ -104,7 +104,7 @@ class MetaThesaurus(object):
         """
         https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
         """
-        validate_vocab_abbrev(source_vocab)
+        source_vocab = validate_vocab_abbrev(source_vocab)
         uri = f'{self._start_uri}/source/{source_vocab}/{concept_id}'
         return self.get_single_result(uri)
 
