@@ -61,10 +61,11 @@ def find_umls(api: API, source_vocab: str, concept_id: str) -> str:
 
 
 class UniqueFIFO(object):
-    def __init__(self, iterable: Iterable):
+    def __init__(self, iterable: Optional[Iterable] = None):
         self._uniq = set()
         self._list = list()
-        self.push_all(iterable)
+        if iterable:
+            self.push_all(iterable)
 
     def push(self, item):
         if item not in self._uniq:

@@ -22,9 +22,9 @@ class API(object):
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    @functools.lru_cache()
+    @functools.lru_cache(maxsize=None)
     def _get_result(self, uri: str,
-                    add_params: Optional[Tuple[KeyValuePair]] = None) -> List['Result']:
+                    add_params: Optional[Tuple[KeyValuePair, ...]] = None) -> List['Result']:
         params = {'ticket': self.auth.get_ticket()}
         if add_params:
             params.update({str(key): str(value) for key, value in add_params})
@@ -46,15 +46,16 @@ class API(object):
         else:
             raise AssertionError(f"WTF type is this? {type(the_result)}")
 
-    def get_results(self, uri: str,
-                    add_params: Optional[Tuple[KeyValuePair, ...]] = None) -> List['Result']:
+    def get_results(self, uri: str, **params) -> List['Result']:
         """Get data from arbitrary URI wrapped in a list of Results"""
+        add_params = tuple(
+            KeyValuePair(str(k), str(v)) for k, v in params
+        )
         return copy.deepcopy(self._get_result(uri, add_params))
 
-    def get_single_result(self, uri: str,
-                          add_params: Optional[Tuple[KeyValuePair]] = None) -> Optional['Result']:
+    def get_single_result(self, uri: str, **params) -> Optional['Result']:
         """When you know there will only be one coming back"""
-        res = self.get_results(uri, add_params)
+        res = self.get_results(uri, **params)
         assert len(res) < 2, f"Expected < 2 results got {len(res)}"
 
         if res:
