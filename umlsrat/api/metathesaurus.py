@@ -7,13 +7,13 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from umlsrat.auth import Authenticator
+from umlsrat.api.auth import Authenticator
 from umlsrat.vocabs import find_vocab_abbr
 
 KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 
-class API(object):
+class MetaThesaurus(object):
     def __init__(self, api_key: str):
         self.auth = Authenticator(api_key)
         self.version = 'current'
@@ -113,7 +113,7 @@ _NONE = "NONE"
 
 
 class Result(object):
-    def __init__(self, api: API, data: Dict):
+    def __init__(self, api: MetaThesaurus, data: Dict):
         self.api = api
         self.data = data
 

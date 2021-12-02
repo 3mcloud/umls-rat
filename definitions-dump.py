@@ -4,8 +4,9 @@ import logging
 import os
 import sys
 
-from umlsrat import lookup
-from umlsrat.api import API
+from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup.definitions import definitions_bfs
+from umlsrat.lookup.umls import find_umls
 from umlsrat.vocabs import find_vocab_abbr
 
 
@@ -26,7 +27,7 @@ def main():
                         default='cf4e9f8f-a40c-4225-94e9-24ca9282b887')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    api = API(args.api_key)
+    api = MetaThesaurus(args.api_key)
 
     code = args.code
     vocab_name = find_vocab_abbr(args.vocab)
@@ -36,11 +37,11 @@ def main():
     if target_vocabs:
         target_vocabs = [find_vocab_abbr(_) for _ in target_vocabs.split(',')]
 
-    cui = lookup.find_umls(api, vocab_name, code)
-    definitions = lookup.definitions_bfs(api,
-                                         start_cui=cui,
-                                         num_defs=num_defs,
-                                         target_vocabs=target_vocabs)
+    cui = find_umls(api, vocab_name, code)
+    definitions = definitions_bfs(api,
+                                  start_cui=cui,
+                                  num_defs=num_defs,
+                                  target_vocabs=target_vocabs)
 
     os.makedirs(vocab_name, exist_ok=True)
     with open(os.path.join(vocab_name, f'{code}.json'), 'w', encoding='utf-8') as ofp:
