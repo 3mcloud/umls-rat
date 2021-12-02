@@ -1,5 +1,5 @@
-UMLS Tool
-=========
+UMLS RAT (**R**EST **A**PI **T**ool) 
+===================
 
 https://documentation.uts.nlm.nih.gov/rest/home.html
 
