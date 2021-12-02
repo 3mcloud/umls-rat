@@ -109,7 +109,7 @@ def definitions_bfs(api: API, start_cui: str, num_defs: int = 0,
 
     allowed_relations = ('SY', 'RN', 'CHD')
     while to_visit:
-        logger.info(f"numToVisit = {len(to_visit)}")
+        logger.info(f"numDefinitions = {len(definitions)} numToVisit = {len(to_visit)}")
         current = to_visit.peek()
 
         cur_defs = api.get_definitions(current)
