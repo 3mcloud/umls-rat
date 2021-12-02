@@ -6,7 +6,7 @@ import sys
 
 from umlsrat import lookup
 from umlsrat.api import API
-from umlsrat.util import Vocabularies
+from umlsrat.vocabs import find_vocab_abbr
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
 
     parser.add_argument('--code', help='Find definitions for this code.', type=str, required=True)
     parser.add_argument('--vocab', help='The code can be found in this vocabulary',
-                        default=Vocabularies.SNOMED)
+                        default='snomed')
 
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
@@ -29,13 +29,12 @@ def main():
     api = API(args.api_key)
 
     code = args.code
-    vocab_name = args.vocab
+    vocab_name = find_vocab_abbr(args.vocab)
     num_defs = args.num_defs
     target_vocabs = args.target_vocabs
 
-    # TODO need to validate vocab abbrev somehow
     if target_vocabs:
-        target_vocabs = [_.strip().upper() for _ in target_vocabs.split(',')]
+        target_vocabs = [find_vocab_abbr(_) for _ in target_vocabs.split(',')]
 
     cui = lookup.find_umls(api, vocab_name, code)
     definitions = lookup.definitions_bfs(api,

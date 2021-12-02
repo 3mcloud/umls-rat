@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api import Result, API
+from umlsrat.vocabs import find_vocab_abbr
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -52,7 +53,7 @@ def find_umls(api: API, source_vocab: str, concept_id: str) -> str:
     # search_res = api.get_single_result(uri, add_params)
     # concept_res = search_res['uri'].pop()
     # return concept_res
-
+    source_vocab = find_vocab_abbr(source_vocab)
     source_res = api.get_source_concept(source_vocab, concept_id)
     assert source_res
 
