@@ -1,7 +1,12 @@
-UMLS RAT (**R**EST **A**PI **T**ool) 
-===================
+UMLS RAT 
+=========
 
-https://documentation.uts.nlm.nih.gov/rest/home.html
+UMLS **R**EST **A**PI **T**ool (RAT) provides a reasonable interface to the [UMLS REST API](https://documentation.uts.nlm.nih.gov/rest/home.html) for [Metathesaurus](https://uts.nlm.nih.gov/uts/umls/home) information. 
+
+
+
+Notes
+=====
 
 https://github.com/HHS/uts-rest-api
 
