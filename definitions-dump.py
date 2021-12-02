@@ -13,8 +13,8 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--code', help='Find definitions for this code.', type=str, required=True)
-    parser.add_argument('--vocabulary', help='The code can be found in this vocabulary',
-                        default=Vocabularies.SNOMEDCT)
+    parser.add_argument('--vocab', help='The code can be found in this vocabulary',
+                        default=Vocabularies.SNOMED)
 
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
@@ -28,10 +28,11 @@ def main():
     logging.basicConfig(level=logging.INFO)
     api = API(args.api_key)
 
-    vocab_name = args.vocabulary
     code = args.code
+    vocab_name = args.vocab
     num_defs = args.num_defs
     target_vocabs = args.target_vocabs
+
     # TODO need to validate vocab abbrev somehow
     if target_vocabs:
         target_vocabs = [_.strip().upper() for _ in target_vocabs.split(',')]

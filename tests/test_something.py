@@ -7,7 +7,7 @@ api = API(rklopfer_api_key)
 
 
 def do_lookup(snomed_code: str) -> str:
-    cui = lookup.find_umls(api, Vocabularies.SNOMEDCT, snomed_code)
+    cui = lookup.find_umls(api, Vocabularies.SNOMED, snomed_code)
     def_dict = lookup.definitions_bfs(api, cui, num_defs=1, target_vocabs=('MSH',)).pop()
     return def_dict['value']
 
@@ -19,14 +19,14 @@ def test_old_back():
 
 
 def test_find_umls_old_back():
-    cui = lookup.find_umls(api, Vocabularies.SNOMEDCT, '450807008')
+    cui = lookup.find_umls(api, Vocabularies.SNOMED, '450807008')
     print(cui)
     assert cui == 'C4517971'
     # assert cui == 'C3472551'
 
 
 def test_definitions_bfs():
-    cui = lookup.find_umls(api, Vocabularies.SNOMEDCT, '450807008')
+    cui = lookup.find_umls(api, Vocabularies.SNOMED, '450807008')
     defs = lookup.definitions_bfs(api, cui, num_defs=1)
     assert defs
 
@@ -52,5 +52,5 @@ def test_cache():
 
 
 def test_find_umls_wrist():
-    umlsc = lookup.find_umls(api, Vocabularies.SNOMEDCT, '10937761000119101')
+    umlsc = lookup.find_umls(api, Vocabularies.SNOMED, '10937761000119101')
     assert umlsc
