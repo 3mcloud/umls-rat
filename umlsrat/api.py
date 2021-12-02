@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 from umlsrat.auth import Authenticator
+from umlsrat.vocabs import find_vocab_abbr
 
 KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
@@ -103,6 +104,7 @@ class API(object):
         """
         https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
         """
+        source_vocab = find_vocab_abbr(source_vocab)
         uri = f'{self._start_uri}/source/{source_vocab}/{concept_id}'
         return self.get_single_result(uri)
 
