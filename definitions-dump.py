@@ -6,7 +6,6 @@ import sys
 
 from umlsrat import lookup
 from umlsrat.api import API
-from umlsrat.auth import Authenticator
 from umlsrat.util import Vocabularies
 
 
@@ -27,7 +26,7 @@ def main():
                         default='cf4e9f8f-a40c-4225-94e9-24ca9282b887')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    api = API(Authenticator(args.api_key))
+    api = API(args.api_key)
 
     vocab_name = args.vocabulary
     code = args.code
