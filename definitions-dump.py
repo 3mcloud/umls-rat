@@ -15,7 +15,7 @@ def main():
 
     parser.add_argument('--code', help='Find definitions for this code.', type=str, required=True)
     parser.add_argument('--vocab', help='The code can be found in this vocabulary',
-                        default='snomed')
+                        default='SNOMEDCT_US')
 
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
@@ -30,7 +30,7 @@ def main():
     api = MetaThesaurus(args.api_key)
 
     code = args.code
-    vocab_name = get_vocab_info(args.vocab)
+    vocab_name = args.vocab
     num_defs = args.num_defs
     target_vocabs = args.target_vocabs
 
