@@ -48,7 +48,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
         visited.add(to_visit.pop())
         distances.pop()
 
-        logger.info(f"curDistance = {len(current_dist)} "
+        logger.info(f"curDistance = {current_dist} "
                     f"numDefinitions = {len(definitions)} "
                     f"numToVisit = {len(to_visit)} "
                     f"numVisited = {len(visited)}")
