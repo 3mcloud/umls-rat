@@ -3,48 +3,13 @@ import os.path
 from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
-from umlsrat import util, vocab_info
+from umlsrat import vocab_info
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.umls import find_umls
+from umlsrat.util import misc
+from umlsrat.util.orderedset import UniqueFIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
-
-
-class UniqueFIFO(object):
-    def __init__(self, iterable: Optional[Iterable] = None):
-        self._uniq = set()
-        self._list = list()
-        if iterable:
-            self.push_all(iterable)
-
-    def push(self, item):
-        if item not in self._uniq:
-            self._list.append(item)
-            self._uniq.add(item)
-
-    def pop(self):
-        item = self._list.pop(0)
-        self._uniq.discard(item)
-        return item
-
-    def peek(self):
-        return self._list[0]
-
-    def push_all(self, iterable):
-        for item in iterable:
-            self.push(item)
-
-    def __len__(self):
-        return len(self._list)
-
-    def __contains__(self, item):
-        return item in self._uniq
-
-    def __str__(self):
-        return str(self._list)
-
-    def __repr__(self):
-        return str(self)
 
 
 def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0,
@@ -112,4 +77,5 @@ def find_definitions(api: MetaThesaurus,
                            start_cui=cui,
                            num_defs=num_defs,
                            target_vocabs=target_vocabs)
-    return [util.strip_tags(_['value']) for _ in defs]
+
+    return [misc.strip_tags(_['value']) for _ in defs]

@@ -5,7 +5,7 @@ import functools
 import os
 from typing import NamedTuple, Optional, List
 
-from umlsrat.util import ShittyDF
+from umlsrat.util.shitty_df import ShittyDF
 
 _THIS_DIR = os.path.dirname(os.path.normpath(__file__))
 _VOCABULARIES_CSV = os.path.join(_THIS_DIR, 'vocabularies.csv')

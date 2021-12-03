@@ -2,8 +2,8 @@ import logging
 import os.path
 from typing import Optional
 
-from umlsrat import util
 from umlsrat.api.metathesaurus import MetaThesaurus, Result
+from umlsrat.util import misc
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -24,7 +24,7 @@ def _find_umls(result: Result) -> Result:
 
     # if we didn't find a UMLS concept directly, check 'SY' then 'RO' relations
     relations = result['relations']
-    grouped = util.group_data(relations, lambda _: _['relationLabel'])
+    grouped = misc.group_data(relations, lambda _: _['relationLabel'])
 
     for rel_type in ('SY', 'RO',):
         rels = grouped.get(rel_type)
