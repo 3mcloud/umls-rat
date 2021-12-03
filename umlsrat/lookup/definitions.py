@@ -75,7 +75,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0,
 
         related_concepts = api.get_related_concepts(current)
 
-        # group by relation type todo replace with util.group_data
+        # group by relation type todo replace with util.group_data??
         grouped = defaultdict(list)
         for rc in related_concepts:
             rcuid = rc['concept']
