@@ -5,10 +5,9 @@ import logging
 from collections import namedtuple
 from typing import Dict, List, Optional, Tuple
 
-import requests
-
+from umlsrat.api import verified_requests
 from umlsrat.api.auth import Authenticator
-from umlsrat.vocab_info import get_vocab_info, validate_vocab_abbrev
+from umlsrat.vocab_info import validate_vocab_abbrev
 
 KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
@@ -30,7 +29,7 @@ class MetaThesaurus(object):
         if add_params:
             params.update({str(key): str(value) for key, value in add_params})
 
-        r = requests.get(uri, params=params, verify=False)
+        r = verified_requests.get(uri, params=params)
         if r.status_code != 200:
             self.logger.debug(f"Request failed: {r.content}")
             return []

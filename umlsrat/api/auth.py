@@ -1,6 +1,6 @@
 import re
 
-import requests
+from umlsrat.api import verified_requests
 
 uri = "https://utslogin.nlm.nih.gov"
 # option 1 - username/pw authentication at /cas/v1/tickets
@@ -24,7 +24,7 @@ class Authenticator(object):
         params = {'apikey': self.api_key}
         h = {"Content-type": "application/x-www-form-urlencoded",
              "Accept": "text/plain", "User-Agent": "python"}
-        r = requests.post(uri + auth_endpoint, data=params, headers=h, verify=False)
+        r = verified_requests.post(uri + auth_endpoint, data=params, headers=h)
         if r.status_code != 201:
             raise ValueError(f"Request failed: {r.content}")
         response_text = r.text
@@ -39,7 +39,7 @@ class Authenticator(object):
         params = {'service': self._auth_svc}
         h = {"Content-type": "application/x-www-form-urlencoded",
              "Accept": "text/plain", "User-Agent": "python"}
-        r = requests.post(self._auth_target, data=params, headers=h, verify=False)
+        r = verified_requests.post(self._auth_target, data=params, headers=h)
         if r.status_code != 200:
             raise ValueError(f"Request failed: {r.content}")
         st = r.text
