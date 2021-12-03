@@ -1,4 +1,4 @@
-""" Incomplete representation of this:
+"""
 https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html
 """
 import csv
