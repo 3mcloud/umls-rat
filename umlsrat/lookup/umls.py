@@ -2,6 +2,7 @@ import logging
 import os.path
 from typing import Optional
 
+from umlsrat import util
 from umlsrat.api.metathesaurus import MetaThesaurus, Result
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -21,16 +22,21 @@ def _find_umls(result: Result) -> Result:
     umls = _get_umls_concept(result)
     if umls: return umls
 
-    # if we didn't find a UMLS concept directly, there should be a SY relation
+    # if we didn't find a UMLS concept directly, check 'SY' then 'RO' relations
     relations = result['relations']
-    sy_rels = [_ for _ in relations if _['relationLabel'] == 'SY']
-    if not sy_rels:
-        raise ValueError(f"No parents or SY relations for:\n{result}")
+    grouped = util.group_data(relations, lambda _: _['relationLabel'])
 
-    for rel in sy_rels:
-        rel_res = rel['relatedId']
-        assert len(rel_res) == 1
-        return _get_umls_concept(rel_res[0])
+    for rel_type in ('SY', 'RO',):
+        rels = grouped.get(rel_type)
+        if not rels:
+            logger.info(f"'{result['ui']}' has no '{rel_type}' relations")
+            continue
+
+        for rel in rels:
+            rel_res = rel['relatedId']
+            assert len(rel_res) == 1
+            rel_concept = rel_res.pop()
+            return _get_umls_concept(rel_concept)
 
     raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
 

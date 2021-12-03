@@ -25,21 +25,10 @@ def test_find_umls_old_back():
     # assert cui == 'C3472551'
 
 
-def test_definitions_bfs():
-    cui = find_umls(api, 'SNOMEDCT_US', '450807008')
-    defs = definitions_bfs(api, cui, num_defs=1)
-    assert defs
-
-
 def test_lookup_wrist():
     # Closed fracture of left wrist (10937761000119101)
     definition = do_lookup('10937761000119101')
     assert definition
-
-
-def test_find_umls_wrist():
-    umlsc = find_umls(api, 'SNOMEDCT_US', '10937761000119101')
-    assert umlsc
 
 
 def test_find_umls_xxx():
