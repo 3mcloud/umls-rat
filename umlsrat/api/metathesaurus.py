@@ -49,7 +49,7 @@ class MetaThesaurus(object):
     def get_results(self, uri: str, **params) -> List['Result']:
         """Get data from arbitrary URI wrapped in a list of Results"""
         add_params = tuple(
-            KeyValuePair(str(k), str(v)) for k, v in params
+            KeyValuePair(str(k), str(v)) for k, v in params.items()
         )
         return copy.deepcopy(self._get_result(uri, add_params))
 
