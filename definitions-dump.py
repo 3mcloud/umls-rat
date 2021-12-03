@@ -7,7 +7,7 @@ import sys
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import definitions_bfs
 from umlsrat.lookup.umls import find_umls
-from umlsrat.vocab_info import get_vocab_info, validate_vocab_abbrev
+from umlsrat.vocab_info import validate_vocab_abbrev
 
 
 def main():

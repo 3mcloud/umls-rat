@@ -3,7 +3,9 @@ import os.path
 from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
+from umlsrat import util, vocab_info
 from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup.umls import find_umls
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -95,3 +97,19 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0,
 
     # get out the data part
     return [_.data for _ in definitions]
+
+
+def find_definitions(api: MetaThesaurus,
+                     vocab_name: str, code: str,
+                     target_lang: str, num_defs: int = 0) -> List[str]:
+    target_vocabs = vocab_info.vocabs_for_language(target_lang)
+    assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
+    cui = find_umls(api, vocab_name, code)
+    if not cui:
+        return []
+
+    defs = definitions_bfs(api,
+                           start_cui=cui,
+                           num_defs=num_defs,
+                           target_vocabs=target_vocabs)
+    return [util.strip_tags(_['value']) for _ in defs]
