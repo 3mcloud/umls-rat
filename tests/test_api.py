@@ -17,3 +17,24 @@ def test_undocumented_call():
     assert concepts
     cids = [_['concept'] for _ in concepts]
     assert cids == ['C3472551', 'C1995000', 'C1995000', 'C1995000', 'C1281593']
+
+
+def do_search(term: str):
+    the_concepts = None
+    for it in ('sourceConcept', 'sourceDescriptor', 'sourceUi',):
+        for st in ('words', 'normalizedWords', 'approximate'):
+            concepts = api.search(term, inputType=it, searchType=st)
+            # filter bogus results
+            concepts = [_ for _ in concepts if _['ui']]
+            if concepts:
+                the_concepts = concepts
+    return the_concepts
+
+
+def test_search():
+    concepts = do_search("Room air (substance)")
+    print(concepts)
+    concepts = do_search("Room air")
+    print(concepts)
+    concepts = do_search("Anticoagulant")
+    print(concepts)

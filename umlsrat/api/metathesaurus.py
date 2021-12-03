@@ -98,6 +98,12 @@ class MetaThesaurus(object):
         results = self.get_results(uri)
         return results
 
+    ### Search ###
+    def search(self, string: str, **params):
+        uri = f'https://uts-ws.nlm.nih.gov/rest/search/{self.version}'
+        results = self.get_results(uri, string=string, **params)
+        return results
+
     ### Source Asserted ####
     def get_source_concept(self, source_vocab: str, concept_id: str):
         """
