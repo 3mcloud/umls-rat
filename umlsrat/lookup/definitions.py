@@ -27,7 +27,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0,
 
     allowed_relations = ('SY', 'RN', 'CHD')
     while to_visit:
-        logger.info(f"numDefinitions = {len(definitions)} numToVisit = {len(to_visit)}")
+
         current_cui = to_visit.peek()
         current_dist = distances.peek()
 
@@ -46,6 +46,10 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0,
         ## Finished Visiting
         visited.add(to_visit.pop())
         distances.pop()
+
+        logger.info(f"numDefinitions = {len(definitions)} "
+                    f"numToVisit = {len(to_visit)} "
+                    f"numVisited = {len(visited)}")
 
         if num_defs and len(definitions) >= num_defs:
             break
