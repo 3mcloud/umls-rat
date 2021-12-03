@@ -15,4 +15,5 @@ def test_cache():
 def test_undocumented_call():
     concepts = api.get_related_concepts('C4517971')
     assert concepts
-    assert len(concepts) == 5
+    cids = [_['concept'] for _ in concepts]
+    assert cids == ['C3472551', 'C1995000', 'C1995000', 'C1995000', 'C1281593']

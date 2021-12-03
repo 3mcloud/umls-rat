@@ -15,16 +15,19 @@ def find_single_mesh_def(snomed_code: str) -> str:
 def test_old_back():
     # old back
     definition = find_single_mesh_def('450807008')
-    assert definition
+    assert definition == 'The rear surface of an upright primate from the shoulders to the hip, ' \
+                         'or the dorsal surface of tetrapods.'
 
 
 def test_wrist():
     # Closed fracture of left wrist (10937761000119101)
     definition = find_single_mesh_def('10937761000119101')
-    assert definition
+    assert definition == 'Injuries to the wrist or the wrist joint.'
 
 
 def test_find_definitions():
     defs = definitions.find_definitions(api, 'snomed', '282024004', 'ENG', num_defs=2)
     print(defs)
-    assert defs
+    assert defs == ['region of the back between thorax and pelvis.',
+                    'The part of the spine in the lower back that consists of the lumbar region and the sacrum.',
+                    'Region of the back including the LUMBAR VERTEBRAE, SACRUM, and nearby structures.']

@@ -7,11 +7,9 @@ api = MetaThesaurus(rklopfer_api_key)
 
 def test_find_umls_old_back():
     cui = find_umls(api, 'SNOMEDCT_US', '450807008')
-    print(cui)
     assert cui == 'C4517971'
-    # assert cui == 'C3472551'
 
 
 def test_find_umls_funky():
     concept = find_umls(api, 'SNOMEDCT_US', '282024004')
-    assert concept
+    assert concept == 'C5546171'
