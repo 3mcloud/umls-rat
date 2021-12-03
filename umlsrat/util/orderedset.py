@@ -29,6 +29,9 @@ class UniqueFIFO(object):
         for item in iterable:
             self.push(item)
 
+    def __iter__(self):
+        return iter(self._list)
+
     def __len__(self):
         return len(self._list)
 
