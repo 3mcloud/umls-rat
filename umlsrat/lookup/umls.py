@@ -3,15 +3,15 @@ import os.path
 import re
 from typing import Optional, Dict
 
-from umlsrat.api.metathesaurus import MetaThesaurus, Result
+from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
 
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def _get_umls_concept(result: Result) -> Optional[Result]:
-    for c_field in ('concept', 'concepts'):
-        concept_res = result[c_field]
+def _get_umls_concept(api: MetaThesaurus, result: Dict) -> Optional[Dict]:
+    for c_uri in (result[_] for _ in ('concept', 'concepts') if _ in result):
+        concept_res = api.get_results(c_uri)
         if not concept_res: continue
         for c in concept_res:
             # check for valid UI
@@ -19,27 +19,25 @@ def _get_umls_concept(result: Result) -> Optional[Result]:
                 return c
 
 
-def _find_umls(result: Result) -> Result:
-    umls = _get_umls_concept(result)
+def _find_umls(api: MetaThesaurus, source_res: Dict) -> Dict:
+    umls = _get_umls_concept(api, source_res)
     if umls: return umls
 
     # if we didn't find a UMLS concept directly, check 'SY' then 'RO' relations
-    relations = result['relations']
+    relations = api.get_results(source_res.get('relations'))
     grouped = misc.group_data(relations, lambda _: _['relationLabel'])
 
     for rel_type in ('SY', 'RO',):
         rels = grouped.get(rel_type)
         if not rels:
-            logger.info(f"'{result['ui']}' has no '{rel_type}' relations")
+            logger.info(f"'{source_res['ui']}' has no '{rel_type}' relations")
             continue
 
         for rel in rels:
-            rel_res = rel['relatedId']
-            assert len(rel_res) == 1
-            rel_concept = rel_res.pop()
-            return _get_umls_concept(rel_concept)
+            rel_concept = api.get_single_result(rel['relatedId'])
+            return _get_umls_concept(api, rel_concept)
 
-    raise ValueError(f"Impossible to find UMLS concept for:\n{result}")
+    raise ValueError(f"Impossible to find UMLS concept for:\n{source_res}")
 
 
 def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optional[str]:
@@ -51,7 +49,7 @@ def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optiona
         logger.info(f"Concept not found: {source_vocab}/{concept_id}")
         return None
 
-    concept_res = _find_umls(source_res)
+    concept_res = _find_umls(api, source_res)
     return concept_res['ui']
 
 

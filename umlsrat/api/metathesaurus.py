@@ -1,15 +1,43 @@
 import copy
 import functools
-import json
 import logging
-from collections import namedtuple
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 from umlsrat.api import verified_requests
 from umlsrat.api.auth import Authenticator
 from umlsrat.vocab_info import validate_vocab_abbrev
 
-KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
+# KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
+
+_NONE = "NONE"
+
+
+def _interp_value(value: Any):
+    if isinstance(value, str):
+        if value == _NONE:
+            return None
+        else:
+            return value
+    else:
+        return value
+
+
+def _fix_res_dict(result: Dict) -> Dict:
+    return {
+        key: _interp_value(value)
+        for key, value in result.items()
+    }
+
+
+def create_dict_list(response_json: Dict) -> List[Dict]:
+    the_result = response_json["result"]
+    if "results" in the_result:
+        the_result = the_result["results"]
+
+    if isinstance(the_result, Dict):
+        the_result = [the_result]
+
+    return [_fix_res_dict(_) for _ in the_result]
 
 
 class MetaThesaurus(object):
@@ -24,36 +52,34 @@ class MetaThesaurus(object):
 
     @functools.lru_cache(maxsize=None)
     def _get_result(self, uri: str,
-                    add_params: Optional[Tuple[KeyValuePair, ...]] = None) -> List['Result']:
-        params = {'ticket': self.auth.get_ticket()}
-        if add_params:
-            params.update({str(key): str(value) for key, value in add_params})
+                    add_params: Optional[Tuple[Tuple, ...]] = None) -> List[Dict]:
+        params = {str(key): str(value) for key, value in add_params}
+        assert 'ticket' not in params, "'ticket' should not be in params!!!"
+        params['ticket'] = self.auth.get_ticket()
 
         r = verified_requests.get(uri, params=params)
         if r.status_code != 200:
             self.logger.debug(f"Request failed: {r.content}")
             return []
 
-        data = r.json()
-        the_result = data["result"]
-        if "results" in the_result:
-            the_result = the_result["results"]
+        return create_dict_list(r.json())
 
-        if isinstance(the_result, List):
-            return [Result(self, elem) for elem in the_result]
-        elif isinstance(the_result, Dict):
-            return [Result(self, the_result)]
-        else:
-            raise AssertionError(f"WTF type is this? {type(the_result)}")
-
-    def get_results(self, uri: str, **params) -> List['Result']:
+    def get_results(self, uri: str, **params) -> List[Dict]:
         """Get data from arbitrary URI wrapped in a list of Results"""
+        if not uri:
+            return list()
+
+        if 'ticket' in params:
+            self.logger.warning(f"'ticket' should not be in params! removing it...")
+            del params['ticket']
+
         add_params = tuple(
-            KeyValuePair(str(k), str(v)) for k, v in params.items()
+            tuple(_) for _ in params.items()
         )
+
         return copy.deepcopy(self._get_result(uri, add_params))
 
-    def get_single_result(self, uri: str, **params) -> Optional['Result']:
+    def get_single_result(self, uri: str, **params) -> Optional[Dict]:
         """When you know there will only be one coming back"""
         res = self.get_results(uri, **params)
         assert len(res) < 2, f"Expected < 2 results got {len(res)}"
@@ -69,7 +95,7 @@ class MetaThesaurus(object):
         """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
         return f'{self._rest_uri}/content/{self.version}'
 
-    def get_concept(self, cui: str) -> 'Result':
+    def get_concept(self, cui: str) -> Dict:
         """https://documentation.uts.nlm.nih.gov/rest/concept/index.html"""
         uri = f'{self._start_uri}/CUI/{cui}'
         return self.get_single_result(uri)
@@ -112,44 +138,3 @@ class MetaThesaurus(object):
         source_vocab = validate_vocab_abbrev(source_vocab)
         uri = f'{self._start_uri}/source/{source_vocab}/{concept_id}'
         return self.get_single_result(uri)
-
-
-_NONE = "NONE"
-
-
-class Result(object):
-    """TODO REMOVE THIS OBJECT"""
-
-    def __init__(self, api: MetaThesaurus, data: Dict):
-        self.api = api
-        self.data = data
-
-    def get_uninterpreted(self, item: str):
-        return self.data.get(item)
-
-    def get_value(self, item: str):
-        value = self.data.get(item)
-        if isinstance(value, str):
-            if value.startswith("http"):
-                return self.api.get_results(value)
-            elif value == _NONE:
-                return None
-            else:
-                return value
-        else:
-            return value
-
-    def __getitem__(self, item):
-        return self.get_value(item)
-
-    def __str__(self):
-        return json.dumps(self.data, indent=2)
-
-    def __repr__(self):
-        return str(self)
-
-    def __eq__(self, other):
-        return isinstance(other, Result) and self.data == other.data
-
-    def __hash__(self):
-        return hash(self.data)

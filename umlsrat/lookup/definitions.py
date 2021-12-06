@@ -39,8 +39,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
                         if _['rootSource'] in target_vocabs]
 
         # add to definitions
-        for def_res in cur_defs:
-            def_dict = def_res.data
+        for def_dict in cur_defs:
             def_dict['distance'] = current_dist
             definitions.append(def_dict)
 

@@ -5,9 +5,7 @@ import os
 import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.definitions import definitions_bfs
-from umlsrat.lookup.umls import find_umls
-from umlsrat.vocab_info import validate_vocab_abbrev
+from umlsrat.lookup.definitions import find_definitions
 
 
 def main():
@@ -20,8 +18,8 @@ def main():
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
                         type=int, default=0)
-    parser.add_argument('--target-vocabs', help='Comma-separated list of vocab abbreviations',
-                        default=None)
+    parser.add_argument('--target-language', help='Comma-separated list of vocab abbreviations',
+                        default='ENG')
 
     parser.add_argument('--api-key', type=str, help="API key",
                         default='cf4e9f8f-a40c-4225-94e9-24ca9282b887')
@@ -32,16 +30,15 @@ def main():
     code = args.code
     vocab_name = args.vocab
     num_defs = args.num_defs
-    target_vocabs = args.target_vocabs
+    target_language = args.target_language
 
-    if target_vocabs:
-        target_vocabs = [validate_vocab_abbrev(_) for _ in target_vocabs.split(',')]
-
-    cui = find_umls(api, vocab_name, code)
-    definitions = definitions_bfs(api,
-                                  start_cui=cui,
-                                  num_defs=num_defs,
-                                  target_vocabs=target_vocabs)
+    definitions = find_definitions(
+        api=api,
+        source_vocab=vocab_name,
+        source_code=code,
+        num_defs=num_defs,
+        target_lang=target_language
+    )
 
     os.makedirs(vocab_name, exist_ok=True)
     with open(os.path.join(vocab_name, f'{code}.json'), 'w', encoding='utf-8') as ofp:
