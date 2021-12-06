@@ -5,7 +5,7 @@ from typing import Optional, Iterable, List, Dict
 
 from umlsrat import vocab_info
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.umls import find_umls
+from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
 
@@ -85,27 +85,44 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
     return definitions
 
 
-def find_definitions_data(api: MetaThesaurus,
-                          vocab_name: str, code: str,
-                          num_defs: int = 0, max_distance: int = 0,
-                          target_lang: str = 'ENG') -> List[Dict]:
+def find_definitions(api: MetaThesaurus,
+                     source_vocab: str, source_code: str, source_desc: str = None,
+                     num_defs: int = 0, max_distance: int = 0,
+                     target_lang: str = 'ENG') -> List[Dict]:
+    logger.info(f"Finding definitions of {source_vocab}/{source_code} ({source_desc})")
     target_vocabs = vocab_info.vocabs_for_language(target_lang)
     assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
-    cui = find_umls(api, vocab_name, code)
-    if not cui:
-        return []
 
-    return definitions_bfs(api,
-                           start_cui=cui,
-                           num_defs=num_defs,
-                           max_distance=max_distance,
-                           target_vocabs=target_vocabs)
+    def do_bfs(start_cui: str):
+        assert start_cui
+        data = definitions_bfs(api,
+                               start_cui=start_cui,
+                               num_defs=num_defs,
+                               max_distance=max_distance,
+                               target_vocabs=target_vocabs)
+        for datum in data:
+            datum['value'] = misc.strip_tags(datum['value'])
 
+        return data
 
-def find_definitions(api: MetaThesaurus,
-                     vocab_name: str, code: str,
-                     num_defs: int = 0, max_distance: int = 0,
-                     target_lang: str = 'ENG') -> List[str]:
-    defs = find_definitions_data(api, vocab_name, code, num_defs, max_distance, target_lang)
+    cui = find_umls(api, source_vocab, source_code)
+    if cui:
+        logger.info(f"Searching base CUI {cui}")
+        defs = do_bfs(cui)
+        if defs:
+            return defs
 
-    return [misc.strip_tags(_['value']) for _ in defs]
+    # did not find the concept directly (by code)
+    if source_desc:
+        # if we have a source description, try to use it to find a CUI
+        search_result = term_search(api, source_desc)
+        if search_result:
+            # todo don't take concepts that are too far from original?
+            for concept in search_result['concepts']:
+                cui = concept['ui']
+                logger.info(f"Searching term CUI {cui}")
+                defs = do_bfs(cui)
+                if defs:
+                    return defs
+
+    return []

@@ -1,6 +1,7 @@
 import logging
 import os.path
-from typing import Optional
+import re
+from typing import Optional, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus, Result
 from umlsrat.util import misc
@@ -52,3 +53,21 @@ def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optiona
 
     concept_res = _find_umls(source_res)
     return concept_res['ui']
+
+
+def _term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
+    for st in ('words', 'normalizedWords', 'approximate'):
+        for it in ('sourceConcept', 'sourceDescriptor',):
+            search_params = dict(inputType=it, searchType=st)
+            concepts = api.search(term, **search_params)
+            # filter bogus results
+            concepts = [_ for _ in concepts if _['ui']]
+            if concepts:
+                return dict(**search_params, concepts=concepts)
+    return None
+
+
+def term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
+    # remove trailing parentheses e.g. Room air (substance)
+    normalized = re.sub(r'\s*\(.+?\)\s*$', '', term)
+    return _term_search(api, normalized)

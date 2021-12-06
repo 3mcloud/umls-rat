@@ -49,7 +49,7 @@ class MetaThesaurus(object):
     def get_results(self, uri: str, **params) -> List['Result']:
         """Get data from arbitrary URI wrapped in a list of Results"""
         add_params = tuple(
-            KeyValuePair(str(k), str(v)) for k, v in params
+            KeyValuePair(str(k), str(v)) for k, v in params.items()
         )
         return copy.deepcopy(self._get_result(uri, add_params))
 
@@ -98,6 +98,12 @@ class MetaThesaurus(object):
         results = self.get_results(uri)
         return results
 
+    ### Search ###
+    def search(self, string: str, **params):
+        uri = f'https://uts-ws.nlm.nih.gov/rest/search/{self.version}'
+        results = self.get_results(uri, string=string, **params)
+        return results
+
     ### Source Asserted ####
     def get_source_concept(self, source_vocab: str, concept_id: str):
         """
@@ -112,6 +118,8 @@ _NONE = "NONE"
 
 
 class Result(object):
+    """TODO REMOVE THIS OBJECT"""
+
     def __init__(self, api: MetaThesaurus, data: Dict):
         self.api = api
         self.data = data
@@ -139,3 +147,9 @@ class Result(object):
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        return isinstance(other, Result) and self.data == other.data
+
+    def __hash__(self):
+        return hash(self.data)
