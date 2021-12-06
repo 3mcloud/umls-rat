@@ -118,6 +118,8 @@ _NONE = "NONE"
 
 
 class Result(object):
+    """TODO REMOVE THIS OBJECT"""
+
     def __init__(self, api: MetaThesaurus, data: Dict):
         self.api = api
         self.data = data
@@ -145,3 +147,9 @@ class Result(object):
 
     def __repr__(self):
         return str(self)
+
+    def __eq__(self, other):
+        return self.data == other.data
+
+    def __hash__(self):
+        return hash(self.data)
