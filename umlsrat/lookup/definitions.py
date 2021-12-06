@@ -91,7 +91,7 @@ def find_definitions(api: MetaThesaurus,
                      source_vocab: str, source_code: str, source_desc: str = None,
                      num_defs: int = 0, max_distance: int = 0,
                      target_lang: str = 'ENG') -> List[Dict]:
-    logger.info(f"Finding definitions of {source_vocab}/{source_code} ({source_desc})")
+    logger.info(f"Finding definitions of {source_vocab}/{source_code} [{source_desc}]")
     target_vocabs = vocab_info.vocabs_for_language(target_lang)
     assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
