@@ -93,9 +93,7 @@ def find_definitions(api: MetaThesaurus,
     assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
     def do_bfs(start_cui: str):
-        if not start_cui:
-            return None
-
+        assert start_cui
         data = definitions_bfs(api,
                                start_cui=start_cui,
                                num_defs=num_defs,
@@ -107,9 +105,11 @@ def find_definitions(api: MetaThesaurus,
         return data
 
     cui = find_umls(api, source_vocab, source_code)
-    defs = do_bfs(cui)
-    if defs:
-        return defs
+    if cui:
+        logger.info(f"Searching base CUI {cui}")
+        defs = do_bfs(cui)
+        if defs:
+            return defs
 
     # did not find the concept directly (by code)
     if source_desc:
@@ -119,6 +119,7 @@ def find_definitions(api: MetaThesaurus,
             # todo don't take concepts that are too far from original?
             for concept in search_result['concepts']:
                 cui = concept['ui']
+                logger.info(f"Searching term CUI {cui}")
                 defs = do_bfs(cui)
                 if defs:
                     return defs

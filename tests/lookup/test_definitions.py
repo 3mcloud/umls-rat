@@ -27,7 +27,6 @@ def test_wrist():
 
 def test_find_definitions():
     data = definitions.find_definitions(api, 'snomed', '282024004', num_defs=2, target_lang='ENG')
-    print(data)
     values = [_['value'] for _ in data]
     assert values == ['region of the back between thorax and pelvis.',
                       'The part of the spine in the lower back that consists of the lumbar region and the sacrum.',
@@ -39,7 +38,6 @@ def test_find_definitions_desc():
                                         source_code='37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2',
                                         source_desc='Room air (substance)',
                                         num_defs=2)
-    print(data)
     values = [_['value'] for _ in data]
     assert values == ['Unmodified air as existing in the immediate surroundings.',
                       "The mixture of gases present in the earth's atmosphere consisting of oxygen, nitrogen, carbon dioxide, and small amounts of other gases.",
