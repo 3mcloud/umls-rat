@@ -25,13 +25,13 @@ def do_search(term: str) -> Dict:
 
 def test_search():
     c1 = do_search("Room air")
-    print(c1)
+    assert c1
     c2 = do_search("Room Air")
-    print(c2)
+    assert c2
     c3 = do_search("Room air (substance)")
-    print(c3)
+    assert c3
     c4 = do_search("Anticoagulant")
-    print(c4)
+    assert c4
 
     assert c1 == c2
     assert c1 == c3
