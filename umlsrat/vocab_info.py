@@ -5,15 +5,15 @@ import functools
 import os
 from typing import NamedTuple, Optional, List
 
-from umlsrat.util.shitty_df import ShittyDF
+from umlsrat.util.cheap_df import CheapDF
 
 _THIS_DIR = os.path.dirname(os.path.normpath(__file__))
 _VOCABULARIES_CSV = os.path.join(_THIS_DIR, 'vocabularies.csv')
 
 
 @functools.lru_cache(maxsize=1)
-def VOCAB_INFO() -> ShittyDF:
-    return ShittyDF(_VOCABULARIES_CSV, 'Abbreviation')
+def VOCAB_INFO() -> CheapDF:
+    return CheapDF(_VOCABULARIES_CSV, 'Abbreviation')
 
 
 def normalize_abbrev(abbrev: str) -> str:

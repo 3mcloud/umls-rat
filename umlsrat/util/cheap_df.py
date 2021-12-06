@@ -7,9 +7,9 @@ def _norm_field_name(field_name: str):
     return field_name.replace(' ', '')
 
 
-class ShittyDF(OrderedDict):
+class CheapDF(OrderedDict):
     def __init__(self, csv_path: str, index: str):
-        super(ShittyDF, self).__init__()
+        super(CheapDF, self).__init__()
         self._index_name = index
         with open(csv_path, 'r', encoding='utf8') as fp:
             reader = csv.reader(fp)
