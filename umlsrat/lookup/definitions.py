@@ -85,27 +85,23 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
     return definitions
 
 
-def find_definitions_data(api: MetaThesaurus,
-                          vocab_name: str, code: str,
-                          num_defs: int = 0, max_distance: int = 0,
-                          target_lang: str = 'ENG') -> List[Dict]:
+def find_definitions(api: MetaThesaurus,
+                     vocab_name: str, code: str,
+                     num_defs: int = 0, max_distance: int = 0,
+                     target_lang: str = 'ENG') -> List[Dict]:
     target_vocabs = vocab_info.vocabs_for_language(target_lang)
     assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
     cui = find_umls(api, vocab_name, code)
     if not cui:
         return []
 
-    return definitions_bfs(api,
+    data = definitions_bfs(api,
                            start_cui=cui,
                            num_defs=num_defs,
                            max_distance=max_distance,
                            target_vocabs=target_vocabs)
 
+    for datum in data:
+        datum['value'] = misc.strip_tags(datum['value'])
 
-def find_definitions(api: MetaThesaurus,
-                     vocab_name: str, code: str,
-                     num_defs: int = 0, max_distance: int = 0,
-                     target_lang: str = 'ENG') -> List[str]:
-    defs = find_definitions_data(api, vocab_name, code, num_defs, max_distance, target_lang)
-
-    return [misc.strip_tags(_['value']) for _ in defs]
+    return data

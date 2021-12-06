@@ -149,7 +149,7 @@ class Result(object):
         return str(self)
 
     def __eq__(self, other):
-        return self.data == other.data
+        return isinstance(other, Result) and self.data == other.data
 
     def __hash__(self):
         return hash(self.data)

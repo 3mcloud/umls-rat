@@ -26,8 +26,9 @@ def test_wrist():
 
 
 def test_find_definitions():
-    defs = definitions.find_definitions(api, 'snomed', '282024004', num_defs=2, target_lang='ENG')
-    print(defs)
-    assert defs == ['region of the back between thorax and pelvis.',
-                    'The part of the spine in the lower back that consists of the lumbar region and the sacrum.',
-                    'Region of the back including the LUMBAR VERTEBRAE, SACRUM, and nearby structures.']
+    data = definitions.find_definitions(api, 'snomed', '282024004', num_defs=2, target_lang='ENG')
+    print(data)
+    values = [_['value'] for _ in data]
+    assert values == ['region of the back between thorax and pelvis.',
+                      'The part of the spine in the lower back that consists of the lumbar region and the sacrum.',
+                      'Region of the back including the LUMBAR VERTEBRAE, SACRUM, and nearby structures.']
