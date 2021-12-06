@@ -30,6 +30,8 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
     while to_visit:
 
         current_cui = to_visit.peek()
+        current_concept = api.get_concept(current_cui)
+        reduced_concept = {k: current_concept[k] for k in ('ui', 'name')}
         current_dist = distances.peek()
 
         cur_defs = api.get_definitions(current_cui)
@@ -41,6 +43,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
         # add to definitions
         for def_dict in cur_defs:
             def_dict['distance'] = current_dist
+            def_dict['concept'] = reduced_concept
             definitions.append(def_dict)
 
         ## Finished Visiting
