@@ -45,6 +45,10 @@ def vocabs_for_language(lang: str) -> List[str]:
             if info.Language == lang]
 
 
+def available_vocabs() -> List[str]:
+    table = _get_vocab_table()
+    return list(table.keys())
+
 @functools.lru_cache(maxsize=1)
 def available_languages() -> List[str]:
     table = _get_vocab_table()

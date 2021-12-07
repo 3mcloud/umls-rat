@@ -6,16 +6,20 @@ import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import find_definitions
-from umlsrat.vocab_info import available_languages
+from umlsrat.vocab_info import available_languages, available_vocabs
 
 
 def main():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--source-code', help='Find definitions for this code.', type=str,
-                        required=True)
-    parser.add_argument('--source-vocab', help='The code can be found in this vocabulary',
-                        default='SNOMEDCT_US')
+    source_group = parser.add_argument_group("Source")
+    source_group.add_argument('--source-code',
+                              help='Find definitions for this code.',
+                              type=str, required=True)
+    source_group.add_argument('--source-vocab', help='The code can be found in this vocabulary',
+                              type=str, default='SNOMEDCT_US', choices=available_vocabs())
+    # source_group.add_argument('--source-desc', help='A description of the source code.',
+    #                           type=str, default=None)
 
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',

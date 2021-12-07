@@ -1,6 +1,6 @@
 import csv
 from collections import namedtuple, OrderedDict
-from typing import Tuple, Iterable, Iterator, Any, ItemsView, ValuesView
+from typing import Tuple, Iterable, Iterator, Any, ItemsView, ValuesView, KeysView
 
 
 def _norm_field_name(field_name: Any) -> str:
@@ -37,6 +37,9 @@ class SimpleTable(object):
 
     def values(self) -> ValuesView:
         return self._data.values()
+
+    def keys(self) -> KeysView:
+        return self._data.keys()
 
     @staticmethod
     def load_csv(csv_path: str, index_field: str) -> 'SimpleTable':
