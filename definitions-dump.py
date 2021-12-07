@@ -3,32 +3,12 @@ import json
 import logging
 import os
 import sys
-import textwrap
-from typing import *
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.definitions import find_definitions
-from umlsrat.util import misc
+from umlsrat.lookup.definitions import find_definitions, definitions_to_string
 from umlsrat.vocab_info import available_languages, available_vocabs
 
 logger = logging.getLogger(os.path.basename(__file__))
-
-
-def _entry_to_string(name: str, definitions: List[Dict]) -> str:
-    string = ""
-    string += f"{name}\n"
-    string += "=" * len(name)
-    string += "\n"
-    enum_defs = (textwrap.fill(f"({x + 1}) {datum['value']}")
-                 for x, datum in enumerate(definitions))
-    string += "\n".join(enum_defs)
-    return string
-
-
-def definitions_to_string(definitions: List[Dict]) -> str:
-    grouped = misc.group_data(definitions, key=lambda _: _['concept']['name'])
-    entries = (_entry_to_string(*args) for args in grouped.items())
-    return "\n\n".join(entries)
 
 
 def main():

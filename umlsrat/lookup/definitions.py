@@ -1,5 +1,7 @@
+import itertools
 import logging
 import os.path
+import textwrap
 from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
@@ -158,3 +160,20 @@ def find_definitions(api: MetaThesaurus,
                     return defs
 
     return []
+
+
+def _entry_to_string(name: str, definitions: List[Dict]) -> str:
+    string = ""
+    string += f"{name}\n"
+    string += "=" * len(name)
+    string += "\n"
+    enum_defs = (textwrap.fill(f"({x + 1}) {datum['value']}")
+                 for x, datum in enumerate(definitions))
+    string += "\n".join(enum_defs)
+    return string
+
+
+def definitions_to_string(definitions: List[Dict]) -> str:
+    grouped = itertools.groupby(definitions, key=lambda _: _['concept']['name'])
+    entries = (_entry_to_string(*args) for args in grouped)
+    return "\n\n".join(entries)
