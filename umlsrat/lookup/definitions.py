@@ -88,10 +88,39 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
 
 
 def find_definitions(api: MetaThesaurus,
-                     source_vocab: str, source_code: str, source_desc: str = None,
-                     num_defs: int = 0, max_distance: int = 0,
+                     source_vocab: str = None, source_code: str = None, source_desc: str = None,
+                     num_defs: int = 1, max_distance: int = 0,
                      target_lang: str = 'ENG') -> List[Dict]:
-    logger.info(f"Finding definitions of {source_vocab}/{source_code} [{source_desc}]")
+    """
+    Find definitions in UMLS MetaThesaurus.
+
+    :param api: base MetaThesaurus API object
+    :param source_vocab: source vocab
+    :param source_code: source code
+    :param source_desc: source description
+    :param num_defs: stop searching after finding this many definitions (0 = Infinity)
+    :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
+    :param target_lang: target definitions in this language?
+    :return: a list of Description objects as dictionaries
+    """
+    assert num_defs >= 0
+    assert max_distance >= 0
+
+    if source_code:
+        assert source_vocab, f"Must provide source vocab for code {source_code}"
+    else:
+        assert source_desc, "Must provide either source code and vocab or descriptor (source_desc)"
+
+    if logger.isEnabledFor(logging.INFO):
+        msg = f"Finding {num_defs} {target_lang} definition(s) of"
+        if source_code:
+            msg = f"{msg} {source_vocab}/{source_code}"
+
+        if source_desc:
+            msg = f"{msg} [{source_desc}]"
+
+        logger.info(msg)
+
     target_vocabs = vocab_info.vocabs_for_language(target_lang)
     assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
@@ -107,12 +136,13 @@ def find_definitions(api: MetaThesaurus,
 
         return data
 
-    cui = find_umls(api, source_vocab, source_code)
-    if cui:
-        logger.info(f"Searching base CUI {cui}")
-        defs = do_bfs(cui)
-        if defs:
-            return defs
+    if source_code:
+        cui = find_umls(api, source_vocab, source_code)
+        if cui:
+            logger.info(f"Searching base CUI {cui}")
+            defs = do_bfs(cui)
+            if defs:
+                return defs
 
     # did not find the concept directly (by code)
     if source_desc:

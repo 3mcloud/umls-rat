@@ -3,10 +3,32 @@ import json
 import logging
 import os
 import sys
+import textwrap
+from typing import *
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import find_definitions
+from umlsrat.util import misc
 from umlsrat.vocab_info import available_languages, available_vocabs
+
+logger = logging.getLogger(os.path.basename(__file__))
+
+
+def _entry_to_string(name: str, definitions: List[Dict]) -> str:
+    string = ""
+    string += f"{name}\n"
+    string += "=" * len(name)
+    string += "\n"
+    enum_defs = (textwrap.fill(f"({x + 1}) {datum['value']}")
+                 for x, datum in enumerate(definitions))
+    string += "\n".join(enum_defs)
+    return string
+
+
+def definitions_to_string(definitions: List[Dict]) -> str:
+    grouped = misc.group_data(definitions, key=lambda _: _['concept']['name'])
+    entries = (_entry_to_string(*args) for args in grouped.items())
+    return "\n\n".join(entries)
 
 
 def main():
@@ -15,17 +37,20 @@ def main():
     source_group = parser.add_argument_group("Source")
     source_group.add_argument('--source-code',
                               help='Find definitions for this code.',
-                              type=str, required=True)
+                              type=str, default=None)
     source_group.add_argument('--source-vocab', help='The code can be found in this vocabulary',
                               type=str, default='SNOMEDCT_US', choices=available_vocabs())
-    # source_group.add_argument('--source-desc', help='A description of the source code.',
-    #                           type=str, default=None)
+    source_group.add_argument('--source-desc', help='A description of the source code.',
+                              type=str, default=None)
 
     parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
                         type=int, default=0)
     parser.add_argument('--target-language', help='Target language for definitions.',
-                        default='ENG', choices=available_languages())
+                        type=str, default='ENG', choices=available_languages())
+
+    parser.add_argument('--out-dir', help='Write output to this directory.',
+                        type=str, default='definitions')
 
     parser.add_argument('--api-key', type=str, help="API key",
                         default='cf4e9f8f-a40c-4225-94e9-24ca9282b887')
@@ -35,6 +60,7 @@ def main():
 
     source_code = args.source_code
     source_vocab = args.source_vocab
+    source_desc = args.source_desc
 
     num_defs = args.num_defs
     target_language = args.target_language
@@ -43,12 +69,24 @@ def main():
         api=api,
         source_vocab=source_vocab,
         source_code=source_code,
+        source_desc=source_desc,
         num_defs=num_defs,
         target_lang=target_language
     )
 
-    os.makedirs(source_vocab, exist_ok=True)
-    with open(os.path.join(source_vocab, f'{source_code}.json'), 'w', encoding='utf-8') as ofp:
+    logger.info("Definitions:\n" + definitions_to_string(definitions))
+
+    out_dir = args.out_dir
+    out_dir = os.path.join(out_dir, target_language)
+
+    if source_code:
+        out_file = f"{source_vocab}-{source_code}.json"
+    else:
+        out_file = f"{source_desc}.json"
+
+    os.makedirs(out_dir, exist_ok=True)
+
+    with open(os.path.join(out_dir, out_file), 'w', encoding='utf-8') as ofp:
         json.dump(definitions, ofp, indent=2)
 
 

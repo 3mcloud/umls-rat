@@ -61,3 +61,15 @@ def test_find_poa():
                                         num_defs=2)
     values = [_['value'] for _ in data]
     assert values
+
+
+def test_find_without_code():
+    data = definitions.find_definitions(api, source_desc="Cancer")
+    values = [_['value'] for _ in data]
+    assert values
+
+
+def test_find_spanish():
+    data = definitions.find_definitions(api, source_desc="Cancer", target_lang='SPA')
+    values = [_['value'] for _ in data]
+    assert values
