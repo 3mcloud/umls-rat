@@ -23,9 +23,9 @@ def main():
     source_group.add_argument('--source-desc', help='A description of the source code.',
                               type=str, default=None)
 
-    parser.add_argument('--num-defs', help='Stop searching after this many definitions. '
+    parser.add_argument('--min-num-defs', help='Stop searching after this many definitions. '
                                            '0 = infinity',
-                        type=int, default=0)
+                        type=int, default=2)
     parser.add_argument('--target-language', help='Target language for definitions.',
                         type=str, default='ENG', choices=available_languages())
 
@@ -42,7 +42,7 @@ def main():
     source_vocab = args.source_vocab
     source_desc = args.source_desc
 
-    num_defs = args.num_defs
+    min_num_defs = args.min_num_defs
     target_language = args.target_language
 
     definitions = find_definitions(
@@ -50,7 +50,7 @@ def main():
         source_vocab=source_vocab,
         source_code=source_code,
         source_desc=source_desc,
-        num_defs=num_defs,
+        min_num_defs=min_num_defs,
         target_lang=target_language
     )
 

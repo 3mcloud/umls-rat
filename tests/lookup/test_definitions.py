@@ -26,7 +26,7 @@ def test_wrist():
 
 
 def test_find_definitions():
-    data = definitions.find_definitions(api, 'snomed', '282024004', num_defs=2, target_lang='ENG')
+    data = definitions.find_definitions(api, 'snomed', '282024004', min_num_defs=2, target_lang='ENG')
     values = [_['value'] for _ in data]
     assert values == ['region of the back between thorax and pelvis.',
                       'The part of the spine in the lower back that consists of the lumbar region and the sacrum.',
@@ -37,7 +37,7 @@ def test_find_room_air():
     data = definitions.find_definitions(api, source_vocab='snomed',
                                         source_code='37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2',
                                         source_desc='Room air (substance)',
-                                        num_defs=2)
+                                        min_num_defs=2)
     values = [_['value'] for _ in data]
     assert values == ['Unmodified air as existing in the immediate surroundings.',
                       "The mixture of gases present in the earth's atmosphere consisting of oxygen, nitrogen, carbon dioxide, and small amounts of other gases.",
@@ -48,7 +48,7 @@ def test_find_low_suspicion():
     data = definitions.find_definitions(api, source_vocab='snomed',
                                         source_code='c917af35-7249-4ec6-9062-68e6b83ff82a',
                                         source_desc="Low suspicion",
-                                        num_defs=2)
+                                        min_num_defs=2)
     values = [_['value'] for _ in data]
     assert values
 
@@ -58,7 +58,7 @@ def test_find_poa():
     data = definitions.find_definitions(api, source_vocab='snomed',
                                         source_code='6c8c4505-926c-4ebb-805d-5c73fb650e3c',
                                         source_desc="Present on admission (qualifier value)",
-                                        num_defs=2)
+                                        min_num_defs=2)
     values = [_['value'] for _ in data]
     assert values
 
