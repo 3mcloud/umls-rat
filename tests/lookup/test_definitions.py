@@ -54,14 +54,22 @@ def test_find_low_suspicion():
 
 
 def test_find_poa():
-    # INFO:definitions.py:Finding definitions of snomed/ []
     data = definitions.find_definitions(api, source_vocab='snomed',
                                         source_code='6c8c4505-926c-4ebb-805d-5c73fb650e3c',
                                         source_desc="Present on admission (qualifier value)",
                                         min_num_defs=2)
+    print(definitions.definitions_to_string(data))
     values = [_['value'] for _ in data]
     assert values
 
+def test_find_bipolar():
+    data = definitions.find_definitions(api, source_vocab='snomed',
+                                        source_code='260994008',
+                                        source_desc="Bipolar (qualifier value)",
+                                        min_num_defs=2)
+    print(definitions.definitions_to_string(data))
+    values = [_['value'] for _ in data]
+    assert values
 
 def test_find_without_code():
     data = definitions.find_definitions(api, source_desc="Cancer")
