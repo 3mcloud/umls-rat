@@ -14,9 +14,12 @@ from umlsrat.util.orderedset import UniqueFIFO, FIFO
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_distance=0,
+def definitions_bfs(api: MetaThesaurus, start_cui: str,
+                    min_num_defs: int = 0, max_distance: int = 0,
                     target_vocabs: Optional[Iterable[str]] = None) -> List[Dict]:
-    assert num_defs >= 0
+    assert api
+    assert start_cui
+    assert min_num_defs >= 0
     assert max_distance >= 0
 
     if target_vocabs:
@@ -57,7 +60,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str, num_defs: int = 0, max_d
                     f"numToVisit = {len(to_visit)} "
                     f"numVisited = {len(visited)}")
 
-        if num_defs and len(definitions) >= num_defs:
+        if min_num_defs and len(definitions) >= min_num_defs:
             break
 
         if max_distance and max_distance >= current_dist:
@@ -130,7 +133,7 @@ def find_definitions(api: MetaThesaurus,
         assert start_cui
         data = definitions_bfs(api,
                                start_cui=start_cui,
-                               num_defs=min_num_defs,
+                               min_num_defs=min_num_defs,
                                max_distance=max_distance,
                                target_vocabs=target_vocabs)
         for datum in data:

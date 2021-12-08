@@ -8,7 +8,7 @@ api = MetaThesaurus(rklopfer_api_key)
 
 def find_single_mesh_def(snomed_code: str) -> str:
     cui = find_umls(api, "SNOMEDCT_US", snomed_code)
-    def_dict = definitions.definitions_bfs(api, cui, num_defs=1, target_vocabs=('MSH',)).pop()
+    def_dict = definitions.definitions_bfs(api, cui, min_num_defs=1, target_vocabs=('MSH',)).pop()
     return def_dict['value']
 
 
