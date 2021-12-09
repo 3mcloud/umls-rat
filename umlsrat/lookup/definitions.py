@@ -35,8 +35,6 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
     while to_visit:
 
         current_cui = to_visit.peek()
-        current_concept = api.get_concept(current_cui)
-        reduced_concept = {k: current_concept[k] for k in ('ui', 'name')}
         current_dist = distances.peek()
 
         cur_defs = api.get_definitions(current_cui)
@@ -45,11 +43,20 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
             cur_defs = [_ for _ in cur_defs
                         if _['rootSource'] in target_vocabs]
 
-        # add to definitions
-        for def_dict in cur_defs:
-            def_dict['distance'] = current_dist
-            def_dict['concept'] = reduced_concept
-            definitions.append(def_dict)
+        if cur_defs:
+            current_concept = api.get_concept(current_cui)
+            reduced_concept = {k: current_concept[k] for k in ('ui', 'name')}
+            semantic_types = current_concept.get('semanticTypes')
+            if semantic_types:
+                type_defs = [api.get_single_result(_['uri']).get('definition')
+                             for _ in semantic_types]
+                reduced_concept['semanticTypeDefs'] = type_defs
+
+            # add to definitions
+            for def_dict in cur_defs:
+                def_dict['distance'] = current_dist
+                def_dict['concept'] = reduced_concept
+                definitions.append(def_dict)
 
         ## Finished Visiting
         visited.add(to_visit.pop())
