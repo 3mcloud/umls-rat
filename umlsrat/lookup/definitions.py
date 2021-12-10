@@ -14,9 +14,13 @@ from umlsrat.util.orderedset import UniqueFIFO, FIFO
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def definitions_bfs(api: MetaThesaurus, start_cui: str,
-                    min_num_defs: int = 0, max_distance: int = 0,
-                    target_vocabs: Optional[Iterable[str]] = None) -> List[Dict]:
+def definitions_bfs(
+    api: MetaThesaurus,
+    start_cui: str,
+    min_num_defs: int = 0,
+    max_distance: int = 0,
+    target_vocabs: Optional[Iterable[str]] = None,
+) -> List[Dict]:
     assert api
     assert start_cui
     assert min_num_defs >= 0
@@ -31,7 +35,7 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
     visited = set()
     definitions = []
 
-    allowed_relations = ('SY', 'RN', 'CHD')
+    allowed_relations = ("SY", "RN", "CHD")
     while to_visit:
 
         current_cui = to_visit.peek()
@@ -40,32 +44,35 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
         cur_defs = api.get_definitions(current_cui)
         if target_vocabs:
             # filter defs not in target vocab
-            cur_defs = [_ for _ in cur_defs
-                        if _['rootSource'] in target_vocabs]
+            cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
 
         if cur_defs:
             current_concept = api.get_concept(current_cui)
-            reduced_concept = {k: current_concept[k] for k in ('ui', 'name')}
-            semantic_types = current_concept.get('semanticTypes')
+            reduced_concept = {k: current_concept[k] for k in ("ui", "name")}
+            semantic_types = current_concept.get("semanticTypes")
             if semantic_types:
-                type_defs = [api.get_single_result(_['uri']).get('definition')
-                             for _ in semantic_types]
-                reduced_concept['semanticTypeDefs'] = type_defs
+                type_defs = [
+                    api.get_single_result(_["uri"]).get("definition")
+                    for _ in semantic_types
+                ]
+                reduced_concept["semanticTypeDefs"] = type_defs
 
             # add to definitions
             for def_dict in cur_defs:
-                def_dict['distance'] = current_dist
-                def_dict['concept'] = reduced_concept
+                def_dict["distance"] = current_dist
+                def_dict["concept"] = reduced_concept
                 definitions.append(def_dict)
 
         ## Finished Visiting
         visited.add(to_visit.pop())
         distances.pop()
 
-        logger.info(f"curDistance = {current_dist} "
-                    f"numDefinitions = {len(definitions)} "
-                    f"numToVisit = {len(to_visit)} "
-                    f"numVisited = {len(visited)}")
+        logger.info(
+            f"curDistance = {current_dist} "
+            f"numDefinitions = {len(definitions)} "
+            f"numToVisit = {len(to_visit)} "
+            f"numVisited = {len(visited)}"
+        )
 
         if min_num_defs and len(definitions) >= min_num_defs:
             break
@@ -79,9 +86,9 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
         # group by relation type
         grouped = defaultdict(list)
         for rc in related_concepts:
-            rcuid = rc['concept']
+            rcuid = rc["concept"]
             if rcuid not in visited and rcuid not in to_visit:
-                grouped[rc['label']].append(rcuid)
+                grouped[rc["label"]].append(rcuid)
 
         for rtype in allowed_relations:
             cuis = grouped[rtype]
@@ -99,10 +106,15 @@ def definitions_bfs(api: MetaThesaurus, start_cui: str,
     return definitions
 
 
-def find_definitions(api: MetaThesaurus,
-                     source_vocab: str = None, source_code: str = None, source_desc: str = None,
-                     min_num_defs: int = 1, max_distance: int = 0,
-                     target_lang: str = 'ENG') -> List[Dict]:
+def find_definitions(
+    api: MetaThesaurus,
+    source_vocab: str = None,
+    source_code: str = None,
+    source_desc: str = None,
+    min_num_defs: int = 1,
+    max_distance: int = 0,
+    target_lang: str = "ENG",
+) -> List[Dict]:
     """
     Find definitions in UMLS MetaThesaurus.
 
@@ -121,7 +133,9 @@ def find_definitions(api: MetaThesaurus,
     if source_code:
         assert source_vocab, f"Must provide source vocab for code {source_code}"
     else:
-        assert source_desc, "Must provide either source code and vocab or descriptor (source_desc)"
+        assert (
+            source_desc
+        ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
         msg = f"Finding {min_num_defs} {target_lang} definition(s) of"
@@ -138,13 +152,15 @@ def find_definitions(api: MetaThesaurus,
 
     def do_bfs(start_cui: str):
         assert start_cui
-        data = definitions_bfs(api,
-                               start_cui=start_cui,
-                               min_num_defs=min_num_defs,
-                               max_distance=max_distance,
-                               target_vocabs=target_vocabs)
+        data = definitions_bfs(
+            api,
+            start_cui=start_cui,
+            min_num_defs=min_num_defs,
+            max_distance=max_distance,
+            target_vocabs=target_vocabs,
+        )
         for datum in data:
-            datum['value'] = misc.strip_tags(datum['value'])
+            datum["value"] = misc.strip_tags(datum["value"])
 
         return data
 
@@ -162,8 +178,8 @@ def find_definitions(api: MetaThesaurus,
         search_result = term_search(api, source_desc)
         if search_result:
             # todo don't take concepts that are too far from original?
-            for concept in search_result['concepts']:
-                cui = concept['ui']
+            for concept in search_result["concepts"]:
+                cui = concept["ui"]
                 logger.info(f"Searching term CUI {cui}")
                 defs = do_bfs(cui)
                 if defs:
@@ -177,13 +193,15 @@ def _entry_to_string(name: str, definitions: List[Dict]) -> str:
     string += f"{name}\n"
     string += "=" * len(name)
     string += "\n"
-    enum_defs = (textwrap.fill(f"({x + 1}) {datum['value']}")
-                 for x, datum in enumerate(definitions))
+    enum_defs = (
+        textwrap.fill(f"({x + 1}) {datum['value']}")
+        for x, datum in enumerate(definitions)
+    )
     string += "\n".join(enum_defs)
     return string
 
 
 def definitions_to_string(definitions: List[Dict]) -> str:
-    grouped = itertools.groupby(definitions, key=lambda _: _['concept']['name'])
+    grouped = itertools.groupby(definitions, key=lambda _: _["concept"]["name"])
     entries = (_entry_to_string(*args) for args in grouped)
     return "\n\n".join(entries)
