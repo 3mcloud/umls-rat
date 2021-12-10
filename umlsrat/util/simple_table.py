@@ -4,7 +4,7 @@ from typing import Tuple, Iterable, Iterator, Any, ItemsView, ValuesView, KeysVi
 
 
 def _norm_field_name(field_name: Any) -> str:
-    return str(field_name).replace(' ', '')
+    return str(field_name).replace(" ", "")
 
 
 class SimpleTable(object):
@@ -18,15 +18,15 @@ class SimpleTable(object):
         # make them valid field names
         self._field_names = tuple(_norm_field_name(_) for _ in header)
         assert index_field in self._field_names
-        row_type = namedtuple('RowType', self._field_names)
+        row_type = namedtuple("RowType", self._field_names)
 
         for row in all_rows:
             datum = row_type(*row)
             idx_val = getattr(datum, index_field)
             incumbent = self._data.get(idx_val)
-            assert not incumbent, \
-                f"Value already exists for index {idx_val}:\n" \
-                f"{incumbent}"
+            assert not incumbent, (
+                f"Value already exists for index {idx_val}:\n" f"{incumbent}"
+            )
             self._data[idx_val] = datum
 
     def get(self, index_val):
@@ -42,8 +42,8 @@ class SimpleTable(object):
         return self._data.keys()
 
     @staticmethod
-    def load_csv(csv_path: str, index_field: str) -> 'SimpleTable':
-        with open(csv_path, 'r', encoding='utf8') as fp:
+    def load_csv(csv_path: str, index_field: str) -> "SimpleTable":
+        with open(csv_path, "r", encoding="utf8") as fp:
             reader = csv.reader(fp)
             return SimpleTable(reader, index_field)
 

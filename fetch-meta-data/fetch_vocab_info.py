@@ -30,12 +30,18 @@ def main(args: argparse.Namespace):
     print(df)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--url', help="", type=str,
-                        default='https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html')
-    parser.add_argument('-o', '--out-file', help="", type=str, default='vocabularies.csv')
+    parser.add_argument(
+        "--url",
+        help="",
+        type=str,
+        default="https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html",
+    )
+    parser.add_argument(
+        "-o", "--out-file", help="", type=str, default="vocabularies.csv"
+    )
     args = parser.parse_args()
 
     sys.exit(main(args))

@@ -5,7 +5,7 @@ from typing import List
 
 
 def strip_tags(text: str) -> str:
-    return re.sub(r'<[^<]+?>', '', text.strip())
+    return re.sub(r"<[^<]+?>", "", text.strip())
 
 
 def group_data(data: Iterable, key: Callable[[Any], Any]) -> Dict[Any, List]:

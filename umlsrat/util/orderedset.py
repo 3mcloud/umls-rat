@@ -6,8 +6,10 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 
 class FIFO(object):
-    def __init__(self,
-                 iterable: Optional[Iterable] = None, ):
+    def __init__(
+        self,
+        iterable: Optional[Iterable] = None,
+    ):
         if iterable:
             self._list = list(iterable)
         else:
@@ -44,9 +46,11 @@ class FIFO(object):
 
 
 class UniqueFIFO(object):
-    def __init__(self,
-                 iterable: Optional[Iterable] = None,
-                 keyfn: Optional[Callable[[Any], Any]] = None):
+    def __init__(
+        self,
+        iterable: Optional[Iterable] = None,
+        keyfn: Optional[Callable[[Any], Any]] = None,
+    ):
         self._uniq = set()
         self._list = list()
         if keyfn:

@@ -9,12 +9,12 @@ from typing import NamedTuple, Optional, List
 from umlsrat.util.simple_table import SimpleTable
 
 _THIS_DIR = os.path.dirname(os.path.normpath(__file__))
-_VOCABULARIES_CSV = os.path.join(_THIS_DIR, 'vocabularies.csv')
+_VOCABULARIES_CSV = os.path.join(_THIS_DIR, "vocabularies.csv")
 
 
 @functools.lru_cache(maxsize=1)
 def _get_vocab_table() -> SimpleTable:
-    return SimpleTable.load_csv(csv_path=_VOCABULARIES_CSV, index_field='Abbreviation')
+    return SimpleTable.load_csv(csv_path=_VOCABULARIES_CSV, index_field="Abbreviation")
 
 
 def normalize_abbrev(abbrev: str) -> str:
@@ -40,26 +40,24 @@ def validate_vocab_abbrev(abbrev: str) -> str:
 
 @functools.lru_cache(maxsize=2)
 def vocabs_for_language(lang: str) -> List[str]:
-    return [info.Abbreviation
-            for info in _get_vocab_table().values()
-            if info.Language == lang]
+    return [
+        info.Abbreviation
+        for info in _get_vocab_table().values()
+        if info.Language == lang
+    ]
 
 
 def available_vocabs() -> List[str]:
     table = _get_vocab_table()
     return list(table.keys())
 
+
 @functools.lru_cache(maxsize=1)
 def available_languages() -> List[str]:
     table = _get_vocab_table()
-    cnt = Counter(info.Language
-                  for info in table.values()
-                  if info.Language)
+    cnt = Counter(info.Language for info in table.values() if info.Language)
     return [abbrev for abbrev, _ in cnt.most_common()]
 
 
 # Mapping from MModal Terminology CodeSystem names to Metathesaurus names
-_MM_CODE_SYS_MAP = {
-    'SNOMED-CT': 'SNOMEDCT_US',
-    'SNOMED': 'SNOMEDCT_US'
-}
+_MM_CODE_SYS_MAP = {"SNOMED-CT": "SNOMEDCT_US", "SNOMED": "SNOMEDCT_US"}

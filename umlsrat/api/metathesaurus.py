@@ -23,10 +23,7 @@ def _interp_value(value: Any):
 
 
 def _fix_res_dict(result: Dict) -> Dict:
-    return {
-        key: _interp_value(value)
-        for key, value in result.items()
-    }
+    return {key: _interp_value(value) for key, value in result.items()}
 
 
 def create_dict_list(response_json: Dict) -> List[Dict]:
@@ -43,19 +40,20 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 class MetaThesaurus(object):
     def __init__(self, api_key: str):
         self.auth = Authenticator(api_key)
-        self.version = 'current'
-        self._rest_uri = 'https://uts-ws.nlm.nih.gov/rest'
+        self.version = "current"
+        self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
 
     @property
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
     @functools.lru_cache(maxsize=None)
-    def _get_result(self, uri: str,
-                    add_params: Optional[Tuple[Tuple, ...]] = None) -> List[Dict]:
+    def _get_result(
+        self, uri: str, add_params: Optional[Tuple[Tuple, ...]] = None
+    ) -> List[Dict]:
         params = {str(key): str(value) for key, value in add_params}
-        assert 'ticket' not in params, "'ticket' should not be in params!!!"
-        params['ticket'] = self.auth.get_ticket()
+        assert "ticket" not in params, "'ticket' should not be in params!!!"
+        params["ticket"] = self.auth.get_ticket()
 
         r = verified_requests.get(uri, params=params)
         if r.status_code != 200:
@@ -69,13 +67,11 @@ class MetaThesaurus(object):
         if not uri:
             return list()
 
-        if 'ticket' in params:
+        if "ticket" in params:
             self.logger.warning(f"'ticket' should not be in params! removing it...")
-            del params['ticket']
+            del params["ticket"]
 
-        add_params = tuple(
-            tuple(_) for _ in params.items()
-        )
+        add_params = tuple(tuple(_) for _ in params.items())
 
         return copy.deepcopy(self._get_result(uri, add_params))
 
@@ -93,21 +89,21 @@ class MetaThesaurus(object):
     @property
     def _start_uri(self) -> str:
         """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
-        return f'{self._rest_uri}/content/{self.version}'
+        return f"{self._rest_uri}/content/{self.version}"
 
     def get_concept(self, cui: str) -> Dict:
         """https://documentation.uts.nlm.nih.gov/rest/concept/index.html"""
-        uri = f'{self._start_uri}/CUI/{cui}'
+        uri = f"{self._start_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
     def get_definitions(self, cui: str):
         """https://documentation.uts.nlm.nih.gov/rest/definitions/index.html"""
-        uri = f'{self._start_uri}/CUI/{cui}/definitions'
+        uri = f"{self._start_uri}/CUI/{cui}/definitions"
         return self.get_results(uri)
 
     def get_relations(self, cui: str):
         """https://documentation.uts.nlm.nih.gov/rest/relations/index.html"""
-        uri = f'{self._start_uri}/CUI/{cui}/relations'
+        uri = f"{self._start_uri}/CUI/{cui}/relations"
         return self.get_results(uri)
 
     def get_related_concepts(self, cui: str):
@@ -120,13 +116,13 @@ class MetaThesaurus(object):
 
         Because this is not documented it may change at any time, but I don't expect it to change in the near future.
         """
-        uri = f'https://uts-api.nlm.nih.gov/content/angular/current/CUI/{cui}/relatedConcepts'
+        uri = f"https://uts-api.nlm.nih.gov/content/angular/current/CUI/{cui}/relatedConcepts"
         results = self.get_results(uri)
         return results
 
     ### Search ###
     def search(self, string: str, **params):
-        uri = f'https://uts-ws.nlm.nih.gov/rest/search/{self.version}'
+        uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
         results = self.get_results(uri, string=string, **params)
         return results
 
@@ -136,5 +132,5 @@ class MetaThesaurus(object):
         https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
         """
         source_vocab = validate_vocab_abbrev(source_vocab)
-        uri = f'{self._start_uri}/source/{source_vocab}/{concept_id}'
+        uri = f"{self._start_uri}/source/{source_vocab}/{concept_id}"
         return self.get_single_result(uri)
