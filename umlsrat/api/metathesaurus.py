@@ -56,9 +56,7 @@ class MetaThesaurus(object):
         params["ticket"] = self.auth.get_ticket()
 
         r = verified_requests.get(uri, params=params)
-        if r.status_code != 200:
-            self.logger.debug(f"Request failed: {r.content}")
-            return []
+        r.raise_for_status()
 
         return create_dict_list(r.json())
 
