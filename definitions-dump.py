@@ -53,12 +53,8 @@ def main():
         default="definitions",
     )
 
-    parser.add_argument(
-        "--api-key",
-        type=str,
-        help="API key",
-        default="cf4e9f8f-a40c-4225-94e9-24ca9282b887",
-    )
+    parser.add_argument("--api-key", type=str, help="API key", required=True)
+
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
     api = MetaThesaurus(args.api_key)

@@ -1,12 +1,8 @@
-from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import definitions
 from umlsrat.lookup.umls import find_umls
 
-rklopfer_api_key = "cf4e9f8f-a40c-4225-94e9-24ca9282b887"
-api = MetaThesaurus(rklopfer_api_key)
 
-
-def find_single_mesh_def(snomed_code: str) -> str:
+def find_single_mesh_def(api, snomed_code: str) -> str:
     cui = find_umls(api, "SNOMEDCT_US", snomed_code)
     def_dict = definitions.definitions_bfs(
         api, cui, min_num_defs=1, target_vocabs=("MSH",)
@@ -14,9 +10,9 @@ def find_single_mesh_def(snomed_code: str) -> str:
     return def_dict["value"]
 
 
-def test_old_back():
+def test_old_back(api):
     # old back
-    definition = find_single_mesh_def("450807008")
+    definition = find_single_mesh_def(api, "450807008")
     assert (
         definition
         == "The rear surface of an upright primate from the shoulders to the hip, "
@@ -24,13 +20,13 @@ def test_old_back():
     )
 
 
-def test_wrist():
+def test_wrist(api):
     # Closed fracture of left wrist (10937761000119101)
-    definition = find_single_mesh_def("10937761000119101")
+    definition = find_single_mesh_def(api, "10937761000119101")
     assert definition == "Injuries to the wrist or the wrist joint."
 
 
-def test_find_definitions():
+def test_find_definitions(api):
     data = definitions.find_definitions(
         api, "snomed", "282024004", min_num_defs=2, target_lang="ENG"
     )
@@ -42,7 +38,7 @@ def test_find_definitions():
     ]
 
 
-def test_find_room_air():
+def test_find_room_air(api):
     data = definitions.find_definitions(
         api,
         source_vocab="snomed",
@@ -58,7 +54,7 @@ def test_find_room_air():
     ]
 
 
-def test_find_low_suspicion():
+def test_find_low_suspicion(api):
     data = definitions.find_definitions(
         api,
         source_vocab="snomed",
@@ -70,7 +66,7 @@ def test_find_low_suspicion():
     assert values
 
 
-def test_find_poa():
+def test_find_poa(api):
     data = definitions.find_definitions(
         api,
         source_vocab="snomed",
@@ -83,7 +79,7 @@ def test_find_poa():
     assert values
 
 
-def test_find_bipolar():
+def test_find_bipolar(api):
     data = definitions.find_definitions(
         api,
         source_vocab="snomed",
@@ -96,13 +92,13 @@ def test_find_bipolar():
     assert values
 
 
-def test_find_without_code():
+def test_find_without_code(api):
     data = definitions.find_definitions(api, source_desc="Cancer")
     values = [_["value"] for _ in data]
     assert values
 
 
-def test_find_spanish():
+def test_find_spanish(api):
     data = definitions.find_definitions(api, source_desc="Cancer", target_lang="SPA")
     values = [_["value"] for _ in data]
     assert values
