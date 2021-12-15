@@ -1,6 +1,6 @@
 import re
 
-from umlsrat.api import verified_requests
+from umlsrat.api.session import uncached_session, tgt_session
 
 uri = "https://utslogin.nlm.nih.gov"
 # option 1 - username/pw authentication at /cas/v1/tickets
@@ -17,9 +17,9 @@ class Authenticator(object):
         # self.password=password
         self.api_key = api_key
         self._auth_svc = "http://umlsks.nlm.nih.gov"
-        self._auth_target = self._get_auth_target()
+        self._auth_target = self._get_ticket_granting_ticket()
 
-    def _get_auth_target(self):
+    def _get_ticket_granting_ticket(self):
         # params = {'username': self.username,'password': self.password}
         params = {"apikey": self.api_key}
         h = {
@@ -27,7 +27,7 @@ class Authenticator(object):
             "Accept": "text/plain",
             "User-Agent": "python",
         }
-        r = verified_requests.post(uri + auth_endpoint, data=params, headers=h)
+        r = tgt_session().post(uri + auth_endpoint, data=params, headers=h)
         if r.status_code != 201:
             raise ValueError(f"Request failed: {r.content}")
         response_text = r.text
@@ -45,7 +45,7 @@ class Authenticator(object):
             "Accept": "text/plain",
             "User-Agent": "python",
         }
-        r = verified_requests.post(self._auth_target, data=params, headers=h)
+        r = uncached_session().post(self._auth_target, data=params, headers=h)
         if r.status_code != 200:
             raise ValueError(f"Request failed: {r.content}")
         st = r.text

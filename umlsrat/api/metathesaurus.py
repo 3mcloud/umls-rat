@@ -1,15 +1,14 @@
 import copy
 import functools
 import logging
+import time
 from typing import Dict, List, Optional, Tuple, Any
 
 from requests import HTTPError
 
-from umlsrat.api import verified_requests
 from umlsrat.api.auth import Authenticator
+from umlsrat.api.session import api_session
 from umlsrat.vocab_info import validate_vocab_abbrev
-
-# KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 _NONE = "NONE"
 
@@ -61,14 +60,23 @@ class MetaThesaurus(object):
         assert "ticket" not in params, "'ticket' should not be in params!!!"
         params["ticket"] = self.auth.get_ticket()
 
-        r = verified_requests.get(uri, params=params)
+        session = api_session()
+        cache_size = sum(1 for _ in session.cache.keys())
+        t0 = time.time()
+        r = session.get(uri, params=params)
+        time_delta = time.time() - t0
+        cache_delta = sum(1 for _ in session.cache.keys()) - cache_size
+        self.logger.info(
+            "Fetched %s in %f s %d new cache entries", uri, time_delta, cache_delta
+        )
+
         try:
             r.raise_for_status()
         except HTTPError as e:
             if strict:
                 raise e
 
-            self.logger.debug("Caught HTTPError: %s", e)
+            self.logger.warning("Caught HTTPError: %s", e)
             if e.response.status_code == 400:
                 # we interpret this as "you're looking for something that isn't there"
                 return []

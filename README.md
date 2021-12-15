@@ -14,7 +14,7 @@ definitions are not provided. The script `definitions-dump.py` provides example 
 Get definitions for this out-dated "back" concept: `450807008`
 
 ```bash
-python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --num-defs=2
+python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --min-num-defs=2 --api-key=<API_KEY>
 ```
     ...
     Back structure, including back of neck
@@ -37,7 +37,7 @@ python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --
 Now get one in Spanish
 
 ```bash
-python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --num-defs=1 --target-language=SPA
+python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --min-num-defs=1 --target-language=SPA --api-key=<API_KEY>
 ```
     ...
     Back
@@ -49,7 +49,7 @@ python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --
 Look for a concept using the description only
 
 ```bash
-python definitions-dump.py --source-desc="Physical therapy" --num-defs=1 --target-language=SPA
+python definitions-dump.py --source-desc="Physical therapy" --min-num-defs=1 --target-language=SPA --api-key=<API_KEY>
 ```
     ...
     Health Occupations
