@@ -3,6 +3,8 @@ import functools
 import logging
 from typing import Dict, List, Optional, Tuple, Any
 
+from requests import HTTPError
+
 from umlsrat.api import verified_requests
 from umlsrat.api.auth import Authenticator
 from umlsrat.vocab_info import validate_vocab_abbrev
@@ -49,14 +51,28 @@ class MetaThesaurus(object):
 
     @functools.lru_cache(maxsize=None)
     def _get_result(
-        self, uri: str, add_params: Optional[Tuple[Tuple, ...]] = None
+        self,
+        uri: str,
+        add_params: Optional[Tuple[Tuple, ...]] = None,
+        strict: Optional[bool] = False,
     ) -> List[Dict]:
         params = {str(key): str(value) for key, value in add_params}
         assert "ticket" not in params, "'ticket' should not be in params!!!"
         params["ticket"] = self.auth.get_ticket()
 
         r = verified_requests.get(uri, params=params)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except HTTPError as e:
+            if strict:
+                raise e
+
+            self.logger.debug("Caught HTTPError: %s", e)
+            if e.response.status_code == 400:
+                # we interpret this as "you're looking for something that isn't there"
+                return []
+            else:
+                raise e
 
         return create_dict_list(r.json())
 
@@ -65,13 +81,15 @@ class MetaThesaurus(object):
         if not uri:
             return list()
 
+        strict = params.pop("strict", False)
+
         if "ticket" in params:
             self.logger.warning(f"'ticket' should not be in params! removing it...")
             del params["ticket"]
 
         add_params = tuple(tuple(_) for _ in params.items())
 
-        return copy.deepcopy(self._get_result(uri, add_params))
+        return copy.deepcopy(self._get_result(uri, add_params, strict))
 
     def get_single_result(self, uri: str, **params) -> Optional[Dict]:
         """When you know there will only be one coming back"""
