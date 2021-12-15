@@ -1,8 +1,5 @@
-import copy
-import functools
 import logging
-import time
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 
 from requests import HTTPError
 
@@ -41,7 +38,6 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 class MetaThesaurus(object):
     def __init__(self, api_key: str, version: Optional[str] = "2021AB"):
         self.auth = Authenticator(api_key)
-        # self.version = "current"
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
 
@@ -49,26 +45,22 @@ class MetaThesaurus(object):
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    @functools.lru_cache(maxsize=None)
-    def _get_result(
-        self,
-        uri: str,
-        add_params: Optional[Tuple[Tuple, ...]] = None,
-        strict: Optional[bool] = False,
-    ) -> List[Dict]:
-        params = {str(key): str(value) for key, value in add_params}
-        assert "ticket" not in params, "'ticket' should not be in params!!!"
+    def get_results(self, uri: str, **params) -> List[Dict]:
+        """Get data from arbitrary URI wrapped in a list of Results"""
+        if not uri:
+            return list()
+
+        strict = params.pop("strict", False)
+
+        if "ticket" in params:
+            self.logger.warning(
+                f"'ticket' should not be in params! Will be overwritten..."
+            )
+
         params["ticket"] = self.auth.get_ticket()
 
         session = api_session()
-        cache_size = sum(1 for _ in session.cache.keys())
-        t0 = time.time()
         r = session.get(uri, params=params)
-        time_delta = time.time() - t0
-        cache_delta = sum(1 for _ in session.cache.keys()) - cache_size
-        self.logger.info(
-            "Fetched %s in %f s %d new cache entries", uri, time_delta, cache_delta
-        )
 
         try:
             r.raise_for_status()
@@ -84,21 +76,6 @@ class MetaThesaurus(object):
                 raise e
 
         return create_dict_list(r.json())
-
-    def get_results(self, uri: str, **params) -> List[Dict]:
-        """Get data from arbitrary URI wrapped in a list of Results"""
-        if not uri:
-            return list()
-
-        strict = params.pop("strict", False)
-
-        if "ticket" in params:
-            self.logger.warning(f"'ticket' should not be in params! removing it...")
-            del params["ticket"]
-
-        add_params = tuple(tuple(_) for _ in params.items())
-
-        return copy.deepcopy(self._get_result(uri, add_params, strict))
 
     def get_single_result(self, uri: str, **params) -> Optional[Dict]:
         """When you know there will only be one coming back"""
