@@ -40,9 +40,10 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 
 
 class MetaThesaurus(object):
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, version: Optional[str] = "2021AB"):
         self.auth = Authenticator(api_key)
-        self.version = "current"
+        # self.version = "current"
+        self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
 
     @property
