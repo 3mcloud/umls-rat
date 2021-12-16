@@ -48,6 +48,11 @@ def _find_umls(api: MetaThesaurus, source_res: Dict) -> Dict:
 def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optional[str]:
     """
     Get the UMLS CUI for a concept from a source vocabulary.
+
+    :param api: MetaThesaurus API
+    :param source_vocab: source vocabulary abbrev (i.e. SNOMEDCT_US)
+    :param concept_id: source concept ID
+    :return: UMLS CUI or None
     """
     source_res = api.get_source_concept(source_vocab, concept_id)
     if not source_res:

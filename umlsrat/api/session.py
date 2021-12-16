@@ -35,6 +35,10 @@ def _cache_path(cache_name: str) -> str:
 
 @functools.lru_cache(maxsize=1)
 def api_session() -> CachedSession:
+    """
+    Get session for API calls.
+    :return: session
+    """
     session = CachedSession(
         cache_name=_cache_path("api-cache"),
         ignored_parameters=["ticket"],
@@ -45,16 +49,24 @@ def api_session() -> CachedSession:
 
 @functools.lru_cache(maxsize=1)
 def tgt_session() -> CachedSession:
-    """Get a Ticket-Granting Ticket (TGT). The TGT is valid for 8 hours."""
-    # expire the cache after 7 hours just to be safe?
+    """
+    Get a session for acquiring Ticket-Granting Ticket (TGT)
+    See: https://documentation.uts.nlm.nih.gov/rest/authentication.html
+    :return:session
+    """
+    # expire a bit early
     session = CachedSession(
         cache_name=_cache_path("tgt-cache"),
         allowable_methods=["POST"],
-        expire_after=timedelta(hours=7),
+        expire_after=timedelta(hours=7.8),
     )
     return _configure_session(session)
 
 
 @functools.lru_cache(maxsize=1)
 def uncached_session() -> Session:
+    """
+    Get a session without caching
+    :return: session
+    """
     return _configure_session(Session())

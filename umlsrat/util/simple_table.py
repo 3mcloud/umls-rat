@@ -8,6 +8,10 @@ def _norm_field_name(field_name: Any) -> str:
 
 
 class SimpleTable(object):
+    """
+    A list of rows with a single index field.
+    """
+
     def __init__(self, all_rows: Iterator[Iterable], index_field: str):
         super(SimpleTable, self).__init__()
         self._index_field = index_field

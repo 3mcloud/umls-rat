@@ -26,7 +26,7 @@ def _fix_res_dict(result: Dict) -> Dict:
     return {key: _interp_value(value) for key, value in result.items()}
 
 
-def create_dict_list(response_json: Dict) -> List[Dict]:
+def _create_dict_list(response_json: Dict) -> List[Dict]:
     the_result = response_json["result"]
     if "results" in the_result:
         the_result = the_result["results"]
@@ -38,6 +38,11 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 
 
 class MetaThesaurus(object):
+    """
+    UMLS MetaThesaurus API. Now with caching! :)
+    https://documentation.uts.nlm.nih.gov/rest/home.html
+    """
+
     def __init__(
         self,
         api_key: str,
@@ -82,9 +87,14 @@ class MetaThesaurus(object):
 
         return response
 
-    def get_results(self, uri: str, **params) -> List[Dict]:
-        """Get data from arbitrary URI wrapped in a list of Results"""
-        if not uri:
+    def get_results(self, url: str, **params) -> List[Dict]:
+        """
+        Get data from arbitrary URI wrapped in a list of Results
+        :param url: URL under http://uts-ws.nlm.nih.gov/rest
+        :param params: get parameters *excluding* `ticket`
+        :return: a list of Dict results
+        """
+        if not url:
             return list()
 
         strict = params.pop("strict", False)
@@ -94,7 +104,7 @@ class MetaThesaurus(object):
                 f"'ticket' should not be in params! Will be overwritten..."
             )
 
-        r = self._do_get_request(uri, **params)
+        r = self._do_get_request(url, **params)
 
         try:
             r.raise_for_status()
@@ -109,11 +119,16 @@ class MetaThesaurus(object):
             else:
                 raise e
 
-        return create_dict_list(r.json())
+        return _create_dict_list(r.json())
 
-    def get_single_result(self, uri: str, **params) -> Optional[Dict]:
-        """When you know there will only be one coming back"""
-        res = self.get_results(uri, **params)
+    def get_single_result(self, url: str, **params) -> Optional[Dict]:
+        """
+        When you know there will only be one coming back
+        :param url: URL under http://uts-ws.nlm.nih.gov/rest
+        :param params: get parameters *excluding* `ticket`
+        :return: a Dict result or None
+        """
+        res = self.get_results(url, **params)
         if not res:
             return None
 
@@ -127,22 +142,41 @@ class MetaThesaurus(object):
         return f"{self._rest_uri}/content/{self.version}"
 
     def get_concept(self, cui: str) -> Dict:
-        """https://documentation.uts.nlm.nih.gov/rest/concept/index.html"""
+        """
+        Get a UMLS concept by CUI.
+        See: https://documentation.uts.nlm.nih.gov/rest/concept/index.html
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :return: Concept Dict
+        """
         uri = f"{self._start_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
-    def get_definitions(self, cui: str):
-        """https://documentation.uts.nlm.nih.gov/rest/definitions/index.html"""
+    def get_definitions(self, cui: str) -> List[Dict]:
+        """
+        Get the definitions for a concept.
+        See: https://documentation.uts.nlm.nih.gov/rest/definitions/index.html
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :return: list of Definition Dicts
+        """
         uri = f"{self._start_uri}/CUI/{cui}/definitions"
         return self.get_results(uri)
 
-    def get_relations(self, cui: str):
-        """https://documentation.uts.nlm.nih.gov/rest/relations/index.html"""
+    def get_relations(self, cui: str) -> List[Dict]:
+        """
+        Get relations for a concept
+        See: https://documentation.uts.nlm.nih.gov/rest/relations/index.html
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :return: list of Relation Dicts
+        """
         uri = f"{self._start_uri}/CUI/{cui}/relations"
         return self.get_results(uri)
 
-    def get_related_concepts(self, cui: str):
+    def get_related_concepts(self, cui: str) -> List[Dict]:
         """
+        Get related concepts
+
+        Email from NLM Support:
+
         I see what you mean. We don't have a documented way to recreate what the web interface does without making several calls, but the web interface uses:
 
         https://uts-api.nlm.nih.gov/content/angular/current/CUI/C4517971/relatedConcepts?relationLabels=RB,PAR,RN,CHD&ticket=
@@ -150,21 +184,34 @@ class MetaThesaurus(object):
         This aggregates broader and narrower relations for a particular UMLS Concept.
 
         Because this is not documented it may change at any time, but I don't expect it to change in the near future.
+
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :return: list of Relation Dicts
         """
         uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
-        results = self.get_results(uri)
-        return results
+        return self.get_results(uri)
 
     ### Search ###
-    def search(self, string: str, **params):
+    def search(self, string: str, **params) -> List[Dict]:
+        """
+        Search UMLS!
+        See: https://documentation.uts.nlm.nih.gov/rest/search/index.html
+        :param string: search string
+        :param params: additional get request params
+        :return: list of search results (Concepts?)
+        """
         uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
         results = self.get_results(uri, string=string, **params)
         return results
 
     ### Source Asserted ####
-    def get_source_concept(self, source_vocab: str, concept_id: str):
+    def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
         """
-        https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
+        Get a "Source Asserted" concept. i.e. get a concept by ID in a Vocabulary which is not UMLS
+        See: https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: concept Dict or None
         """
         source_vocab = validate_vocab_abbrev(source_vocab)
         uri = f"{self._start_uri}/source/{source_vocab}/{concept_id}"

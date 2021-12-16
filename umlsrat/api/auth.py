@@ -4,17 +4,19 @@ import re
 from umlsrat.api.session import uncached_session, tgt_session
 
 _auth_uri = "https://utslogin.nlm.nih.gov"
-# option 1 - username/pw authentication at /cas/v1/tickets
-# _auth_endpoint = "/cas/v1/tickets/"
-# option 2 - api key authentication at /cas/v1/api-key
 _auth_endpoint = "/cas/v1/api-key"
 
 _FORM_ACTION_PAT = re.compile(r'<form action="(.+?)" method="POST">')
 
 
 @functools.lru_cache(maxsize=1)
-def get_tgt(api_key: str):
-    # params = {'username': self.username,'password': self.password}
+def get_tgt(api_key: str) -> str:
+    """
+    See: https://documentation.uts.nlm.nih.gov/rest/authentication.html
+
+    :param api_key: an API key acquired after registering https://uts.nlm.nih.gov/uts/
+    :return: API KEY
+    """
     params = {"apikey": api_key}
     h = {
         "Content-type": "application/x-www-form-urlencoded",
@@ -32,15 +34,24 @@ def get_tgt(api_key: str):
 
 
 class Authenticator(object):
+    """
+    See: https://documentation.uts.nlm.nih.gov/rest/authentication.html
+    """
+
     def __init__(self, api_key: str):
+        """
+        Helper class for handling authentication calls.
+
+        :param api_key: an API key acquired after registering https://uts.nlm.nih.gov/uts/
+        """
         self.api_key = api_key
         self._auth_svc = "http://umlsks.nlm.nih.gov"
 
     @property
-    def ticket_granting_ticket(self):
+    def ticket_granting_ticket(self) -> str:
         return get_tgt(self.api_key)
 
-    def get_ticket(self):
+    def get_ticket(self) -> str:
         params = {"service": self._auth_svc}
         h = {
             "Content-type": "application/x-www-form-urlencoded",

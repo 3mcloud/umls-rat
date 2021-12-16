@@ -8,8 +8,8 @@ from typing import Optional, Iterable, List, Dict
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
-from umlsrat.vocabularies import vocab_info
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
+from umlsrat.vocabularies import vocab_info
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -21,6 +21,17 @@ def definitions_bfs(
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
 ) -> List[Dict]:
+    """
+    Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
+    by :py:meth:`umlsrat.api.metathesaurus.MetaThesaurus.get_related_concepts`
+
+    :param api: MetaThesaurus API
+    :param start_cui: starting Concept ID
+    :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param target_vocabs: only allow definitions from these vocabularies
+    :return: a list of Description objects as dictionaries
+    """
     assert api
     assert start_cui
     assert min_num_defs >= 0
@@ -120,13 +131,13 @@ def find_definitions(
     """
     Find definitions in UMLS MetaThesaurus.
 
-    :param api: base MetaThesaurus API object
+    :param api: MetaThesaurus API
     :param source_vocab: source vocab
     :param source_code: source code
     :param source_desc: source description
     :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
-    :param target_lang: target definitions in this language?
+    :param target_lang: target definitions in this language
     :return: a list of Description objects as dictionaries
     """
     assert min_num_defs >= 0
@@ -204,6 +215,12 @@ def _entry_to_string(name: str, definitions: List[Dict]) -> str:
 
 
 def definitions_to_string(definitions: List[Dict]) -> str:
+    """
+    Get pretty string for list of Description Dicts
+
+    :param definitions: list of Description Dicts
+    :return: pretty string
+    """
     grouped = itertools.groupby(definitions, key=lambda _: _["concept"]["name"])
     entries = (_entry_to_string(*args) for args in grouped)
     return "\n\n".join(entries)

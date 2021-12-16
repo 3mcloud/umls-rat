@@ -46,6 +46,10 @@ class FIFO(object):
 
 
 class UniqueFIFO(object):
+    """
+    FIFO queue that will not add elements which are already present.
+    """
+
     def __init__(
         self,
         iterable: Optional[Iterable] = None,
