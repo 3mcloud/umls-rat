@@ -54,51 +54,25 @@ def test_find_room_air(api):
     ]
 
 
-def test_find_low_suspicion(api):
-    data = definitions.find_definitions(
-        api,
-        source_vocab="snomed",
-        source_code="c917af35-7249-4ec6-9062-68e6b83ff82a",
-        source_desc="Low suspicion",
-        min_num_defs=2,
-    )
-    values = [_["value"] for _ in data]
-    assert values
-
-
-def test_find_poa(api):
-    data = definitions.find_definitions(
-        api,
-        source_vocab="snomed",
-        source_code="6c8c4505-926c-4ebb-805d-5c73fb650e3c",
-        source_desc="Present on admission (qualifier value)",
-        min_num_defs=2,
-    )
-    print(definitions.definitions_to_string(data))
-    values = [_["value"] for _ in data]
-    assert values
-
-
-def test_find_bipolar(api):
-    data = definitions.find_definitions(
-        api,
-        source_vocab="snomed",
-        source_code="260994008",
-        source_desc="Bipolar (qualifier value)",
-        min_num_defs=2,
-    )
-    print(definitions.definitions_to_string(data))
-    values = [_["value"] for _ in data]
-    assert values
-
-
 def test_find_without_code(api):
     data = definitions.find_definitions(api, source_desc="Cancer")
     values = [_["value"] for _ in data]
-    assert values
+    assert values == [
+        "Cancer begins in your cells, which are the building blocks of your body. Normally, your body forms new cells as you need them, replacing old cells that die. Sometimes this process goes wrong. New cells grow even when you don't need them, and old cells don't die when they should. These extra cells can form a mass called a tumor. Tumors can be benign or malignant. Benign tumors aren't cancer while malignant ones are. Cells from malignant tumors can invade nearby tissues. They can also break away and spread to other parts of the body.  Cancer is not just one disease but many diseases. There are more than 100 different types of cancer. Most cancers are named for where they start. For example, lung cancer starts in the lung, and breast cancer starts in the breast. The spread of cancer from one part of the body to another is called metastasis. Symptoms and treatment depend on the cancer type and how advanced it is. Most treatment plans may include surgery, radiation and/or chemotherapy. Some may involve hormone therapy, immunotherapy or other types of biologic therapy, or stem cell transplantation.  NIH: National Cancer Institute",
+        "new abnormal tissue that grows by excessive cellular division and proliferation more rapidly than normal and continues to grow after the stimuli that initiated the new growth cease; tumors perform no useful body function and may be benign or malignant; benign neoplasms are a noncancerous growth that does not invade nearby tissue or spread to other parts of the body; malignant neoplasms or cancer show a greater degree of anaplasia and have the properties of invasion and metastasis; neoplasm terms herein do not distinguish between benign or malignant states, use references listed to cover this concept.",
+        "A tumor composed of atypical neoplastic, often pleomorphic cells that invade other tissues. Malignant neoplasms often metastasize to distant anatomic sites and may recur after excision. The most common malignant neoplasms are carcinomas, Hodgkin and non-Hodgkin lymphomas, leukemias, melanomas, and sarcomas.",
+        "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
+        "A group of diseases in which abnormal cells divide without control, invade nearby tissues and may also spread to other parts of the body through the blood and lymph systems.",
+        "A general term for autonomous tissue growth exhibiting morphologic features of malignancy (e.g. severe atypia, nuclear pleomorphism, tumor cell necrosis, abnormal mitoses, tissue invasiveness) and for which the transformed cell type has not been specifically identified.",
+        "A term for diseases in which abnormal cells divide without control and can invade nearby tissues. Malignant cells can also spread to other parts of the body through the blood and lymph systems. There are several main types of malignancy. Carcinoma is a malignancy that begins in the skin or in tissues that line or cover internal organs. Sarcoma is a malignancy that begins in bone, cartilage, fat, muscle, blood vessels, or other connective or supportive tissue. Leukemia is a malignancy that starts in blood-forming tissue such as the bone marrow, and causes large numbers of abnormal blood cells to be produced and enter the blood. Lymphoma and multiple myeloma are malignancies that begin in the cells of the immune system. Central nervous system cancers are malignancies that begin in the tissues of the brain and spinal cord.",
+        'A tumor composed of atypical neoplastic, often pleomorphic cells that invade other tissues. Malignant neoplasms often metastasize to distant anatomic sites and may recur after excision. The most common malignant neoplasms are carcinomas (adenocarcinomas or squamous cell carcinomas), Hodgkin and non-Hodgkin lymphomas, leukemias, melanomas, and sarcomas. Check for "https://www.cancer.gov/about-cancer/treatment/clinical-trials/intervention/C9305" active clinical trials using this agent. ("http://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI%20Thesaurus&code=C9305" NCI Thesaurus)',
+        "An organ or organ-system abnormality that consists of uncontrolled autonomous cell-proliferation which can occur in any part of the body as a benign or malignant neoplasm (tumour). [HPO:probinson]",
+    ]
 
 
 def test_find_spanish(api):
     data = definitions.find_definitions(api, source_desc="Cancer", target_lang="SPA")
     values = [_["value"] for _ in data]
-    assert values
+    assert values == [
+        'Neoplasia maligna formada por células epiteliales que tienden a infiltrarse en los tejidos circundantes y dan lugar a metástasis. Es un tipo histológico de neoplasia y no un sinónimo de "cáncer".'
+    ]
