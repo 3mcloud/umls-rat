@@ -2,6 +2,7 @@ import logging
 from typing import Dict, List, Optional, Any
 
 from requests import HTTPError, Response
+from requests_cache import CachedSession
 
 from umlsrat.api import session
 from umlsrat.api.auth import Authenticator
@@ -41,12 +42,12 @@ class MetaThesaurus(object):
         self,
         api_key: str,
         version: Optional[str] = "2021AB",
-        no_cache: Optional[bool] = False,
+        use_cache: Optional[bool] = True,
     ):
         self.auth = Authenticator(api_key)
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
-        self._session = uncached_session() if no_cache else api_session()
+        self._session = api_session() if use_cache else uncached_session()
 
     @property
     def logger(self):
@@ -54,9 +55,12 @@ class MetaThesaurus(object):
 
     def _do_get_request(self, uri: str, **params) -> Response:
         # check the cache first
-        response = session.check_cache(self._session, method="GET", url=uri, **params)
-        if response is not None:
-            return response
+        if isinstance(self._session, CachedSession):
+            response = session.check_cache(
+                self._session, method="GET", url=uri, **params
+            )
+            if response is not None:
+                return response
 
         params["ticket"] = self.auth.get_ticket()
 
