@@ -44,12 +44,14 @@ pipeline {
                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                             variable: 'API_KEY')]) {
                         sh 'venv/bin/python -m pytest -v --junitxml unittests.xml tests/ --api-key=${API_KEY}'
+                        // running again should use the cache, be super speedy, and also still work
+                        sh 'venv/bin/python -m pytest -v --junitxml unittests-cached.xml tests/ --api-key=${API_KEY}'
                     }
                 }
             }
             post {
                 always {
-                    junit testResults: 'unittests.xml'
+                    junit testResults: 'unittests*.xml'
                 }
             }
         }
