@@ -1,0 +1,39 @@
+apiVersion: "v1"
+kind: "Pod"
+metadata:
+  labels:
+    compute-type: fargate
+spec:
+  serviceAccountName: jenkins-sa-pr
+  containers:
+  -
+    image: "sphinxdoc/sphinx-latexpdf:4.1.2"
+    imagePullPolicy: "IfNotPresent"
+    name: "target"
+    resources:
+      limits: {}
+      requests:
+        memory: 8G
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 0
+    command:
+      - /bin/cat
+    tty: true
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: "/home/jenkins/agent"
+        readOnly: false
+  -
+    image: "jenkins/inbound-agent:latest-alpine"
+    imagePullPolicy: "IfNotPresent"
+    name: "jnlp"
+    resources:
+      limits: {}
+      requests:
+        memory: 2G
+    volumeMounts:
+      - mountPath: "/home/jenkins/agent"
+        name: "workspace-volume"
+        readOnly: false
+  restartPolicy: "Never"
