@@ -1,10 +1,11 @@
 import logging
 from typing import Dict, List, Optional, Any
 
-from requests import HTTPError
+from requests import HTTPError, Response
 
+from umlsrat.api import session
 from umlsrat.api.auth import Authenticator
-from umlsrat.api.session import api_session
+from umlsrat.api.session import api_session, uncached_session
 from umlsrat.vocab_info import validate_vocab_abbrev
 
 _NONE = "NONE"
@@ -36,14 +37,36 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 
 
 class MetaThesaurus(object):
-    def __init__(self, api_key: str, version: Optional[str] = "2021AB"):
+    def __init__(
+        self,
+        api_key: str,
+        version: Optional[str] = "2021AB",
+        no_cache: Optional[bool] = False,
+    ):
         self.auth = Authenticator(api_key)
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._session = uncached_session() if no_cache else api_session()
 
     @property
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
+
+    def _do_get_request(self, uri: str, **params) -> Response:
+        # check the cache first
+        response = session.check_cache(self._session, method="GET", url=uri, **params)
+        if response is not None:
+            return response
+
+        params["ticket"] = self.auth.get_ticket()
+
+        try:
+            response = self._session.get(uri, params=params)
+        except Exception as e:
+            self.logger.exception("Failed to get %s", uri)
+            raise e
+
+        return response
 
     def get_results(self, uri: str, **params) -> List[Dict]:
         """Get data from arbitrary URI wrapped in a list of Results"""
@@ -57,15 +80,7 @@ class MetaThesaurus(object):
                 f"'ticket' should not be in params! Will be overwritten..."
             )
 
-        params["ticket"] = self.auth.get_ticket()
-
-        session = api_session()
-
-        try:
-            r = session.get(uri, params=params)
-        except Exception as e:
-            self.logger.exception("Failed to get %s", uri)
-            raise e
+        r = self._do_get_request(uri, **params)
 
         try:
             r.raise_for_status()
@@ -123,7 +138,7 @@ class MetaThesaurus(object):
 
         Because this is not documented it may change at any time, but I don't expect it to change in the near future.
         """
-        uri = f"https://uts-api.nlm.nih.gov/content/angular/current/CUI/{cui}/relatedConcepts"
+        uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
         results = self.get_results(uri)
         return results
 

@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 from os.path import expanduser
 
+import requests
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests_cache import CachedSession
@@ -33,11 +34,23 @@ def _cache_path(cache_name: str) -> str:
     return expanduser(f"~/.cache/umls-rat/{cache_name}")
 
 
+def check_cache(session: CachedSession, method: str, url: str, **params):
+    request = requests.Request(method=method, url=url, params=params)
+    request = session.prepare_request(request)
+
+    # verify needs to be added here for some reason
+    add_verify = {"verify": _pem_file_path, **params}
+    key = session.cache.create_key(request, **add_verify)
+    value = session.cache.get_response(key)
+    return value
+
+
 @functools.lru_cache(maxsize=1)
 def api_session() -> CachedSession:
     session = CachedSession(
         cache_name=_cache_path("api-cache"),
         ignored_parameters=["ticket"],
+        allowable_codes=[200, 400],
     )
     return _configure_session(session)
 
