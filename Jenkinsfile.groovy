@@ -67,8 +67,8 @@ pipeline {
                 stage('Branch'){
                     when { not { buildingTag()} }
                     stages{
-                        stage('Master'){
-                            when { branch 'master' }
+                        stage('Main'){
+                            when { branch 'main' }
                             steps{
                                 script{
                                     PYPI_VERSION = "0.0.0.dev${BUILD_NUMBER}+${BRANCH_NAME}"
@@ -76,7 +76,7 @@ pipeline {
                             }
                         }
                         stage('Other'){
-                            when { not { branch 'master'} }
+                            when { not { branch 'main'} }
                             steps{
                                 script{
                                     PYPI_VERSION = "0.0.0.dev0+${BRANCH_NAME}"
