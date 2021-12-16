@@ -9,7 +9,7 @@ from typing import NamedTuple, Optional, List
 from umlsrat.util.simple_table import SimpleTable
 
 _THIS_DIR = os.path.dirname(os.path.normpath(__file__))
-_VOCABULARIES_CSV = os.path.join(_THIS_DIR, "vocabularies.csv")
+_VOCABULARIES_CSV = os.path.join(_THIS_DIR, "../vocabularies.csv")
 
 
 @functools.lru_cache(maxsize=1)
