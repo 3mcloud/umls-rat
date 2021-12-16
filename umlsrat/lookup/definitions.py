@@ -47,6 +47,7 @@ def definitions_bfs(
     definitions = []
 
     allowed_relations = ("SY", "RN", "CHD")
+    allowed_relations_str = ",".join(allowed_relations)
     while to_visit:
 
         current_cui = to_visit.peek()
@@ -94,7 +95,9 @@ def definitions_bfs(
             continue
 
         ## Find neighbors and add to_visit
-        related_concepts = api.get_related_concepts(current_cui)
+        related_concepts = api.get_related_concepts(
+            current_cui, relationLabels=allowed_relations_str
+        )
 
         # group by relation type
         grouped = defaultdict(list)
