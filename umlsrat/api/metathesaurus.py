@@ -60,7 +60,12 @@ class MetaThesaurus(object):
         params["ticket"] = self.auth.get_ticket()
 
         session = api_session()
-        r = session.get(uri, params=params)
+
+        try:
+            r = session.get(uri, params=params)
+        except Exception as e:
+            self.logger.exception("Failed to get %s", uri)
+            raise e
 
         try:
             r.raise_for_status()

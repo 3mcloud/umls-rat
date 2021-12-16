@@ -12,10 +12,20 @@ _this_dir = os.path.dirname(os.path.normpath(__file__))
 _pem_file_path = os.path.join(_this_dir, "tls-ca-bundle.pem")
 
 
-def _configure_session(session):
+def _set_verify(session):
     session.verify = _pem_file_path
+    return session
+
+
+def _set_retries(session):
     retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
     session.mount("http://", HTTPAdapter(max_retries=retries))
+    return session
+
+
+def _configure_session(session):
+    _set_verify(session)
+    _set_retries(session)
     return session
 
 
@@ -35,10 +45,11 @@ def api_session() -> CachedSession:
 @functools.lru_cache(maxsize=1)
 def tgt_session() -> CachedSession:
     """Get a Ticket-Granting Ticket (TGT). The TGT is valid for 8 hours."""
+    # expire the cache after 7 hours just to be safe?
     session = CachedSession(
         cache_name=_cache_path("tgt-cache"),
         allowable_methods=["POST"],
-        expire_after=timedelta(hours=8),
+        expire_after=timedelta(hours=7),
     )
     return _configure_session(session)
 
