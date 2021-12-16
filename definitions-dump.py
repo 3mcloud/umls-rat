@@ -6,7 +6,7 @@ import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import find_definitions, definitions_to_string
-from umlsrat.util.vocab_info import available_languages, available_vocabs
+from umlsrat.vocabularies.vocab_info import available_languages, available_vocabs
 
 logger = logging.getLogger(os.path.basename(__file__))
 

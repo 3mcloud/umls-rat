@@ -7,7 +7,7 @@ from requests_cache import CachedSession
 
 from umlsrat.api.auth import Authenticator
 from umlsrat.api.session import api_session, uncached_session
-from umlsrat.util.vocab_info import validate_vocab_abbrev
+from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
 _NONE = "NONE"
 

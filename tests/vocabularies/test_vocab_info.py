@@ -1,4 +1,4 @@
-from umlsrat.util.vocab_info import get_vocab_info, validate_vocab_abbrev
+from umlsrat.vocabularies.vocab_info import get_vocab_info, validate_vocab_abbrev
 
 
 def test_get_info():

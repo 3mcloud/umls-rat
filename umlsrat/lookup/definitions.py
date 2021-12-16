@@ -7,7 +7,8 @@ from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.umls import find_umls, term_search
-from umlsrat.util import misc, vocab_info
+from umlsrat.util import misc
+from umlsrat.vocabularies import vocab_info
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
