@@ -114,12 +114,11 @@ class MetaThesaurus(object):
     def get_single_result(self, uri: str, **params) -> Optional[Dict]:
         """When you know there will only be one coming back"""
         res = self.get_results(uri, **params)
-        assert len(res) < 2, f"Expected < 2 results got {len(res)}"
-
-        if res:
-            return res.pop()
-        else:
+        if not res:
             return None
+
+        assert len(res) == 1, f"Expected 1 result got {len(res)}"
+        return res[0]
 
     #### UMLS ####
     @property
