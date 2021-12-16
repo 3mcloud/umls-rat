@@ -43,7 +43,7 @@ pipeline {
                 container(name: 'target'){
                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                             variable: 'API_KEY')]) {
-                        sh 'venv/bin/pytest -v --junitxml unittests.xml tests/ --api-key=${API_KEY}'
+                        sh 'venv/bin/python -m pytest -v --junitxml unittests.xml tests/ --api-key=${API_KEY}'
                     }
                 }
             }
