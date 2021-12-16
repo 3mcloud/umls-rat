@@ -7,7 +7,7 @@ spec:
   serviceAccountName: jenkins-sa-pr
   containers:
   -
-    image: "sphinxdoc/sphinx:4.1.2"
+    image: "sphinxdoc/sphinx-latexpdf:4.1.2"
     imagePullPolicy: "IfNotPresent"
     name: "target"
     resources:
