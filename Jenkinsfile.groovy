@@ -106,7 +106,6 @@ pipeline {
         }
 
 
-        /* TODO publish to pypi
         stage('Deploy'){
             steps{
                 //https://github.com/jfrog/project-examples/blob/master/jenkins-examples/pipeline-examples/declarative-examples/pip-examples/pip-example/Jenkinsfile
@@ -133,7 +132,7 @@ pipeline {
                 )
             }
         }
-        */
+        
     }
 //todo: emails and notifications
 }
