@@ -1,15 +1,13 @@
-import copy
-import functools
 import logging
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 
-from requests import HTTPError
+from requests import HTTPError, Response
+from requests_cache import CachedSession
 
-from umlsrat.api import verified_requests
+from umlsrat.api import session
 from umlsrat.api.auth import Authenticator
+from umlsrat.api.session import api_session, uncached_session
 from umlsrat.vocab_info import validate_vocab_abbrev
-
-# KeyValuePair = namedtuple('KeyValuePair', ('key', 'value'))
 
 _NONE = "NONE"
 
@@ -40,42 +38,39 @@ def create_dict_list(response_json: Dict) -> List[Dict]:
 
 
 class MetaThesaurus(object):
-    def __init__(self, api_key: str, version: Optional[str] = "2021AB"):
+    def __init__(
+        self,
+        api_key: str,
+        version: Optional[str] = "2021AB",
+        use_cache: Optional[bool] = True,
+    ):
         self.auth = Authenticator(api_key)
-        # self.version = "current"
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._session = api_session() if use_cache else uncached_session()
 
     @property
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    @functools.lru_cache(maxsize=None)
-    def _get_result(
-        self,
-        uri: str,
-        add_params: Optional[Tuple[Tuple, ...]] = None,
-        strict: Optional[bool] = False,
-    ) -> List[Dict]:
-        params = {str(key): str(value) for key, value in add_params}
-        assert "ticket" not in params, "'ticket' should not be in params!!!"
+    def _do_get_request(self, uri: str, **params) -> Response:
+        # check the cache first
+        if isinstance(self._session, CachedSession):
+            response = session.check_cache(
+                self._session, method="GET", url=uri, **params
+            )
+            if response is not None:
+                return response
+
         params["ticket"] = self.auth.get_ticket()
 
-        r = verified_requests.get(uri, params=params)
         try:
-            r.raise_for_status()
-        except HTTPError as e:
-            if strict:
-                raise e
+            response = self._session.get(uri, params=params)
+        except Exception as e:
+            self.logger.exception("Failed to get %s", uri)
+            raise e
 
-            self.logger.debug("Caught HTTPError: %s", e)
-            if e.response.status_code == 400:
-                # we interpret this as "you're looking for something that isn't there"
-                return []
-            else:
-                raise e
-
-        return create_dict_list(r.json())
+        return response
 
     def get_results(self, uri: str, **params) -> List[Dict]:
         """Get data from arbitrary URI wrapped in a list of Results"""
@@ -85,12 +80,26 @@ class MetaThesaurus(object):
         strict = params.pop("strict", False)
 
         if "ticket" in params:
-            self.logger.warning(f"'ticket' should not be in params! removing it...")
-            del params["ticket"]
+            self.logger.warning(
+                f"'ticket' should not be in params! Will be overwritten..."
+            )
 
-        add_params = tuple(tuple(_) for _ in params.items())
+        r = self._do_get_request(uri, **params)
 
-        return copy.deepcopy(self._get_result(uri, add_params, strict))
+        try:
+            r.raise_for_status()
+        except HTTPError as e:
+            if strict:
+                raise e
+
+            self.logger.warning("Caught HTTPError: %s", e)
+            if e.response.status_code == 400:
+                # we interpret this as "you're looking for something that isn't there"
+                return []
+            else:
+                raise e
+
+        return create_dict_list(r.json())
 
     def get_single_result(self, uri: str, **params) -> Optional[Dict]:
         """When you know there will only be one coming back"""
@@ -133,7 +142,7 @@ class MetaThesaurus(object):
 
         Because this is not documented it may change at any time, but I don't expect it to change in the near future.
         """
-        uri = f"https://uts-api.nlm.nih.gov/content/angular/current/CUI/{cui}/relatedConcepts"
+        uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
         results = self.get_results(uri)
         return results
 

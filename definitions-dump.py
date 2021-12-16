@@ -53,11 +53,13 @@ def main():
         default="definitions",
     )
 
+    # parser.add_argument("--version", type=str, help="UMLS version to use", default='2021AB')
+    parser.add_argument("--no-cache", help="Do not use the cache", action="store_true")
     parser.add_argument("--api-key", type=str, help="API key", required=True)
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    api = MetaThesaurus(args.api_key)
+    api = MetaThesaurus(args.api_key, use_cache=not args.no_cache)
 
     source_code = args.source_code
     source_vocab = args.source_vocab

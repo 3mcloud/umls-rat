@@ -40,14 +40,16 @@ def definitions_bfs(
 
         current_cui = to_visit.peek()
         current_dist = distances.peek()
+        current_concept = api.get_concept(current_cui)
 
-        cur_defs = api.get_definitions(current_cui)
-        if target_vocabs:
-            # filter defs not in target vocab
-            cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
+        defs_uri = current_concept["definitions"]
+        cur_defs = api.get_results(defs_uri) if defs_uri else None
 
         if cur_defs:
-            current_concept = api.get_concept(current_cui)
+            # filter defs not in target vocab
+            if target_vocabs:
+                cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
+
             reduced_concept = {k: current_concept[k] for k in ("ui", "name")}
             semantic_types = current_concept.get("semanticTypes")
             if semantic_types:
