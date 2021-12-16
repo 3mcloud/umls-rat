@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Any
 
 import requests
 from requests import HTTPError, Response
-from requests_cache import CachedSession
+from requests_cache import CachedSession, CachedResponse
 
 from umlsrat.api.auth import Authenticator
 from umlsrat.api.session import api_session, uncached_session
@@ -53,22 +53,22 @@ class MetaThesaurus(object):
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    def check_cache(self, method: str, url: str, **params):
+    def _get_cached(self, method: str, url: str, **params) -> Optional[CachedResponse]:
         if not isinstance(self._session, CachedSession):
             return None
 
         request = requests.Request(method=method, url=url, params=params)
         request = self._session.prepare_request(request)
 
-        # verify needs to be added here for some reason
-        add_verify = {"verify": self._session.verify, **params}
-        key = self._session.cache.create_key(request, **add_verify)
+        # verify goes here
+        key = self._session.cache.create_key(request, verify=self._session.verify)
         value = self._session.cache.get_response(key)
+
         return value
 
     def _do_get_request(self, uri: str, **params) -> Response:
         # check the cache first
-        response = self.check_cache("GET", url=uri, **params)
+        response = self._get_cached("GET", url=uri, **params)
         if response is not None:
             return response
 
