@@ -28,8 +28,8 @@ class Authenticator(object):
             "User-Agent": "python",
         }
         r = tgt_session().post(uri + auth_endpoint, data=params, headers=h)
-        if r.status_code != 201:
-            raise ValueError(f"Request failed: {r.content}")
+        r.raise_for_status()
+
         response_text = r.text
 
         # <form action="https://utslogin.nlm.nih.gov/cas/v1/api-key/TGT-909652-QxfVOYJY4vH7J0fdhGtvqbDAdqwnJnYEMg7HHobnUMaFfm7Zir-cas"
