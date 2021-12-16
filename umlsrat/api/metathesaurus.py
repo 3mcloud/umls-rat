@@ -171,7 +171,7 @@ class MetaThesaurus(object):
         uri = f"{self._start_uri}/CUI/{cui}/relations"
         return self.get_results(uri)
 
-    def get_related_concepts(self, cui: str) -> List[Dict]:
+    def get_related_concepts(self, cui: str, **params) -> List[Dict]:
         """
         Get related concepts
 
@@ -189,7 +189,14 @@ class MetaThesaurus(object):
         :return: list of Relation Dicts
         """
         uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
-        return self.get_results(uri)
+        try:
+            return self.get_results(uri, **params)
+        except requests.exceptions.ConnectionError as e:
+            self.logger.exception(
+                "Connection failed when getting related concepts! Try restricting "
+                "results with 'relationLabels' e.g. relationLabels=RN,CHD"
+            )
+            raise e
 
     ### Search ###
     def search(self, string: str, **params) -> List[Dict]:
