@@ -1,7 +1,8 @@
+import collections
 import logging
 import os.path
 import re
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
@@ -100,3 +101,23 @@ def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
         }
         for stype in semantic_types
     ]
+
+
+def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
+    allowed_relations = ("SY", "RN", "CHD")
+
+    related_concepts = api.get_related_concepts(
+        cui, relationLabels=",".join(allowed_relations)
+    )
+
+    # group by relation type
+    grouped = collections.defaultdict(list)
+    for rc in related_concepts:
+        grouped[rc["label"]].append(rc["concept"])
+
+    seen = set()
+    for rtype in allowed_relations:
+        for cui in grouped[rtype]:
+            if cui not in seen:
+                seen.add(cui)
+                yield cui

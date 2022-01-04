@@ -1,10 +1,10 @@
 import logging
 import os.path
-from collections import defaultdict
 from enum import Enum
 from typing import Callable, Optional, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup.umls import get_broader_concepts
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -28,31 +28,13 @@ def _post_visit_passthrough(api: MetaThesaurus, cui: str, distance: int) -> Acti
     return Action.NONE
 
 
-def _get_broader_concepts(api: MetaThesaurus, cui: str, distance: int) -> Iterable[str]:
-    allowed_relations = ("SY", "RN", "CHD")
-    allowed_relations_str = ",".join(allowed_relations)
-
-    related_concepts = api.get_related_concepts(
-        cui, relationLabels=allowed_relations_str
-    )
-
-    # group by relation type
-    grouped = defaultdict(list)
-    for rc in related_concepts:
-        rcuid = rc["concept"]
-        if rcuid not in visited and rcuid not in to_visit:
-            grouped[rc["label"]].append(rcuid)
-
-    for rtype in allowed_relations:
-        cuis = grouped[rtype]
-        to_visit.push_all(cuis)
-        distances.push_all([current_dist + 1] * len(cuis))
-
-
 def breadth_first_search(
     api: MetaThesaurus,
     start_cui: str,
     visit: Callable[[MetaThesaurus, str, int], None],
+    get_neighbors: Optional[
+        Callable[[MetaThesaurus, str], Iterable[str]]
+    ] = get_broader_concepts,
     pre_visit: Optional[
         Callable[[MetaThesaurus, str, int], Action]
     ] = _pre_visit_passthrough,
@@ -61,16 +43,18 @@ def breadth_first_search(
     ] = _post_visit_passthrough,
 ) -> None:
     """
-    Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
-    by :py:meth:`umlsrat.api.metathesaurus.MetaThesaurus.get_related_concepts` and restricted to
-    ("SY", "RN", "CHD") relations -- which  means we only search "higher" in the tree.
+    Do a breadth-first search over UMLS, hunting for definitions.
+
+    Neighbors are determined by `get_neighbors`, which defaults to :py:func: umlsrat.lookup.umls.get_broader_concepts
 
     Resulting umlsrat.lookup.graph_fn.Action of `pre_visit` and `post_visit` allow additional
-    control of the search. By default these do nothing.
+    control of the search. By default, these do nothing.
+
 
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param visit: applied to each visited concept
+    :param get_neighbors: get neighbors for a given CUI. default: get broader concepts
     :param pre_visit: applied before visiting a concept. default: do nothing
     :param post_visit: applied after visiting a concept. default: do nothing
     """
@@ -82,8 +66,6 @@ def breadth_first_search(
 
     visited = set()
 
-    allowed_relations = ("SY", "RN", "CHD")
-    allowed_relations_str = ",".join(allowed_relations)
     while to_visit:
         current_cui = to_visit.peek()
         current_dist = distances.peek()
@@ -117,18 +99,11 @@ def breadth_first_search(
             continue
 
         ## Find neighbors and add to_visit
-        related_concepts = api.get_related_concepts(
-            current_cui, relationLabels=allowed_relations_str
-        )
+        neighbor_cuis = get_neighbors(api, current_cui)
 
-        # group by relation type
-        grouped = defaultdict(list)
-        for rc in related_concepts:
-            rcuid = rc["concept"]
-            if rcuid not in visited and rcuid not in to_visit:
-                grouped[rc["label"]].append(rcuid)
-
-        for rtype in allowed_relations:
-            cuis = grouped[rtype]
-            to_visit.push_all(cuis)
-            distances.push_all([current_dist + 1] * len(cuis))
+        for cui in neighbor_cuis:
+            # remove those we have visited or plan to visit already
+            if cui in visited or cui in to_visit:
+                continue
+            to_visit.push(cui)
+            distances.push(current_dist + 1)
