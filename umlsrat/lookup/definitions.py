@@ -6,6 +6,8 @@ from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup import graph_fn, umls
+from umlsrat.lookup.graph_fn import Action
 from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
@@ -15,6 +17,71 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 
 def definitions_bfs(
+    api: MetaThesaurus,
+    start_cui: str,
+    min_num_defs: int = 0,
+    max_distance: int = 0,
+    target_vocabs: Optional[Iterable[str]] = None,
+) -> List[Dict]:
+    """
+    Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
+    by :py:meth:`umlsrat.api.metathesaurus.MetaThesaurus.get_related_concepts`
+
+    :param api: MetaThesaurus API
+    :param start_cui: starting Concept ID
+    :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param target_vocabs: only allow definitions from these vocabularies
+    :return: a list of Description objects as dictionaries
+    """
+    assert api
+    assert start_cui
+    assert min_num_defs >= 0
+    assert max_distance >= 0
+
+    if target_vocabs:
+        target_vocabs = set(target_vocabs)
+
+    definitions = []
+
+    def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
+        current_concept = api.get_concept(current_cui)
+
+        defs_uri = current_concept["definitions"]
+        cur_defs = api.get_results(defs_uri) if defs_uri else None
+
+        if cur_defs:
+            # filter defs not in target vocab
+            if target_vocabs:
+                cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
+
+            reduced_concept = {k: current_concept[k] for k in ("ui", "name")}
+
+            semantic_types = umls.get_semantic_types(api, current_cui)
+            if semantic_types:
+                reduced_concept["semanticTypeDefs"] = semantic_types
+
+            # add to definitions
+            for def_dict in cur_defs:
+                def_dict["distance"] = current_dist
+                def_dict["concept"] = reduced_concept
+                definitions.append(def_dict)
+
+    def post_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
+        if min_num_defs and len(definitions) >= min_num_defs:
+            return Action.STOP
+
+        if max_distance and max_distance >= current_dist:
+            return Action.SKIP
+
+        return Action.NONE
+
+    graph_fn.breadth_first_search(api, start_cui, visit=visit, post_visit=post_visit)
+
+    return definitions
+
+
+def _definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     min_num_defs: int = 0,

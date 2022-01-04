@@ -1,7 +1,7 @@
 import logging
 import os.path
 import re
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
@@ -82,3 +82,21 @@ def term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
     # remove trailing parentheses e.g. Room air (substance)
     normalized = re.sub(r"\s*\(.+?\)\s*$", "", term)
     return _term_search(api, normalized)
+
+
+def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
+    concept = api.get_concept(cui)
+    if not concept:
+        raise ValueError(f"No such concept '{cui}")
+
+    semantic_types = concept.get("semanticTypes")
+    if not semantic_types:
+        return []
+
+    return [
+        {
+            "name": stype["name"],
+            "definition": api.get_single_result(stype["uri"]).get("definition"),
+        }
+        for stype in semantic_types
+    ]
