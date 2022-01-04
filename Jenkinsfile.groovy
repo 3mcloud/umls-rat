@@ -1,6 +1,7 @@
 pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr: '12'))
+        timeout(time: 60, unit: 'MINUTES')
     }
     agent {
         kubernetes {
