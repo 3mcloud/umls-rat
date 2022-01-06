@@ -69,17 +69,19 @@ def definitions_bfs(
 
     ##
     # pre_visit actions are based on semantic types
-    target_sym_types = umls.get_semantic_type_names(api, cui=start_cui)
-
-    def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
-        if target_sym_types:
-            current_sym_types = umls.get_semantic_type_names(api, cui=current_cui)
-            if current_sym_types & target_sym_types:
-                return Action.NONE
-            else:
-                return Action.SKIP
-
-        return Action.NONE
+    # todo remove this. the point of the BFS is to get _related_ concepts, this is unnecessary
+    #
+    # target_sym_types = umls.get_semantic_type_names(api, cui=start_cui)
+    #
+    # def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
+    #     if target_sym_types:
+    #         current_sym_types = umls.get_semantic_type_names(api, cui=current_cui)
+    #         if current_sym_types & target_sym_types:
+    #             return Action.NONE
+    #         else:
+    #             return Action.SKIP
+    #
+    #     return Action.NONE
 
     ##
     # post visit actions are based on number of definitions and current distance from origin
