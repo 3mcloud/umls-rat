@@ -99,7 +99,6 @@ def definitions_bfs(
         api=api,
         start_cui=start_cui,
         visit=visit,
-        pre_visit=pre_visit,
         post_visit=post_visit,
     )
 
