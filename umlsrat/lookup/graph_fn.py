@@ -4,20 +4,19 @@ from enum import Enum
 from typing import Callable, Optional, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.umls import get_broader_concepts
+from umlsrat.lookup import umls
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
 
 
 class Action(Enum):
+    # stop the search
     STOP = 0
+    # do not apply visit() and do not accu neighbors
     SKIP = 1
+    # normal behavior
     NONE = 3
-
-
-def _visit(api: MetaThesaurus, cui: str, distance: int) -> None:
-    raise NotImplementedError
 
 
 def _pre_visit_passthrough(api: MetaThesaurus, cui: str, distance: int) -> Action:
@@ -32,15 +31,9 @@ def breadth_first_search(
     api: MetaThesaurus,
     start_cui: str,
     visit: Callable[[MetaThesaurus, str, int], None],
-    get_neighbors: Optional[
-        Callable[[MetaThesaurus, str], Iterable[str]]
-    ] = get_broader_concepts,
-    pre_visit: Optional[
-        Callable[[MetaThesaurus, str, int], Action]
-    ] = _pre_visit_passthrough,
-    post_visit: Optional[
-        Callable[[MetaThesaurus, str, int], Action]
-    ] = _post_visit_passthrough,
+    get_neighbors: Optional[Callable[[MetaThesaurus, str], Iterable[str]]] = None,
+    pre_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
+    post_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
 ) -> None:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
@@ -60,6 +53,15 @@ def breadth_first_search(
     """
     assert api
     assert start_cui
+
+    if get_neighbors is None:
+        get_neighbors = umls.get_broader_concepts
+
+    if pre_visit is None:
+        pre_visit = _pre_visit_passthrough
+
+    if post_visit is None:
+        post_visit = _post_visit_passthrough
 
     to_visit = UniqueFIFO([start_cui])
     distances = FIFO([0])

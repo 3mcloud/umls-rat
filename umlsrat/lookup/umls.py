@@ -2,7 +2,7 @@ import collections
 import logging
 import os.path
 import re
-from typing import Optional, Dict, List, Iterable
+from typing import Optional, Dict, List, Iterable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
@@ -86,6 +86,16 @@ def term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
 
 
 def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
+    """
+    Get semantic type info associated with this concept. Resulting type information takes the form,
+    {
+        "name": name of semantic type,
+        "info": extended information about that type
+    }
+    :param api: meta thesaurus
+    :param cui: target concept
+    :return: list of semantic type information objects
+    """
     concept = api.get_concept(cui)
     if not concept:
         raise ValueError(f"No such concept '{cui}")
@@ -97,13 +107,32 @@ def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
     return [
         {
             "name": stype["name"],
-            "definition": api.get_single_result(stype["uri"]).get("definition"),
+            "info": api.get_single_result(stype["uri"]),
         }
         for stype in semantic_types
     ]
 
 
+def get_semantic_type_groups(api: MetaThesaurus, cui: str) -> Set[str]:
+    """Convenience function to get the set of semantic type *group* names for a concept"""
+    sem_types = get_semantic_types(api, cui)
+    return {_["info"]["semanticTypeGroup"]["expandedForm"] for _ in sem_types}
+
+
+def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
+    """Convenience function to get the set of semantic type names for a concept"""
+    sem_types = get_semantic_types(api, cui)
+    return {_["name"] for _ in sem_types}
+
+
 def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
+    """
+    Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
+
+    :param api: meta thesaurus
+    :param cui: starting concept
+    :return: generator over CUIs
+    """
     allowed_relations = ("SY", "RN", "CHD")
 
     related_concepts = api.get_related_concepts(

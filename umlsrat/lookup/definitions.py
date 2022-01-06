@@ -2,7 +2,6 @@ import itertools
 import logging
 import os.path
 import textwrap
-from collections import defaultdict
 from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
@@ -10,7 +9,6 @@ from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
-from umlsrat.util.orderedset import UniqueFIFO, FIFO
 from umlsrat.vocabularies import vocab_info
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -25,7 +23,7 @@ def definitions_bfs(
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
-    by :py:meth:`umlsrat.api.metathesaurus.MetaThesaurus.get_related_concepts`
+    by :py:meth:`umlsrat.lookup.umls.get_broader_concepts`
 
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
@@ -39,6 +37,8 @@ def definitions_bfs(
     assert min_num_defs >= 0
     assert max_distance >= 0
 
+    ##
+    # visit will accumulate definitions
     if target_vocabs:
         target_vocabs = set(target_vocabs)
 
@@ -67,6 +67,24 @@ def definitions_bfs(
                 def_dict["concept"] = reduced_concept
                 definitions.append(def_dict)
 
+    ##
+    # pre_visit actions are based on semantic types
+    # todo remove this. the point of the BFS is to get _related_ concepts, this is unnecessary
+    #
+    # target_sym_types = umls.get_semantic_type_names(api, cui=start_cui)
+    #
+    # def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
+    #     if target_sym_types:
+    #         current_sym_types = umls.get_semantic_type_names(api, cui=current_cui)
+    #         if current_sym_types & target_sym_types:
+    #             return Action.NONE
+    #         else:
+    #             return Action.SKIP
+    #
+    #     return Action.NONE
+
+    ##
+    # post visit actions are based on number of definitions and current distance from origin
     def post_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
         if min_num_defs and len(definitions) >= min_num_defs:
             return Action.STOP
@@ -76,115 +94,13 @@ def definitions_bfs(
 
         return Action.NONE
 
-    graph_fn.breadth_first_search(api, start_cui, visit=visit, post_visit=post_visit)
-
-    return definitions
-
-
-def _definitions_bfs(
-    api: MetaThesaurus,
-    start_cui: str,
-    min_num_defs: int = 0,
-    max_distance: int = 0,
-    target_vocabs: Optional[Iterable[str]] = None,
-) -> List[Dict]:
-    """
-    Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
-    by :py:meth:`umlsrat.api.metathesaurus.MetaThesaurus.get_related_concepts`
-
-    :param api: MetaThesaurus API
-    :param start_cui: starting Concept ID
-    :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
-    :param target_vocabs: only allow definitions from these vocabularies
-    :return: a list of Description objects as dictionaries
-    """
-    assert api
-    assert start_cui
-    assert min_num_defs >= 0
-    assert max_distance >= 0
-
-    if target_vocabs:
-        target_vocabs = set(target_vocabs)
-
-    to_visit = UniqueFIFO([start_cui])
-    distances = FIFO([0])
-
-    visited = set()
-    definitions = []
-
-    allowed_relations = ("SY", "RN", "CHD")
-    allowed_relations_str = ",".join(allowed_relations)
-    while to_visit:
-
-        current_cui = to_visit.peek()
-        current_dist = distances.peek()
-        current_concept = api.get_concept(current_cui)
-
-        defs_uri = current_concept["definitions"]
-        cur_defs = api.get_results(defs_uri) if defs_uri else None
-
-        if cur_defs:
-            # filter defs not in target vocab
-            if target_vocabs:
-                cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
-
-            reduced_concept = {k: current_concept[k] for k in ("ui", "name")}
-            semantic_types = current_concept.get("semanticTypes")
-            if semantic_types:
-                type_defs = [
-                    api.get_single_result(_["uri"]).get("definition")
-                    for _ in semantic_types
-                ]
-                reduced_concept["semanticTypeDefs"] = type_defs
-
-            # add to definitions
-            for def_dict in cur_defs:
-                def_dict["distance"] = current_dist
-                def_dict["concept"] = reduced_concept
-                definitions.append(def_dict)
-
-        ## Finished Visiting
-        visited.add(to_visit.pop())
-        distances.pop()
-
-        logger.info(
-            f"curDistance = {current_dist} "
-            f"numDefinitions = {len(definitions)} "
-            f"numToVisit = {len(to_visit)} "
-            f"numVisited = {len(visited)}"
-        )
-
-        if min_num_defs and len(definitions) >= min_num_defs:
-            break
-
-        if max_distance and max_distance >= current_dist:
-            continue
-
-        ## Find neighbors and add to_visit
-        related_concepts = api.get_related_concepts(
-            current_cui, relationLabels=allowed_relations_str
-        )
-
-        # group by relation type
-        grouped = defaultdict(list)
-        for rc in related_concepts:
-            rcuid = rc["concept"]
-            if rcuid not in visited and rcuid not in to_visit:
-                grouped[rc["label"]].append(rcuid)
-
-        for rtype in allowed_relations:
-            cuis = grouped[rtype]
-            to_visit.push_all(cuis)
-            distances.push_all([current_dist + 1] * len(cuis))
-
-        # if logger.isEnabledFor(logging.INFO):
-        #     logger.info(f"current = {current_cui} #defs = {len(cur_defs)}")
-        #     msg = "RELATIONS:\n"
-        #     for rtype in allowed_relations:
-        #         msg += "  {}\n" \
-        #                "{}\n".format(rtype, "\n".join(f"    {_}" for _ in grouped[rtype]))
-        #     logger.info(msg)
+    # here we actually do the search
+    graph_fn.breadth_first_search(
+        api=api,
+        start_cui=start_cui,
+        visit=visit,
+        post_visit=post_visit,
+    )
 
     return definitions
 
