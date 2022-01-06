@@ -112,7 +112,7 @@ class MetaThesaurus(object):
             if strict:
                 raise e
 
-            self.logger.warning("Caught HTTPError: %s", e)
+            self.logger.debug("Caught HTTPError: %s", e)
             if e.response.status_code == 400:
                 # we interpret this as "you're looking for something that isn't there"
                 return []
