@@ -1,1 +1,1 @@
-include umlsrat/vocabularies/vocabularies.csv
+recursive-include umlsrat *.csv

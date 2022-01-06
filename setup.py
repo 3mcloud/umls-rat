@@ -31,6 +31,7 @@ setup(
     author="Russell Klopfer",
     author_email="rklopfer@mmm.com",
     url="https://github.mmm.com/OneNLU/umls-rat",
+    include_package_data=True,
     packages=find_packages(),
     install_requires=["requests", "requests-cache"],
     python_requires=">=3.7",
