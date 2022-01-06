@@ -174,12 +174,18 @@ def find_definitions(
     # did not find the concept directly (by code)
     if source_desc:
         # if we have a source description, try to use it to find a CUI
-        search_result = term_search(api, source_desc)
+        # use strict matching if we were provided with a source code initially
+        search_result = term_search(api, source_desc, strict_match=bool(source_code))
+        search_term = search_result["searchTerm"]
+        logger.info(f"Results for term search '{search_term}'")
         if search_result:
             # todo don't take concepts that are too far from original?
-            for concept in search_result["concepts"]:
+            concepts = search_result["concepts"]
+            # only check the top 5
+            for concept in concepts[:5]:
                 cui = concept["ui"]
-                logger.info(f"Searching term CUI {cui}")
+                name = concept["name"]
+                logger.info(f"Searching concept '{name}' {cui}")
                 defs = do_bfs(cui)
                 if defs:
                     return defs
