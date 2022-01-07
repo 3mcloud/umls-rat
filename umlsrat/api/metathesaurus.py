@@ -89,7 +89,8 @@ class MetaThesaurus(object):
 
     def get_results(self, url: str, **params) -> List[Dict]:
         """
-        Get data from arbitrary URI wrapped in a list of Results
+        Get data from arbitrary URI wrapped in a list of Results. Will return an empty list on 400
+        unless `strict=True` is in kwargs, in which case it will raise.
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param params: get parameters *excluding* `ticket`
         :return: a list of Dict results
@@ -136,8 +137,9 @@ class MetaThesaurus(object):
         return res[0]
 
     #### UMLS ####
+
     @property
-    def _start_uri(self) -> str:
+    def _start_content_uri(self) -> str:
         """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
         return f"{self._rest_uri}/content/{self.version}"
 
@@ -148,7 +150,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
         """
-        uri = f"{self._start_uri}/CUI/{cui}"
+        uri = f"{self._start_content_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
     def get_definitions(self, cui: str) -> List[Dict]:
@@ -158,7 +160,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: list of Definition Dicts
         """
-        uri = f"{self._start_uri}/CUI/{cui}/definitions"
+        uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
         return self.get_results(uri)
 
     def get_relations(self, cui: str) -> List[Dict]:
@@ -168,7 +170,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: list of Relation Dicts
         """
-        uri = f"{self._start_uri}/CUI/{cui}/relations"
+        uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self.get_results(uri)
 
     def get_related_concepts(self, cui: str, **params) -> List[Dict]:
@@ -221,5 +223,5 @@ class MetaThesaurus(object):
         :return: concept Dict or None
         """
         source_vocab = validate_vocab_abbrev(source_vocab)
-        uri = f"{self._start_uri}/source/{source_vocab}/{concept_id}"
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}"
         return self.get_single_result(uri)

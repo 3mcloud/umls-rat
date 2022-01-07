@@ -5,7 +5,7 @@ import os
 import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.definitions import find_definitions, definitions_to_string
+from umlsrat.lookup.definitions import find_defined_concepts, pretty_print_defs
 from umlsrat.vocabularies.vocab_info import available_languages, available_vocabs
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -33,10 +33,10 @@ def main():
     )
 
     parser.add_argument(
-        "--min-num-defs",
-        help="Stop searching after this many definitions. " "0 = infinity",
+        "--min-concepts",
+        help="Stop searching after this many defined concepts. " "0 = infinity",
         type=int,
-        default=2,
+        default=1,
     )
     parser.add_argument(
         "--target-language",
@@ -65,19 +65,19 @@ def main():
     source_vocab = args.source_vocab
     source_desc = args.source_desc
 
-    min_num_defs = args.min_num_defs
+    min_concepts = args.min_concepts
     target_language = args.target_language
 
-    definitions = find_definitions(
+    definitions = find_defined_concepts(
         api=api,
         source_vocab=source_vocab,
         source_code=source_code,
         source_desc=source_desc,
-        min_num_defs=min_num_defs,
+        min_concepts=min_concepts,
         target_lang=target_language,
     )
 
-    logger.info("Definitions:\n" + definitions_to_string(definitions))
+    logger.info("Definitions:\n" + pretty_print_defs(definitions))
 
     out_dir = args.out_dir
     out_dir = os.path.join(out_dir, target_language)

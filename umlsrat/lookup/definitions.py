@@ -1,11 +1,11 @@
-import itertools
+import collections
 import logging
 import os.path
 import textwrap
 from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import graph_fn, umls
+from umlsrat.lookup import graph_fn
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
@@ -14,27 +14,35 @@ from umlsrat.vocabularies import vocab_info
 logger = logging.getLogger(os.path.basename(__file__))
 
 
+def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
+    sem_types = concept["semanticTypes"]
+    if sem_types:
+        for st in sem_types:
+            st_uri = st.pop("uri", None)
+            if st_uri:
+                st["data"] = api.get_single_result(st_uri)
+
+
 def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
-    min_num_defs: int = 0,
+    min_concepts: int = 0,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
 ) -> List[Dict]:
     """
-    Do a breadth-first search over UMLS, hunting for definitions. Neighbors are determined
-    by :py:meth:`umlsrat.lookup.umls.get_broader_concepts`
+    Do a breadth-first search over UMLS, hunting for definitions.
 
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
-    :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
+    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
-    :return: a list of Description objects as dictionaries
+    :return: a list of Concepts with Definitions
     """
     assert api
     assert start_cui
-    assert min_num_defs >= 0
+    assert min_concepts >= 0
     assert max_distance >= 0
 
     ##
@@ -42,51 +50,47 @@ def definitions_bfs(
     if target_vocabs:
         target_vocabs = set(target_vocabs)
 
-    definitions = []
+    defined_concepts = []
 
     def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
         current_concept = api.get_concept(current_cui)
 
         defs_uri = current_concept["definitions"]
-        cur_defs = api.get_results(defs_uri) if defs_uri else None
+        definitions = api.get_results(defs_uri) if defs_uri else []
 
-        if cur_defs:
-            # filter defs not in target vocab
-            if target_vocabs:
-                cur_defs = [_ for _ in cur_defs if _["rootSource"] in target_vocabs]
+        # filter defs not in target vocab
+        if target_vocabs:
+            definitions = [_ for _ in definitions if _["rootSource"] in target_vocabs]
 
-            reduced_concept = {k: current_concept[k] for k in ("ui", "name")}
+        if definitions:
+            # strip random xml tags from definitions
+            for d in definitions:
+                d["value"] = misc.strip_tags(d["value"])
 
-            semantic_types = umls.get_semantic_types(api, current_cui)
-            if semantic_types:
-                reduced_concept["semanticTypeDefs"] = semantic_types
+            current_concept["definitions"] = definitions
+            _resolve_semantic_types(api, current_concept)
+            current_concept["distanceFromOrigin"] = current_dist
 
-            # add to definitions
-            for def_dict in cur_defs:
-                def_dict["distance"] = current_dist
-                def_dict["concept"] = reduced_concept
-                definitions.append(def_dict)
+            # reorder dict for readability
+            reordered_concept = collections.OrderedDict(
+                (k, current_concept.pop(k))
+                for k in (
+                    "classType",
+                    "ui",
+                    "name",
+                    "distanceFromOrigin",
+                    "definitions",
+                )
+            )
+            reordered_concept.update(current_concept)
 
-    ##
-    # pre_visit actions are based on semantic types
-    # todo remove this. the point of the BFS is to get _related_ concepts, this is unnecessary
-    #
-    # target_sym_types = umls.get_semantic_type_names(api, cui=start_cui)
-    #
-    # def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
-    #     if target_sym_types:
-    #         current_sym_types = umls.get_semantic_type_names(api, cui=current_cui)
-    #         if current_sym_types & target_sym_types:
-    #             return Action.NONE
-    #         else:
-    #             return Action.SKIP
-    #
-    #     return Action.NONE
+            # add to defined concepts
+            defined_concepts.append(reordered_concept)
 
     ##
     # post visit actions are based on number of definitions and current distance from origin
     def post_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
-        if min_num_defs and len(definitions) >= min_num_defs:
+        if min_concepts and len(defined_concepts) >= min_concepts:
             return Action.STOP
 
         if max_distance and max_distance >= current_dist:
@@ -102,15 +106,15 @@ def definitions_bfs(
         post_visit=post_visit,
     )
 
-    return definitions
+    return defined_concepts
 
 
-def find_definitions(
+def find_defined_concepts(
     api: MetaThesaurus,
     source_vocab: str = None,
     source_code: str = None,
     source_desc: str = None,
-    min_num_defs: int = 1,
+    min_concepts: int = 1,
     max_distance: int = 0,
     target_lang: str = "ENG",
 ) -> List[Dict]:
@@ -121,12 +125,12 @@ def find_definitions(
     :param source_vocab: source vocab
     :param source_code: source code
     :param source_desc: source description
-    :param min_num_defs: stop searching after finding this many definitions (0 = Infinity)
+    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
     :param target_lang: target definitions in this language
-    :return: a list of Description objects as dictionaries
+    :return: a list of Concepts with Definitions
     """
-    assert min_num_defs >= 0
+    assert min_concepts >= 0
     assert max_distance >= 0
 
     if source_code:
@@ -137,7 +141,7 @@ def find_definitions(
         ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
-        msg = f"Finding {min_num_defs} {target_lang} definition(s) of"
+        msg = f"Finding {min_concepts} {target_lang} definition(s) of"
         if source_code:
             msg = f"{msg} {source_vocab}/{source_code}"
 
@@ -154,12 +158,10 @@ def find_definitions(
         data = definitions_bfs(
             api,
             start_cui=start_cui,
-            min_num_defs=min_num_defs,
+            min_concepts=min_concepts,
             max_distance=max_distance,
             target_vocabs=target_vocabs,
         )
-        for datum in data:
-            datum["value"] = misc.strip_tags(datum["value"])
 
         return data
 
@@ -206,13 +208,12 @@ def _entry_to_string(name: str, definitions: List[Dict]) -> str:
     return string
 
 
-def definitions_to_string(definitions: List[Dict]) -> str:
+def pretty_print_defs(concepts: List[Dict]) -> str:
     """
     Get pretty string for list of Description Dicts
 
-    :param definitions: list of Description Dicts
+    :param concepts: list of Description Dicts
     :return: pretty string
     """
-    grouped = itertools.groupby(definitions, key=lambda _: _["concept"]["name"])
-    entries = (_entry_to_string(*args) for args in grouped)
+    entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
     return "\n\n".join(entries)

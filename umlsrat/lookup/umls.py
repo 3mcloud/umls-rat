@@ -131,7 +131,7 @@ def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
     return [
         {
             "name": stype["name"],
-            "info": api.get_single_result(stype["uri"]),
+            "data": api.get_single_result(stype["uri"]),
         }
         for stype in semantic_types
     ]
@@ -140,7 +140,7 @@ def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
 def get_semantic_type_groups(api: MetaThesaurus, cui: str) -> Set[str]:
     """Convenience function to get the set of semantic type *group* names for a concept"""
     sem_types = get_semantic_types(api, cui)
-    return {_["info"]["semanticTypeGroup"]["expandedForm"] for _ in sem_types}
+    return {_["data"]["semanticTypeGroup"]["expandedForm"] for _ in sem_types}
 
 
 def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
