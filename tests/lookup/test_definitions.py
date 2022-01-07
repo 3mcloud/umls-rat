@@ -1,13 +1,24 @@
+from typing import Dict, List
+
 from umlsrat.lookup import definitions
 from umlsrat.lookup.umls import find_umls
 
 
+def extract_definitions(concepts: List[Dict]) -> List[Dict]:
+    defs = []
+    for concept in concepts:
+        for d in concept["definitions"]:
+            defs.append(d)
+    return defs
+
+
 def find_single_mesh_def(api, snomed_code: str) -> str:
     cui = find_umls(api, "SNOMEDCT_US", snomed_code)
-    def_dict = definitions.definitions_bfs(
-        api, cui, min_num_defs=1, target_vocabs=("MSH",)
-    ).pop()
-    return def_dict["value"]
+    concepts = definitions.definitions_bfs(
+        api, cui, min_concepts=1, target_vocabs=("MSH",)
+    )
+    definition = extract_definitions(concepts).pop()
+    return definition["value"]
 
 
 def test_old_back(api):
@@ -27,10 +38,10 @@ def test_wrist(api):
 
 
 def test_find_definitions(api):
-    data = definitions.find_definitions(
-        api, "snomed", "282024004", min_num_defs=2, target_lang="ENG"
+    data = definitions.find_defined_concepts(
+        api, "snomed", "282024004", target_lang="ENG"
     )
-    values = [_["value"] for _ in data]
+    values = [_["value"] for _ in extract_definitions(data)]
     assert values == [
         "region of the back between thorax and pelvis.",
         "The part of the spine in the lower back that consists of the lumbar region and the sacrum.",
@@ -39,14 +50,14 @@ def test_find_definitions(api):
 
 
 def test_find_room_air(api):
-    data = definitions.find_definitions(
+    data = definitions.find_defined_concepts(
         api,
         source_vocab="snomed",
         source_code="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
         source_desc="Room air (substance)",
-        min_num_defs=2,
+        min_concepts=2,
     )
-    values = [_["value"] for _ in data]
+    values = [_["value"] for _ in extract_definitions(data)]
     assert values == [
         "Unmodified air as existing in the immediate surroundings.",
         "The mixture of gases present in the earth's atmosphere consisting of oxygen, nitrogen, carbon dioxide, and small amounts of other gases.",
@@ -55,8 +66,8 @@ def test_find_room_air(api):
 
 
 def test_find_without_code(api):
-    data = definitions.find_definitions(api, source_desc="Cancer")
-    values = {_["value"] for _ in data}
+    data = definitions.find_defined_concepts(api, source_desc="Cancer")
+    values = {_["value"] for _ in extract_definitions(data)}
     assert values == {
         "Cancer begins in your cells, which are the building blocks of your body. Normally, your body forms new cells as you need them, replacing old cells that die. Sometimes this process goes wrong. New cells grow even when you don't need them, and old cells don't die when they should. These extra cells can form a mass called a tumor. Tumors can be benign or malignant. Benign tumors aren't cancer while malignant ones are. Cells from malignant tumors can invade nearby tissues. They can also break away and spread to other parts of the body.  Cancer is not just one disease but many diseases. There are more than 100 different types of cancer. Most cancers are named for where they start. For example, lung cancer starts in the lung, and breast cancer starts in the breast. The spread of cancer from one part of the body to another is called metastasis. Symptoms and treatment depend on the cancer type and how advanced it is. Most treatment plans may include surgery, radiation and/or chemotherapy. Some may involve hormone therapy, immunotherapy or other types of biologic therapy, or stem cell transplantation.  NIH: National Cancer Institute",
         "new abnormal tissue that grows by excessive cellular division and proliferation more rapidly than normal and continues to grow after the stimuli that initiated the new growth cease; tumors perform no useful body function and may be benign or malignant; benign neoplasms are a noncancerous growth that does not invade nearby tissue or spread to other parts of the body; malignant neoplasms or cancer show a greater degree of anaplasia and have the properties of invasion and metastasis; neoplasm terms herein do not distinguish between benign or malignant states, use references listed to cover this concept.",
@@ -71,8 +82,32 @@ def test_find_without_code(api):
 
 
 def test_find_spanish(api):
-    data = definitions.find_definitions(api, source_desc="Cancer", target_lang="SPA")
-    values = [_["value"] for _ in data]
+    data = definitions.find_defined_concepts(
+        api, source_desc="Cancer", target_lang="SPA"
+    )
+    values = [_["value"] for _ in extract_definitions(data)]
     assert values == [
         'Neoplasia maligna formada por células epiteliales que tienden a infiltrarse en los tejidos circundantes y dan lugar a metástasis. Es un tipo histológico de neoplasia y no un sinónimo de "cáncer".'
     ]
+
+
+def test_pretty_print(api):
+    data = definitions.find_defined_concepts(
+        api, source_vocab="snomed", source_code="448169003"
+    )
+
+    pp = definitions.pretty_print_defs(data)
+    assert (
+        pp
+        == """Felis catus
+===========
+(1) The domestic cat, Felis catus, of the carnivore family FELIDAE,
+comprising over 30 different breeds. The domestic cat is descended
+primarily from the wild cat of Africa and extreme southwestern Asia.
+Though probably present in towns in Palestine as long ago as 7000
+years, actual domestication occurred in Egypt about 4000 years ago.
+(From Walker's Mammals of the World, 6th ed, p801)
+(2) The domestic cat, Felis catus. (NCI)
+(3) The domesticated feline mammal, Felis catus, which is kept as a
+house pet."""
+    )
