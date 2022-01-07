@@ -63,6 +63,10 @@ def definitions_bfs(
             definitions = [_ for _ in definitions if _["rootSource"] in target_vocabs]
 
         if definitions:
+            # strip random xml tags from definitions
+            for d in definitions:
+                d["value"] = misc.strip_tags(d["value"])
+
             current_concept["definitions"] = definitions
             _resolve_semantic_types(api, current_concept)
             current_concept["distanceFromOrigin"] = current_dist
@@ -158,9 +162,6 @@ def find_defined_concepts(
             max_distance=max_distance,
             target_vocabs=target_vocabs,
         )
-        for datum in data:
-            for d in datum["definitions"]:
-                d["value"] = misc.strip_tags(d["value"])
 
         return data
 
