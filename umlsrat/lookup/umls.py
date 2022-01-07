@@ -2,6 +2,7 @@ import collections
 import logging
 import os.path
 import re
+import string
 from typing import Optional, Dict, List, Iterable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
@@ -64,25 +65,48 @@ def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optiona
     return concept_res["ui"]
 
 
-def _term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
+def _term_search(api: MetaThesaurus, term: str) -> Dict:
     for st in ("words", "normalizedWords", "approximate"):
         for it in (
             "sourceConcept",
             "sourceDescriptor",
         ):
-            search_params = dict(inputType=it, searchType=st)
+            search_params = dict(searchTerm=term, inputType=it, searchType=st)
             concepts = api.search(term, **search_params)
             # filter bogus results
             concepts = [_ for _ in concepts if _["ui"]]
             if concepts:
                 return dict(**search_params, concepts=concepts)
-    return None
+
+    return dict(searchTerm=term, concepts=[])
 
 
-def term_search(api: MetaThesaurus, term: str) -> Optional[Dict]:
+def _normalize_for_match(text: str):
+    return re.sub(rf"[{string.punctuation}]+", " ", text.lower())
+
+
+def _is_strict_match(original: str, matched: str) -> bool:
+    original = _normalize_for_match(original)
+    matched = _normalize_for_match(matched)
+
+    return original in matched
+
+
+def term_search(
+    api: MetaThesaurus, term: str, strict_match: Optional[bool] = False
+) -> Dict:
     # remove trailing parentheses e.g. Room air (substance)
     normalized = re.sub(r"\s*\(.+?\)\s*$", "", term)
-    return _term_search(api, normalized)
+    result = _term_search(api, normalized)
+
+    if strict_match:
+        result["concepts"] = [
+            concept
+            for concept in result["concepts"]
+            if _is_strict_match(result["searchTerm"], concept["name"])
+        ]
+
+    return result
 
 
 def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
