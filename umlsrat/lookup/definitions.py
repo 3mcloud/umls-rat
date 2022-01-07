@@ -65,11 +65,18 @@ def definitions_bfs(
         if definitions:
             current_concept["definitions"] = definitions
             _resolve_semantic_types(api, current_concept)
+            current_concept["distanceFromOrigin"] = current_dist
 
             # reorder dict for readability
             reordered_concept = collections.OrderedDict(
                 (k, current_concept.pop(k))
-                for k in ("classType", "ui", "name", "definitions")
+                for k in (
+                    "classType",
+                    "ui",
+                    "name",
+                    "distanceFromOrigin",
+                    "definitions",
+                )
             )
             reordered_concept.update(current_concept)
 
