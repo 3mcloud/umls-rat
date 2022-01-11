@@ -176,7 +176,8 @@ def find_defined_concepts(
     # did not find the concept directly (by code)
     if source_desc:
         # if we have a source description, try to use it to find a CUI
-        # use strict matching if we were provided with a source code initially
+        # Use strict matching if we were provided with a source code initially. This will happen if
+        # the provided code is an MModal addition (not in original vocab).
         search_result = term_search(api, source_desc, strict_match=bool(source_code))
         search_term = search_result["searchTerm"]
         logger.info(f"Results for term search '{search_term}'")
