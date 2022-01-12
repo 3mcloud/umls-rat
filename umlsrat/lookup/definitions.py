@@ -202,7 +202,7 @@ def _entry_to_string(name: str, definitions: List[Dict]) -> str:
     string += "=" * len(name)
     string += "\n"
     enum_defs = (
-        textwrap.fill(f"({x + 1}) {datum['value']}")
+        textwrap.fill(f"{x + 1}. {datum['value']}")
         for x, datum in enumerate(definitions)
     )
     string += "\n".join(enum_defs)

@@ -77,7 +77,7 @@ def main():
         target_lang=target_language,
     )
 
-    logger.info("Definitions:\n" + pretty_print_defs(definitions))
+    logger.info("Definitions:\n\n" + pretty_print_defs(definitions))
 
     out_dir = args.out_dir
     out_dir = os.path.join(out_dir, target_language)
