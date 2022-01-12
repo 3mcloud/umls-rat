@@ -101,13 +101,13 @@ def test_pretty_print(api):
         pp
         == """Felis catus
 ===========
-(1) The domestic cat, Felis catus, of the carnivore family FELIDAE,
+1. The domestic cat, Felis catus, of the carnivore family FELIDAE,
 comprising over 30 different breeds. The domestic cat is descended
 primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
 years, actual domestication occurred in Egypt about 4000 years ago.
 (From Walker's Mammals of the World, 6th ed, p801)
-(2) The domestic cat, Felis catus. (NCI)
-(3) The domesticated feline mammal, Felis catus, which is kept as a
+2. The domestic cat, Felis catus. (NCI)
+3. The domesticated feline mammal, Felis catus, which is kept as a
 house pet."""
     )
