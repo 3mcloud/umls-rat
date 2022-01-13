@@ -178,14 +178,23 @@ def find_defined_concepts(
         # if we have a source description, try to use it to find a CUI
         # Use strict matching if we were provided with a source code initially. This will happen if
         # the provided code is an MModal addition (not in original vocab).
-        search_result = term_search(api, source_desc, strict_match=bool(source_code))
-        search_term = search_result["searchTerm"]
-        logger.info(f"Results for term search '{search_term}'")
+
+        max_search_results = 5  # only check the top 5 results
+        search_result = term_search(
+            api,
+            term=source_desc,
+            max_results=max_search_results,
+            strict_match=bool(source_code),
+        )
+
         if search_result:
+            search_term = search_result["searchTerm"]
+            logger.info(f"Results for term search '{search_term}'")
+
             # todo don't take concepts that are too far from original?
             concepts = search_result["concepts"]
-            # only check the top 5
-            for concept in concepts[:5]:
+
+            for concept in concepts:
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")

@@ -14,8 +14,6 @@ logger = logging.getLogger(os.path.basename(__file__))
 def _get_umls_concept(api: MetaThesaurus, result: Dict) -> Optional[Dict]:
     for c_uri in (result[_] for _ in ("concept", "concepts") if _ in result):
         concept_res = api.get_results(c_uri)
-        if not concept_res:
-            continue
         for c in concept_res:
             # check for valid UI
             if c["ui"]:
@@ -65,18 +63,20 @@ def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optiona
     return concept_res["ui"]
 
 
-def _term_search(api: MetaThesaurus, term: str) -> Dict:
+def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
     for st in ("words", "normalizedWords", "approximate"):
         for it in (
             "sourceConcept",
             "sourceDescriptor",
         ):
-            search_params = dict(searchTerm=term, inputType=it, searchType=st)
-            concepts = api.search(term, **search_params)
+            search_params = dict(
+                inputType=it, searchType=st, pageSize=min(25, max_results)
+            )
+            concepts = api.search(term, max_results=max_results, **search_params)
             # filter bogus results
             concepts = [_ for _ in concepts if _["ui"]]
             if concepts:
-                return dict(**search_params, concepts=concepts)
+                return dict(**search_params, searchTerm=term, concepts=concepts)
 
     return dict(searchTerm=term, concepts=[])
 
@@ -93,11 +93,14 @@ def _is_strict_match(original: str, matched: str) -> bool:
 
 
 def term_search(
-    api: MetaThesaurus, term: str, strict_match: Optional[bool] = False
+    api: MetaThesaurus,
+    term: str,
+    max_results: Optional[int] = 1000,
+    strict_match: Optional[bool] = False,
 ) -> Dict:
     # remove trailing parentheses e.g. Room air (substance)
     normalized = re.sub(r"\s*\(.+?\)\s*$", "", term)
-    result = _term_search(api, normalized)
+    result = _term_search(api, normalized, max_results)
 
     if strict_match:
         result["concepts"] = [

@@ -2,14 +2,10 @@ import pytest
 
 
 def test_cache(api):
-    res1 = api.get_results(
-        f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044"
-    )
-    res1.pop()
-    res1.append("shit")
-    res2 = api.get_results(
-        f"https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044"
-    )
+    concept_url = "https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044"
+    res1 = api.get_single_result(concept_url)
+    res1["foo"] = "bar"
+    res2 = api.get_single_result(concept_url)
     assert res1 != res2
 
 

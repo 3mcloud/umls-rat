@@ -1,10 +1,6 @@
 from typing import Dict
 
-from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.umls import find_umls, term_search
-
-rklopfer_api_key = "cf4e9f8f-a40c-4225-94e9-24ca9282b887"
-api = MetaThesaurus(rklopfer_api_key)
 
 
 def test_find_umls_old_back(api):
@@ -23,7 +19,7 @@ def do_search(api, term: str) -> Dict:
         return search_result["concepts"].pop(0)
 
 
-def test_search(api):
+def test_term_search(api):
     c1 = do_search(api, "Room air")
     assert c1
     c2 = do_search(api, "Room Air")
@@ -36,3 +32,10 @@ def test_search(api):
     assert c1 == c2
     assert c1 == c3
     assert c4
+
+
+def test_pagination(api):
+    results = api.search("star trek vs star wars", pageSize=25)
+    assert not list(results)
+    results = api.search("bone", pageSize=25, max_results=100)
+    assert list(results)

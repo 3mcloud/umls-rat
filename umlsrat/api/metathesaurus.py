@@ -1,5 +1,6 @@
+import json
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, Iterator, List, Optional
 
 import requests
 from requests import HTTPError, Response
@@ -12,29 +13,39 @@ from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 _NONE = "NONE"
 
 
-def _interp_value(value: Any):
+def _interp_none(value: Any):
     if isinstance(value, str):
         if value == _NONE:
             return None
         else:
             return value
+    elif isinstance(value, Dict):
+        return {key: _interp_none(value) for key, value in value.items()}
+    elif isinstance(value, List):
+        return [_interp_none(_) for _ in value]
     else:
         return value
 
 
-def _fix_res_dict(result: Dict) -> Dict:
-    return {key: _interp_value(value) for key, value in result.items()}
+def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
+    """
+    Extract results from response json.
+    :param response_json:
+    :return:
+    """
+    if not response_json:
+        return None
 
+    results = response_json["result"]
 
-def _create_dict_list(response_json: Dict) -> List[Dict]:
-    the_result = response_json["result"]
-    if "results" in the_result:
-        the_result = the_result["results"]
-
-    if isinstance(the_result, Dict):
-        the_result = [the_result]
-
-    return [_fix_res_dict(_) for _ in the_result]
+    if "results" in results:
+        results = results["results"]
+        if len(results) == 1 and not results[0].get("ui", True):
+            return None
+        else:
+            return results
+    else:
+        return results
 
 
 class MetaThesaurus(object):
@@ -87,18 +98,17 @@ class MetaThesaurus(object):
 
         return response
 
-    def get_results(self, url: str, **params) -> List[Dict]:
+    def _get(
+        self, url: str, strict: Optional[bool] = False, **params
+    ) -> Optional[Dict]:
         """
-        Get data from arbitrary URI wrapped in a list of Results. Will return an empty list on 400
+        Get data from arbitrary URI. Will return an empty list on 400
         unless `strict=True` is in kwargs, in which case it will raise.
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param params: get parameters *excluding* `ticket`
-        :return: a list of Dict results
+        :return: json response
         """
-        if not url:
-            return list()
-
-        strict = params.pop("strict", False)
+        assert url, "Must provide URL"
 
         if "ticket" in params:
             self.logger.warning(
@@ -116,11 +126,81 @@ class MetaThesaurus(object):
             self.logger.debug("Caught HTTPError: %s", e)
             if e.response.status_code == 400:
                 # we interpret this as "you're looking for something that isn't there"
-                return []
+                return None
             else:
                 raise e
 
-        return _create_dict_list(r.json())
+        return _interp_none(r.json())
+
+    def _get_paginated(
+        self,
+        url: str,
+        max_results: Optional[int] = None,
+        **params,
+    ) -> Iterator[Dict]:
+        """
+        Keep iterating through pages of results until there are no more *or* we
+        reach max_results.
+
+        :param url:
+        :param max_results:
+        :param params:
+        :return:
+        """
+        assert url
+        if max_results is not None:
+            assert max_results > 0, "max_results must be > 0"
+
+        response_json = self._get(url, **params)
+        if not response_json:
+            return
+
+        assert (
+            "pageNumber" in response_json
+        ), "Expected pagination fields in response:\n" "{}".format(
+            json.dumps(response_json, indent=2)
+        )
+
+        if "pageNumber" not in params:
+            params["pageNumber"] = 1
+        else:
+            self.logger.warning(
+                "Starting pagination from page %d", params["pageNumber"]
+            )
+
+        n_yielded = 0
+        while True:
+            results = _default_extract_results(response_json)
+            if not results:
+                return
+
+            for r in results:
+                yield r
+                n_yielded += 1
+                if n_yielded == max_results:
+                    return
+
+            # next page
+            params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
+            response_json = self._get(url, **params)
+
+    def get_results(
+        self, url: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
+        """
+        Get data from arbitrary URI. Will return an empty list on 400
+        unless `strict=True` is in kwargs, in which case it will raise.
+
+        :param url: URL under http://uts-ws.nlm.nih.gov/rest
+        :param max_results: maximum number of result to return. None = no max
+        :param params: get parameters *excluding* `ticket`
+        :return: a list of Dict results
+        """
+        return self._get_paginated(
+            url=url,
+            max_results=max_results,
+            **params,
+        )
 
     def get_single_result(self, url: str, **params) -> Optional[Dict]:
         """
@@ -129,12 +209,16 @@ class MetaThesaurus(object):
         :param params: get parameters *excluding* `ticket`
         :return: a Dict result or None
         """
-        res = self.get_results(url, **params)
-        if not res:
-            return None
+        response_json = self._get(url, **params)
+        if not response_json:
+            return
 
-        assert len(res) == 1, f"Expected 1 result got {len(res)}"
-        return res[0]
+        # This does happen, which is strange, but I guess that's okay
+        # assert "pageNumber" not in response_json, \
+        #     "Did not expect any pagination fields in response:\n" \
+        #     "{}".format(json.dumps(response_json, indent=2))
+
+        return response_json["result"]
 
     #### UMLS ####
 
@@ -153,27 +237,35 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
-    def get_definitions(self, cui: str) -> List[Dict]:
+    def get_definitions(
+        self, cui: str, max_results: Optional[int] = None
+    ) -> Iterator[Dict]:
         """
         Get the definitions for a concept.
         See: https://documentation.uts.nlm.nih.gov/rest/definitions/index.html
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :param max_results: maximum number of result to return. None = no max
         :return: list of Definition Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
-        return self.get_results(uri)
+        return self.get_results(uri, max_results=max_results)
 
-    def get_relations(self, cui: str) -> List[Dict]:
+    def get_relations(
+        self, cui: str, max_results: Optional[int] = None
+    ) -> Iterator[Dict]:
         """
         Get relations for a concept
         See: https://documentation.uts.nlm.nih.gov/rest/relations/index.html
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :param max_results: maximum number of result to return. None = no max
         :return: list of Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
-        return self.get_results(uri)
+        return self.get_results(uri, max_results=max_results)
 
-    def get_related_concepts(self, cui: str, **params) -> List[Dict]:
+    def get_related_concepts(
+        self, cui: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
         """
         Get related concepts
 
@@ -188,11 +280,13 @@ class MetaThesaurus(object):
         Because this is not documented it may change at any time, but I don't expect it to change in the near future.
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :param max_results: maximum number of result to return. None = no max
         :return: list of Relation Dicts
         """
         uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
         try:
-            return self.get_results(uri, **params)
+            return self.get_results(uri, max_results=max_results, **params)
+            # return MetaThesaurus._default_extract_results(self._get(uri, **params))
         except requests.exceptions.ConnectionError as e:
             self.logger.exception(
                 "Connection failed when getting related concepts! Try restricting "
@@ -201,17 +295,20 @@ class MetaThesaurus(object):
             raise e
 
     ### Search ###
-    def search(self, string: str, **params) -> List[Dict]:
+
+    def search(
+        self, string: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
         """
         Search UMLS!
         See: https://documentation.uts.nlm.nih.gov/rest/search/index.html
         :param string: search string
+        :param max_results: maximum number of result to return. None = no max
         :param params: additional get request params
         :return: list of search results (Concepts?)
         """
         uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
-        results = self.get_results(uri, string=string, **params)
-        return results
+        return self.get_results(uri, max_results=max_results, string=string, **params)
 
     ### Source Asserted ####
     def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
