@@ -3,10 +3,11 @@ import logging
 import os.path
 import re
 import string
-from typing import Optional, Dict, List, Iterable, Set
+from typing import Optional, Dict, List, Iterable, Set, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
+from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -152,7 +153,38 @@ def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
     return {_["name"] for _ in sem_types}
 
 
-def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
+def get_cui_for(
+    api: MetaThesaurus, source_vocab: str, concept_id: str
+) -> Optional[str]:
+    """
+    Get UMLS CUI for a source concept.
+    /search/current?string=9468002&inputType=sourceUi&searchType=exact&sabs=SNOMEDCT_US
+
+    :param api:
+    :param source_vocab:
+    :param concept_id:
+    :return: CUI or None if not found
+    """
+    xxx = find_umls(api, source_vocab, concept_id)
+    assert concept_id
+    source_vocab = validate_vocab_abbrev(source_vocab)
+
+    search_params = dict(
+        inputType="sourceUi",
+        searchType="exact",
+        includeObsolete=True,
+        includeSuppressible=True,
+        sabs=source_vocab,
+    )
+    results = list(api.search(string=concept_id, max_results=1, **search_params))
+    if not results:
+        return None
+    cui = results[0]["ui"]
+    assert xxx == cui
+    return cui
+
+
+def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
     """
     Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
 
@@ -174,6 +206,60 @@ def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
     seen = set()
     for rtype in allowed_relations:
         for cui in grouped[rtype]:
+            if cui not in seen:
+                seen.add(cui)
+                yield cui
+
+
+SourceConcept = collections.namedtuple("SourceConcept", ("rootSource", "ui"))
+
+
+def _get_source_concept(api: MetaThesaurus, atom: Dict) -> SourceConcept:
+    concept = api.get_single_result(atom["sourceConcept"])
+    return SourceConcept(concept["rootSource"], concept["ui"])
+
+
+def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
+    """
+    Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
+
+    :param api: meta thesaurus
+    :param cui: starting concept
+    :return: generator over CUIs
+    """
+    allowed_relations = ("SY", "RN", "CHD")
+
+    immediate_concepts = {_get_source_concept(api, atom) for atom in api.get_atoms(cui)}
+
+    relation_concept_map = collections.defaultdict(set)
+    for c in immediate_concepts:
+        relations = list(
+            api.get_source_relations(
+                source_vocab=c.rootSource,
+                concept_id=c.ui,
+                includeRelationLabels=",".join(allowed_relations),
+                includeObsolete=True,
+            )
+        )
+
+        for rel in relations:
+            rel_c = api.get_single_result(rel["relatedId"])
+            rel_sc = SourceConcept(rel_c["rootSource"], rel_c["ui"])
+            relation_concept_map[rel["relationLabel"]].add(rel_sc)
+
+        print(relations)
+        print()
+
+    # map SourceConcept to CUI
+    cui_map = {
+        rel_label: set(get_cui_for(api, sc.rootSource, sc.ui) for sc in concepts)
+        for rel_label, concepts in relation_concept_map.items()
+    }
+    print(cui_map)
+
+    seen = set()
+    for rtype in cui:
+        for cui in relation_concept_map[rtype]:
             if cui not in seen:
                 seen.add(cui)
                 yield cui
