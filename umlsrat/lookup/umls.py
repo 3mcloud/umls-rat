@@ -8,6 +8,7 @@ from typing import Optional, Dict, List, Iterable, Set, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc, orderedset
+from umlsrat.vocabularies import vocab_info
 from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -160,8 +161,8 @@ def _do_cui_search(
     search_params = dict(
         inputType="sourceUi",
         searchType="exact",
-        includeObsolete=True,
-        includeSuppressible=True,
+        # includeObsolete=True,
+        # includeSuppressible=True,
         sabs=source_vocab,
     )
     results = list(api.search(string=concept_id, max_results=1, **search_params))
@@ -245,15 +246,25 @@ def _get_simple_concept(api: MetaThesaurus, sc_url: str) -> SimpleConcept:
     return SimpleConcept(vocabulary=concept["rootSource"], ui=concept["ui"])
 
 
-def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
+def get_broader_concepts(
+    api: MetaThesaurus, cui: str, language: str = None
+) -> Iterator[str]:
     """
-    Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
+    Get broader concepts. **NO GUARANTEES REGARDING RETURN ORDER**
 
+    :param language:
     :param api: meta thesaurus
     :param cui: starting concept
     :return: generator over CUIs
     """
     allowed_relations = ("RN", "CHD")
+
+    if language:
+        add_params = dict(language=vocab_info.validate_language(language))
+    else:
+        # add_params = dict(includeObsolete=True,
+        #                   includeSuppressible=True)
+        add_params = dict()
 
     broader = orderedset.UniqueFIFO()
 
@@ -264,12 +275,7 @@ def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
             broader.push(rel_c["ui"])
 
     # get all atom concepts of this umls concept
-    atoms = api.get_atoms(
-        cui,
-        includeObsolete=True,
-        includeSuppressible=True,
-        language="ENG",  # todo remove this
-    )
+    atoms = api.get_atoms(cui, **add_params)
     atom_concepts = orderedset.UniqueFIFO()
     for atom in atoms:
         sc_url = atom["sourceConcept"]
@@ -282,12 +288,10 @@ def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
                 source_vocab=c.vocabulary,
                 concept_id=c.ui,
                 includeRelationLabels=",".join(allowed_relations),
-                includeObsolete=True,
-                includeSuppressible=True,
-                language="ENG",  # todo remove this
+                **add_params,
             )
         )
-
+        print(f"relations={relations}")
         for rel in relations:
             source_concept = api.get_single_result(rel["relatedId"])
             broader_cui = get_cui_for(
@@ -296,9 +300,4 @@ def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
             if broader_cui:
                 broader.push(broader_cui)
 
-    # order by "atomCount"
-    for ui in broader:
-        c = api.get_concept(ui)
-        if not c:
-            print(ui)
-    yield from sorted(broader, key=lambda _: api.get_concept(_).get("atomCount"))
+    yield from broader

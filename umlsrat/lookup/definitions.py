@@ -2,7 +2,7 @@ import collections
 import logging
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict
+from typing import Optional, Iterable, List, Dict, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
@@ -29,10 +29,12 @@ def definitions_bfs(
     min_concepts: int = 0,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
+    target_lang: str = "ENG",
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param target_lang:
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
@@ -98,12 +100,20 @@ def definitions_bfs(
 
         return Action.NONE
 
+    def _semantic_type_count(api: MetaThesaurus, cui: str) -> int:
+        st = umls.get_semantic_types(api, cui)
+        return len(st)
+
+    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
+        cuis = umls.get_broader_concepts(api, cui, language=target_lang)
+        return sorted(cuis, key=lambda _: _semantic_type_count(api, _), reverse=True)
+
     # here we actually do the search
     graph_fn.breadth_first_search(
         api=api,
         start_cui=start_cui,
         visit=visit,
-        get_neighbors=umls.get_broader_concepts,
+        get_neighbors=get_neighbors,
         post_visit=post_visit,
     )
 
@@ -162,6 +172,7 @@ def find_defined_concepts(
             min_concepts=min_concepts,
             max_distance=max_distance,
             target_vocabs=target_vocabs,
+            target_lang=target_lang,
         )
 
         return data

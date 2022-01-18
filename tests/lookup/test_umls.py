@@ -53,22 +53,22 @@ def test_new_lookup(api):
     assert old == new
 
 
-def test_get_broader(api):
-    cui = "C1995000"
-    actual = list(umls.get_broader_concepts(api, cui=cui))
-    # ac = [api.get_concept(_) for _ in actual]
-    # updated = sorted(ac, key=lambda _:_["atomCount"])
-    # updated = [_["ui"] for _ in updated]
-    expected = ["C1720697", "C0581757", "C1280632", "C0817743", "C0460009", "C0004600"]
-    assert len(actual) == len(expected)
-    assert set(actual) == set(expected)
-    assert actual == expected
-
-
-def test_get_broader2(api):
-    cui = "C0460009"
-    actual = list(umls.get_broader_concepts(api, cui=cui))
-    expected = ["C0460005", "C2322636", "C0229960", "C0005898", "C0738568", "C1995000"]
-    assert len(actual) == len(expected)
-    assert set(actual) == set(expected)
-    assert actual == expected
+# def test_get_broader(api):
+#     cui = "C1995000"
+#     actual = list(umls.get_broader_concepts(api, cui=cui))
+#     # ac = [api.get_concept(_) for _ in actual]
+#     # updated = sorted(ac, key=lambda _:_["atomCount"])
+#     # updated = [_["ui"] for _ in updated]
+#     expected = ["C1720697", "C0581757", "C1280632", "C0817743", "C0460009", "C0004600"]
+#     assert len(actual) == len(expected)
+#     assert set(actual) == set(expected)
+#     assert actual == expected
+#
+#
+# def test_get_broader2(api):
+#     cui = "C0460009"
+#     actual = list(umls.get_broader_concepts(api, cui=cui))
+#     expected = ["C0460005", "C2322636", "C0229960", "C0005898", "C0738568", "C1995000"]
+#     assert len(actual) == len(expected)
+#     assert set(actual) == set(expected)
+#     assert actual == expected

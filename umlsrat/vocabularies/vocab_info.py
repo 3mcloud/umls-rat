@@ -83,3 +83,10 @@ def available_languages() -> List[str]:
     table = _get_vocab_table()
     cnt = Counter(info.Language for info in table.values() if info.Language)
     return [abbrev for abbrev, _ in cnt.most_common()]
+
+
+def validate_language(language: str) -> str:
+    normalized = language.upper()
+    available = set(available_languages())
+    assert normalized in available, f"Invalid language abbrev: {language}"
+    return normalized
