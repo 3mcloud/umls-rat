@@ -1,16 +1,16 @@
 from typing import Dict
 
 from umlsrat.lookup import umls
-from umlsrat.lookup.umls import find_umls, term_search
+from umlsrat.lookup.umls import term_search
 
 
 def test_find_umls_old_back(api):
-    cui = find_umls(api, "SNOMEDCT_US", "450807008")
+    cui = umls.get_cui_for(api, "SNOMEDCT_US", "450807008")
     assert cui == "C4517971"
 
 
 def test_find_umls_funky(api):
-    concept = find_umls(api, "SNOMEDCT_US", "282024004")
+    concept = umls.get_cui_for(api, "SNOMEDCT_US", "282024004")
     assert concept == "C5546171"
 
 
