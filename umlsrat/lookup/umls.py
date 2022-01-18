@@ -276,17 +276,17 @@ def get_broader_concepts(
 
     # get all atom concepts of this umls concept
     atoms = api.get_atoms(cui, **add_params)
-    atom_concepts = orderedset.UniqueFIFO()
+
     for atom in atoms:
         sc_url = atom["sourceConcept"]
-        if sc_url:
-            atom_concepts.push(_get_simple_concept(api, sc_url))
+        if not sc_url:
+            continue
+        sc = api.get_single_result(sc_url)
 
-    for c in atom_concepts:
         relations = list(
             api.get_source_relations(
-                source_vocab=c.vocabulary,
-                concept_id=c.ui,
+                source_vocab=sc["rootSource"],
+                concept_id=sc["ui"],
                 includeRelationLabels=",".join(allowed_relations),
                 **add_params,
             )

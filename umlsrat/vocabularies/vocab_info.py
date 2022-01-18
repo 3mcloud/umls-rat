@@ -31,8 +31,14 @@ def get_vocab_info(abbrev: str) -> Optional[NamedTuple]:
     :param abbrev: vocab abbreviation or name
     :return: vocab info
     """
-    norm = _normalize_abbrev(abbrev)
     voc_info = _get_vocab_table()
+
+    info = voc_info.get(abbrev)
+    if info:
+        return info
+
+    # Back off to normalized form
+    norm = _normalize_abbrev(abbrev)
     return voc_info.get(norm)
 
 
