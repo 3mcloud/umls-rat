@@ -194,7 +194,7 @@ class MetaThesaurus(object):
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param max_results: maximum number of result to return. None = no max
         :param params: get parameters *excluding* `ticket`
-        :return: a list of Dict results
+        :return: generator yielding Dict results
         """
         return self._get_paginated(
             url=url,
@@ -234,6 +234,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
         """
+        assert cui
         uri = f"{self._start_content_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
@@ -262,6 +263,19 @@ class MetaThesaurus(object):
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self.get_results(uri, max_results=max_results)
+
+    def get_atoms(
+        self, cui: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
+        """
+        Get Atoms for a concept
+        See: https://documentation.uts.nlm.nih.gov/rest/atoms/index.html
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :param max_results: maximum number of result to return. None = no max
+        :return: list of Relation Dicts
+        """
+        uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
+        return self.get_results(uri, max_results=max_results, **params)
 
     def get_related_concepts(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -305,12 +319,18 @@ class MetaThesaurus(object):
         :param string: search string
         :param max_results: maximum number of result to return. None = no max
         :param params: additional get request params
-        :return: list of search results (Concepts?)
+        :return: generator over search results
         """
         uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
-        return self.get_results(uri, max_results=max_results, string=string, **params)
+        if "string" in params:
+            self.logger.warning(
+                "Overwriting existing 'string' value %s", params["string"]
+            )
+        params["string"] = string
+        return self.get_results(uri, max_results=max_results, **params)
 
     ### Source Asserted ####
+
     def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
         """
         Get a "Source Asserted" concept. i.e. get a concept by ID in a Vocabulary which is not UMLS
@@ -320,5 +340,65 @@ class MetaThesaurus(object):
         :return: concept Dict or None
         """
         source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}"
         return self.get_single_result(uri)
+
+    def get_source_relations(
+        self,
+        source_vocab: str,
+        concept_id: str,
+        **params,
+    ) -> Iterator[Dict]:
+        """
+        Get a "Source Asserted" relations
+        See: https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: generator over concept Dicts
+        """
+        source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/relations"
+
+        return self.get_results(uri, **params)
+
+    def get_source_parents(
+        self,
+        source_vocab: str,
+        concept_id: str,
+    ) -> Iterator[Dict]:
+
+        """
+        Get a "Source Asserted" parents
+        See: https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: generator over concept Dicts
+        """
+        source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/parents"
+
+        return self.get_results(uri)
+
+    def get_source_ancestors(
+        self,
+        source_vocab: str,
+        concept_id: str,
+    ) -> Iterator[Dict]:
+        """
+        Get a "Source Asserted" ancestors
+        See: https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: generator over concept Dicts
+        """
+        source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/ancestors"
+
+        return self.get_results(uri)
