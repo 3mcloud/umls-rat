@@ -291,7 +291,7 @@ def get_broader_concepts(
                 **add_params,
             )
         )
-        print(f"relations={relations}")
+        # print(f"relations={relations}")
         for rel in relations:
             source_concept = api.get_single_result(rel["relatedId"])
             broader_cui = get_cui_for(

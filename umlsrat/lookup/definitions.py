@@ -57,8 +57,8 @@ def definitions_bfs(
     def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
         current_concept = api.get_concept(current_cui)
 
-        defs_uri = current_concept["definitions"]
-        definitions = api.get_results(defs_uri) if defs_uri else []
+        defs_url = current_concept["definitions"]
+        definitions = list(api.get_results(defs_url)) if defs_url else []
 
         # filter defs not in target vocab
         if target_vocabs:
@@ -100,13 +100,9 @@ def definitions_bfs(
 
         return Action.NONE
 
-    def _semantic_type_count(api: MetaThesaurus, cui: str) -> int:
-        st = umls.get_semantic_types(api, cui)
-        return len(st)
-
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
         cuis = umls.get_broader_concepts(api, cui, language=target_lang)
-        return sorted(cuis, key=lambda _: _semantic_type_count(api, _), reverse=True)
+        return sorted(cuis)
 
     # here we actually do the search
     graph_fn.breadth_first_search(
