@@ -4,7 +4,6 @@ from enum import Enum
 from typing import Callable, Optional, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import umls
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -31,7 +30,7 @@ def breadth_first_search(
     api: MetaThesaurus,
     start_cui: str,
     visit: Callable[[MetaThesaurus, str, int], None],
-    get_neighbors: Optional[Callable[[MetaThesaurus, str], Iterable[str]]] = None,
+    get_neighbors: Callable[[MetaThesaurus, str], Iterable[str]],
     pre_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
     post_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
 ) -> None:
@@ -47,15 +46,12 @@ def breadth_first_search(
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param visit: applied to each visited concept
-    :param get_neighbors: get neighbors for a given CUI. default: get broader concepts
+    :param get_neighbors: get neighbors for a given CUI.
     :param pre_visit: applied before visiting a concept. default: do nothing
     :param post_visit: applied after visiting a concept. default: do nothing
     """
     assert api
     assert start_cui
-
-    if get_neighbors is None:
-        get_neighbors = umls.get_broader_concepts
 
     if pre_visit is None:
         pre_visit = _pre_visit_passthrough
@@ -66,7 +62,7 @@ def breadth_first_search(
     to_visit = UniqueFIFO([start_cui])
     distances = FIFO([0])
 
-    visited = set()
+    visited = UniqueFIFO()
 
     while to_visit:
         current_cui = to_visit.peek()
@@ -80,7 +76,7 @@ def breadth_first_search(
             visit(api, current_cui, current_dist)
 
         ## Mark as visited
-        visited.add(to_visit.pop())
+        visited.push(to_visit.pop())
         distances.pop()
 
         logger.info(
@@ -101,8 +97,8 @@ def breadth_first_search(
             continue
 
         ## Find neighbors and add to_visit
-        neighbor_cuis = get_neighbors(api, current_cui)
-
+        neighbor_cuis = list(get_neighbors(api, current_cui))
+        print(f"neighbor cuis: {neighbor_cuis}")
         for cui in neighbor_cuis:
             # remove those we have visited or plan to visit already
             if cui in visited or cui in to_visit:

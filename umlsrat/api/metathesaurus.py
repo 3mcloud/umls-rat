@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, Iterator, List, Optional, Iterable
+from typing import Any, Dict, Iterator, List, Optional
 
 import requests
 from requests import HTTPError, Response
@@ -234,6 +234,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
         """
+        assert cui
         uri = f"{self._start_content_uri}/CUI/{cui}"
         return self.get_single_result(uri)
 
@@ -263,7 +264,9 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self.get_results(uri, max_results=max_results)
 
-    def get_atoms(self, cui: str, max_results: Optional[int] = None) -> Iterator[Dict]:
+    def get_atoms(
+        self, cui: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
         """
         Get Atoms for a concept
         See: https://documentation.uts.nlm.nih.gov/rest/atoms/index.html
@@ -272,7 +275,7 @@ class MetaThesaurus(object):
         :return: list of Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
-        return self.get_results(uri, max_results=max_results)
+        return self.get_results(uri, max_results=max_results, **params)
 
     def get_related_concepts(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -345,7 +348,6 @@ class MetaThesaurus(object):
         self,
         source_vocab: str,
         concept_id: str,
-        include_relation_labels: Iterable[str] = None,
         **params,
     ) -> Iterator[Dict]:
         """
@@ -354,22 +356,49 @@ class MetaThesaurus(object):
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
-        :param include_relation_labels:
-        :return: concept Dict or None
+        :return: generator over concept Dicts
         """
         source_vocab = validate_vocab_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/relations"
 
-        if include_relation_labels:
-            if "includeRelationLabels" in params:
-                self.logger.warning(
-                    "Overwriting 'includeRelationLabels' %s",
-                    params["includeRelationLabels"],
-                )
-            params = {
-                "includeRelationLabels": ",".join(include_relation_labels),
-                **params,
-            }
-
         return self.get_results(uri, **params)
+
+    def get_source_parents(
+        self,
+        source_vocab: str,
+        concept_id: str,
+    ) -> Iterator[Dict]:
+
+        """
+        Get a "Source Asserted" parents
+        See: https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: generator over concept Dicts
+        """
+        source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/parents"
+
+        return self.get_results(uri)
+
+    def get_source_ancestors(
+        self,
+        source_vocab: str,
+        concept_id: str,
+    ) -> Iterator[Dict]:
+        """
+        Get a "Source Asserted" ancestors
+        See: https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :return: generator over concept Dicts
+        """
+        source_vocab = validate_vocab_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/ancestors"
+
+        return self.get_results(uri)

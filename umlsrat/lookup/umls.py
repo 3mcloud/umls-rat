@@ -3,10 +3,11 @@ import logging
 import os.path
 import re
 import string
+from dataclasses import dataclass
 from typing import Optional, Dict, List, Iterable, Set, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.util import misc
+from umlsrat.util import misc, orderedset
 from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -153,6 +154,23 @@ def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
     return {_["name"] for _ in sem_types}
 
 
+def _do_cui_search(
+    api: MetaThesaurus, source_vocab: str, concept_id: str
+) -> Optional[str]:
+    search_params = dict(
+        inputType="sourceUi",
+        searchType="exact",
+        includeObsolete=True,
+        includeSuppressible=True,
+        sabs=source_vocab,
+    )
+    results = list(api.search(string=concept_id, max_results=1, **search_params))
+    if results:
+        return results[0]["ui"]
+
+    return None
+
+
 def get_cui_for(
     api: MetaThesaurus, source_vocab: str, concept_id: str
 ) -> Optional[str]:
@@ -165,23 +183,27 @@ def get_cui_for(
     :param concept_id:
     :return: CUI or None if not found
     """
-    xxx = find_umls(api, source_vocab, concept_id)
+
     assert concept_id
     source_vocab = validate_vocab_abbrev(source_vocab)
 
-    search_params = dict(
-        inputType="sourceUi",
-        searchType="exact",
-        includeObsolete=True,
-        includeSuppressible=True,
-        sabs=source_vocab,
+    cui = _do_cui_search(api, source_vocab, concept_id)
+    if cui:
+        return cui
+
+    ## might have an obsolete concept, so check synonyms
+    relations = list(
+        api.get_source_relations(
+            source_vocab=source_vocab, concept_id=concept_id, includeRelationLabels="SY"
+        )
     )
-    results = list(api.search(string=concept_id, max_results=1, **search_params))
-    if not results:
-        return None
-    cui = results[0]["ui"]
-    assert xxx == cui
-    return cui
+    for rel in relations:
+        related_concept = api.get_single_result(rel["relatedId"])
+        cui = _do_cui_search(api, related_concept["rootSource"], related_concept["ui"])
+        if cui:
+            return cui
+
+    return None
 
 
 def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
@@ -211,12 +233,16 @@ def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
                 yield cui
 
 
-SourceConcept = collections.namedtuple("SourceConcept", ("rootSource", "ui"))
+@dataclass(frozen=True)
+class SimpleConcept:
+    vocabulary: str
+    ui: str
 
 
-def _get_source_concept(api: MetaThesaurus, atom: Dict) -> SourceConcept:
-    concept = api.get_single_result(atom["sourceConcept"])
-    return SourceConcept(concept["rootSource"], concept["ui"])
+def _get_simple_concept(api: MetaThesaurus, sc_url: str) -> SimpleConcept:
+    assert sc_url
+    concept = api.get_single_result(sc_url)
+    return SimpleConcept(vocabulary=concept["rootSource"], ui=concept["ui"])
 
 
 def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
@@ -227,39 +253,52 @@ def get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterator[str]:
     :param cui: starting concept
     :return: generator over CUIs
     """
-    allowed_relations = ("SY", "RN", "CHD")
+    allowed_relations = ("RN", "CHD")
 
-    immediate_concepts = {_get_source_concept(api, atom) for atom in api.get_atoms(cui)}
+    broader = orderedset.UniqueFIFO()
 
-    relation_concept_map = collections.defaultdict(set)
-    for c in immediate_concepts:
+    # first get direct relations
+    for rel in api.get_relations(cui):
+        if rel["relationLabel"] in allowed_relations:
+            rel_c = api.get_single_result(rel["relatedId"])
+            broader.push(rel_c["ui"])
+
+    # get all atom concepts of this umls concept
+    atoms = api.get_atoms(
+        cui,
+        includeObsolete=True,
+        includeSuppressible=True,
+        language="ENG",  # todo remove this
+    )
+    atom_concepts = orderedset.UniqueFIFO()
+    for atom in atoms:
+        sc_url = atom["sourceConcept"]
+        if sc_url:
+            atom_concepts.push(_get_simple_concept(api, sc_url))
+
+    for c in atom_concepts:
         relations = list(
             api.get_source_relations(
-                source_vocab=c.rootSource,
+                source_vocab=c.vocabulary,
                 concept_id=c.ui,
                 includeRelationLabels=",".join(allowed_relations),
                 includeObsolete=True,
+                includeSuppressible=True,
+                language="ENG",  # todo remove this
             )
         )
 
         for rel in relations:
-            rel_c = api.get_single_result(rel["relatedId"])
-            rel_sc = SourceConcept(rel_c["rootSource"], rel_c["ui"])
-            relation_concept_map[rel["relationLabel"]].add(rel_sc)
+            source_concept = api.get_single_result(rel["relatedId"])
+            broader_cui = get_cui_for(
+                api, source_concept["rootSource"], source_concept["ui"]
+            )
+            if broader_cui:
+                broader.push(broader_cui)
 
-        print(relations)
-        print()
-
-    # map SourceConcept to CUI
-    cui_map = {
-        rel_label: set(get_cui_for(api, sc.rootSource, sc.ui) for sc in concepts)
-        for rel_label, concepts in relation_concept_map.items()
-    }
-    print(cui_map)
-
-    seen = set()
-    for rtype in cui:
-        for cui in relation_concept_map[rtype]:
-            if cui not in seen:
-                seen.add(cui)
-                yield cui
+    # order by "atomCount"
+    for ui in broader:
+        c = api.get_concept(ui)
+        if not c:
+            print(ui)
+    yield from sorted(broader, key=lambda _: api.get_concept(_).get("atomCount"))

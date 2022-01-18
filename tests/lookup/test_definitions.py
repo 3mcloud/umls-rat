@@ -1,7 +1,7 @@
 from typing import Dict, List
 
+import umlsrat.lookup.umls
 from umlsrat.lookup import definitions
-from umlsrat.lookup.umls import find_umls
 
 
 def extract_definitions(concepts: List[Dict]) -> List[str]:
@@ -13,7 +13,7 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 
 def find_single_mesh_def(api, snomed_code: str) -> str:
-    cui = find_umls(api, "SNOMEDCT_US", snomed_code)
+    cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
     concepts = definitions.definitions_bfs(
         api, cui, min_concepts=1, target_vocabs=("MSH",)
     )

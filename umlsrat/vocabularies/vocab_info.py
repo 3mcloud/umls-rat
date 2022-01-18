@@ -45,7 +45,7 @@ def validate_vocab_abbrev(abbrev: str) -> str:
     info = get_vocab_info(abbrev)
     if not info:
         message = "Unknown vocabulary abbreviation: '{}'. Try one of these:\n{}".format(
-            abbrev, "\n".join(str(_) for _ in _get_vocab_table().values())
+            abbrev, ", ".join(_get_vocab_table().keys())
         )
         raise ValueError(message)
     return info.Abbreviation

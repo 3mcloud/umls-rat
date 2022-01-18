@@ -5,7 +5,7 @@ import textwrap
 from typing import Optional, Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import graph_fn
+from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
@@ -103,6 +103,7 @@ def definitions_bfs(
         api=api,
         start_cui=start_cui,
         visit=visit,
+        get_neighbors=umls.get_broader_concepts,
         post_visit=post_visit,
     )
 
