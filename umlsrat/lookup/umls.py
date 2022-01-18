@@ -1,10 +1,8 @@
-import collections
 import logging
 import os.path
 import re
 import string
-from dataclasses import dataclass
-from typing import Optional, Dict, List, Iterable, Set, Iterator
+from typing import Optional, Dict, List, Set, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc, orderedset
@@ -192,14 +190,25 @@ def get_cui_for(
     if cui:
         return cui
 
-    ## might have an obsolete concept, so check synonyms
-    relations = list(
-        api.get_source_relations(
-            source_vocab=source_vocab, concept_id=concept_id, includeRelationLabels="SY"
-        )
-    )
-    for rel in relations:
-        related_concept = api.get_single_result(rel["relatedId"])
+    ## might have an obsolete concept
+    def get_related(label: str):
+        return [
+            api.get_single_result(rel["relatedId"])
+            for rel in api.get_source_relations(
+                source_vocab=source_vocab,
+                concept_id=concept_id,
+                includeRelationLabels=label,
+            )
+        ]
+
+    # check synonyms
+    for related_concept in get_related("SY"):
+        cui = _do_cui_search(api, related_concept["rootSource"], related_concept["ui"])
+        if cui:
+            return cui
+
+    # check other relations
+    for related_concept in get_related("RO"):
         cui = _do_cui_search(api, related_concept["rootSource"], related_concept["ui"])
         if cui:
             return cui
@@ -207,43 +216,31 @@ def get_cui_for(
     return None
 
 
-def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
-    """
-    Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
-
-    :param api: meta thesaurus
-    :param cui: starting concept
-    :return: generator over CUIs
-    """
-    allowed_relations = ("SY", "RN", "CHD")
-
-    related_concepts = api.get_related_concepts(
-        cui, relationLabels=",".join(allowed_relations)
-    )
-
-    # group by relation type
-    grouped = collections.defaultdict(list)
-    for rc in related_concepts:
-        grouped[rc["label"]].append(rc["concept"])
-
-    seen = set()
-    for rtype in allowed_relations:
-        for cui in grouped[rtype]:
-            if cui not in seen:
-                seen.add(cui)
-                yield cui
-
-
-@dataclass(frozen=True)
-class SimpleConcept:
-    vocabulary: str
-    ui: str
-
-
-def _get_simple_concept(api: MetaThesaurus, sc_url: str) -> SimpleConcept:
-    assert sc_url
-    concept = api.get_single_result(sc_url)
-    return SimpleConcept(vocabulary=concept["rootSource"], ui=concept["ui"])
+# def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
+#     """
+#     Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
+#
+#     :param api: meta thesaurus
+#     :param cui: starting concept
+#     :return: generator over CUIs
+#     """
+#     allowed_relations = ("SY", "RN", "CHD")
+#
+#     related_concepts = api.get_related_concepts(
+#         cui, relationLabels=",".join(allowed_relations)
+#     )
+#
+#     # group by relation type
+#     grouped = collections.defaultdict(list)
+#     for rc in related_concepts:
+#         grouped[rc["label"]].append(rc["concept"])
+#
+#     seen = set()
+#     for rtype in allowed_relations:
+#         for cui in grouped[rtype]:
+#             if cui not in seen:
+#                 seen.add(cui)
+#                 yield cui
 
 
 def get_broader_concepts(

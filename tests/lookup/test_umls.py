@@ -52,6 +52,12 @@ def test_new_lookup(api):
     new = umls.get_cui_for(api, source_vocab="snomed", concept_id=ui)
     assert old == new
 
+    ui = "282024004"
+
+    old = umls.find_umls(api, source_vocab="snomed", concept_id=ui)
+    new = umls.get_cui_for(api, source_vocab="snomed", concept_id=ui)
+    assert old == new
+
 
 # def test_get_broader(api):
 #     cui = "C1995000"

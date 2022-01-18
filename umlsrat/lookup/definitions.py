@@ -7,7 +7,6 @@ from typing import Optional, Iterable, List, Dict, Iterator
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
 from umlsrat.vocabularies import vocab_info
 
@@ -174,7 +173,7 @@ def find_defined_concepts(
         return data
 
     if source_code:
-        cui = find_umls(api, source_vocab, source_code)
+        cui = umls.get_cui_for(api, source_vocab, source_code)
         if cui:
             logger.info(f"Searching base CUI {cui}")
             defs = do_bfs(cui)
@@ -188,7 +187,7 @@ def find_defined_concepts(
         # the provided code is an MModal addition (not in original vocab).
 
         max_search_results = 5  # only check the top 5 results
-        search_result = term_search(
+        search_result = umls.term_search(
             api,
             term=source_desc,
             max_results=max_search_results,
