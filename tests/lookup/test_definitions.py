@@ -1,7 +1,7 @@
 from typing import Dict, List
 
+import umlsrat.lookup.umls
 from umlsrat.lookup import definitions
-from umlsrat.lookup.umls import find_umls
 
 
 def extract_definitions(concepts: List[Dict]) -> List[str]:
@@ -13,7 +13,7 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 
 def find_single_mesh_def(api, snomed_code: str) -> str:
-    cui = find_umls(api, "SNOMEDCT_US", snomed_code)
+    cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
     concepts = definitions.definitions_bfs(
         api, cui, min_concepts=1, target_vocabs=("MSH",)
     )
@@ -33,7 +33,10 @@ def test_old_back(api):
 def test_wrist(api):
     # Closed fracture of left wrist (10937761000119101)
     definition = find_single_mesh_def(api, "10937761000119101")
-    assert definition == "Injuries to the wrist or the wrist joint."
+    assert (
+        definition
+        == "Fractures in which the break in bone is not accompanied by an external wound."
+    )
 
 
 def test_find_definitions(api):
@@ -86,8 +89,11 @@ def test_find_spanish(api):
     )
     values = extract_definitions(data)
     assert values == [
-        'Neoplasia maligna formada por células epiteliales que tienden a infiltrarse en los tejidos circundantes y dan lugar a metástasis. Es un tipo histológico de neoplasia y no un sinónimo de "cáncer".'
+        "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas."
     ]
+    # assert values == [
+    #     'Neoplasia maligna formada por células epiteliales que tienden a infiltrarse en los tejidos circundantes y dan lugar a metástasis. Es un tipo histológico de neoplasia y no un sinónimo de "cáncer".'
+    # ]
 
 
 def test_pretty_print(api):

@@ -31,8 +31,14 @@ def get_vocab_info(abbrev: str) -> Optional[NamedTuple]:
     :param abbrev: vocab abbreviation or name
     :return: vocab info
     """
-    norm = _normalize_abbrev(abbrev)
     voc_info = _get_vocab_table()
+
+    info = voc_info.get(abbrev)
+    if info:
+        return info
+
+    # Back off to normalized form
+    norm = _normalize_abbrev(abbrev)
     return voc_info.get(norm)
 
 
@@ -45,7 +51,7 @@ def validate_vocab_abbrev(abbrev: str) -> str:
     info = get_vocab_info(abbrev)
     if not info:
         message = "Unknown vocabulary abbreviation: '{}'. Try one of these:\n{}".format(
-            abbrev, "\n".join(str(_) for _ in _get_vocab_table().values())
+            abbrev, ", ".join(_get_vocab_table().keys())
         )
         raise ValueError(message)
     return info.Abbreviation
@@ -83,3 +89,10 @@ def available_languages() -> List[str]:
     table = _get_vocab_table()
     cnt = Counter(info.Language for info in table.values() if info.Language)
     return [abbrev for abbrev, _ in cnt.most_common()]
+
+
+def validate_language(language: str) -> str:
+    normalized = language.upper()
+    available = set(available_languages())
+    assert normalized in available, f"Invalid language abbrev: {language}"
+    return normalized

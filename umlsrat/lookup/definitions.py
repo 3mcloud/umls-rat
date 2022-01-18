@@ -2,12 +2,11 @@ import collections
 import logging
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict
+from typing import Optional, Iterable, List, Dict, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import graph_fn
+from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.lookup.umls import find_umls, term_search
 from umlsrat.util import misc
 from umlsrat.vocabularies import vocab_info
 
@@ -29,10 +28,12 @@ def definitions_bfs(
     min_concepts: int = 0,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
+    target_lang: str = "ENG",
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param target_lang:
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
@@ -55,8 +56,8 @@ def definitions_bfs(
     def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
         current_concept = api.get_concept(current_cui)
 
-        defs_uri = current_concept["definitions"]
-        definitions = api.get_results(defs_uri) if defs_uri else []
+        defs_url = current_concept["definitions"]
+        definitions = list(api.get_results(defs_url)) if defs_url else []
 
         # filter defs not in target vocab
         if target_vocabs:
@@ -98,11 +99,16 @@ def definitions_bfs(
 
         return Action.NONE
 
+    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
+        cuis = umls.get_broader_concepts(api, cui, language=target_lang)
+        return sorted(cuis)
+
     # here we actually do the search
     graph_fn.breadth_first_search(
         api=api,
         start_cui=start_cui,
         visit=visit,
+        get_neighbors=get_neighbors,
         post_visit=post_visit,
     )
 
@@ -161,12 +167,13 @@ def find_defined_concepts(
             min_concepts=min_concepts,
             max_distance=max_distance,
             target_vocabs=target_vocabs,
+            target_lang=target_lang,
         )
 
         return data
 
     if source_code:
-        cui = find_umls(api, source_vocab, source_code)
+        cui = umls.get_cui_for(api, source_vocab, source_code)
         if cui:
             logger.info(f"Searching base CUI {cui}")
             defs = do_bfs(cui)
@@ -178,14 +185,23 @@ def find_defined_concepts(
         # if we have a source description, try to use it to find a CUI
         # Use strict matching if we were provided with a source code initially. This will happen if
         # the provided code is an MModal addition (not in original vocab).
-        search_result = term_search(api, source_desc, strict_match=bool(source_code))
-        search_term = search_result["searchTerm"]
-        logger.info(f"Results for term search '{search_term}'")
+
+        max_search_results = 5  # only check the top 5 results
+        search_result = umls.term_search(
+            api,
+            term=source_desc,
+            max_results=max_search_results,
+            strict_match=bool(source_code),
+        )
+
         if search_result:
+            search_term = search_result["searchTerm"]
+            logger.info(f"Results for term search '{search_term}'")
+
             # todo don't take concepts that are too far from original?
             concepts = search_result["concepts"]
-            # only check the top 5
-            for concept in concepts[:5]:
+
+            for concept in concepts:
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")

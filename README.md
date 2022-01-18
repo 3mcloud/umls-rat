@@ -17,12 +17,6 @@ Get definitions for this out-dated "back" concept: `450807008`
 python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --min-concepts=2 --api-key=${UMLS_API_KEY}
 ```
     ...
-    Back structure, including back of neck
-    ======================================
-    1. subdivision of body proper, each instance of which has as its
-    direct parts some back of neck and some back of trunk. Examples: There
-    is only one back of body proper.
-
     Back
     ====
     1. posterior part of the trunk from the neck to the pelvis.
@@ -33,6 +27,12 @@ python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --
     anatomical entities located posterior to them: together with front of
     trunk constitutes the trunk. Examples: There is only one back.
     4. The back or upper side of an animal.
+
+    Back structure, including back of neck
+    ======================================
+    1. subdivision of body proper, each instance of which has as its
+    direct parts some back of neck and some back of trunk. Examples: There
+    is only one back of body proper.
 
 Now get one in Spanish
 
