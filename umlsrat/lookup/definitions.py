@@ -129,7 +129,10 @@ def definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
         cuis = umls.get_broader_concepts(api, cui, language=target_lang)
-        return sorted(cuis, key=lambda _: (sum(1 for _ in api.get_atoms(_)), _))
+        return sorted(
+            cuis,
+            key=lambda _: (-sum(1 for _ in api.get_atoms(_, sabs="SNOMEDCT_US")), _),
+        )
 
     # here we actually do the search
     graph_fn.breadth_first_search(
