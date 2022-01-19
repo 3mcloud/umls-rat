@@ -265,14 +265,16 @@ def get_broader_concepts(
 
     seen = set()
 
+    def maybe_yield(next_cui: str):
+        if next_cui and next_cui not in seen:
+            yield next_cui
+            seen.add(next_cui)
+
     # first get direct relations
     for rel in api.get_relations(cui):
         if rel["relationLabel"] in allowed_relations:
             rel_c = api.get_single_result(rel["relatedId"])
-            broader_cui = rel_c["ui"]
-            if broader_cui and broader_cui not in seen:
-                yield broader_cui
-                seen.add(broader_cui)
+            yield from maybe_yield(rel_c["ui"])
 
     # get all atom concepts of this umls concept
     atoms = api.get_atoms(cui, **add_params)
@@ -299,6 +301,4 @@ def get_broader_concepts(
             broader_cui = get_cui_for(
                 api, source_concept["rootSource"], source_concept["ui"]
             )
-            if broader_cui and broader_cui not in seen:
-                yield broader_cui
-                seen.add(broader_cui)
+            yield from maybe_yield(broader_cui)
