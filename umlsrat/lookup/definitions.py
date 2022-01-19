@@ -63,6 +63,14 @@ def definitions_bfs(
     # visit will accumulate definitions
     if target_vocabs:
         target_vocabs = set(target_vocabs)
+        for tv in target_vocabs:
+            info = vocab_info.get_vocab_info(tv)
+            assert (
+                info.Language == target_lang
+            ), f"Requested vocabulary {tv} is not in the target language {target_lang}"
+    else:
+        target_vocabs = set(vocab_info.vocabs_for_language(target_lang))
+        assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
     defined_concepts = []
 
@@ -70,7 +78,10 @@ def definitions_bfs(
         current_concept = api.get_concept(current_cui)
 
         defs_url = current_concept["definitions"]
-        definitions = list(api.get_results(defs_url)) if defs_url else []
+        if not defs_url:
+            return
+
+        definitions = list(api.get_results(defs_url))
 
         # filter defs not in target vocab
         if target_vocabs:
@@ -173,9 +184,6 @@ def find_defined_concepts(
 
         logger.info(msg)
 
-    target_vocabs = vocab_info.vocabs_for_language(target_lang)
-    assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
-
     def do_bfs(start_cui: str):
         assert start_cui
         data = definitions_bfs(
@@ -183,7 +191,6 @@ def find_defined_concepts(
             start_cui=start_cui,
             min_concepts=min_concepts,
             max_distance=max_distance,
-            target_vocabs=target_vocabs,
             target_lang=target_lang,
         )
 

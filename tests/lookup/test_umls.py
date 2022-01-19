@@ -39,7 +39,7 @@ def test_pagination(api):
     results = api.search("star trek vs star wars", pageSize=25)
     assert not list(results)
     results = api.search("bone", pageSize=25, max_results=100)
-    assert list(results)
+    assert len(list(results)) == 100
 
     # x = list(umls.get_broader_concepts(api, 'C4517971'))
     # assert x
