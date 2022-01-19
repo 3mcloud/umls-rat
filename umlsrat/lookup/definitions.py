@@ -26,6 +26,7 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
 def _clean_up_definition_text(text: str) -> str:
     clean = misc.strip_tags(text)
     clean = re.sub(r"\s*\(NCI\)", "", clean)
+    clean = re.sub(r"\[\]", "", clean)
     return clean.strip()
 
 
