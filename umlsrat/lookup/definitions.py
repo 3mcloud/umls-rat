@@ -1,13 +1,14 @@
 import collections
 import logging
 import os.path
+import re
 import textwrap
 from typing import Optional, Iterable, List, Dict, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.util import misc
+from umlsrat.util import misc, orderedset
 from umlsrat.vocabularies import vocab_info
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -20,6 +21,17 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
             st_uri = st.pop("uri", None)
             if st_uri:
                 st["data"] = api.get_single_result(st_uri)
+
+
+def _clean_up_definition_text(text: str) -> str:
+    clean = misc.strip_tags(text)
+    clean = re.sub(r"\s*\(NCI\)", "", clean)
+    return clean.strip()
+
+
+def _clean_up_definition(definition: Dict) -> Dict:
+    definition = definition.copy()
+    return dict(**definition, value=_clean_up_definition_text(definition.pop("value")))
 
 
 def definitions_bfs(
@@ -64,11 +76,13 @@ def definitions_bfs(
             definitions = [_ for _ in definitions if _["rootSource"] in target_vocabs]
 
         if definitions:
-            # strip random xml tags from definitions
-            for d in definitions:
-                d["value"] = misc.strip_tags(d["value"])
+            # strip random xml tags from definitions, and drop duplicates
+            cleaned = orderedset.UniqueFIFO(
+                map(_clean_up_definition, definitions),
+                keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
+            )
 
-            current_concept["definitions"] = definitions
+            current_concept["definitions"] = cleaned.items
             _resolve_semantic_types(api, current_concept)
             current_concept["distanceFromOrigin"] = current_dist
 

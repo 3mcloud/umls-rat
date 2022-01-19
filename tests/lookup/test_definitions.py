@@ -51,6 +51,14 @@ def test_find_definitions(api):
     ]
 
 
+def test_find_normal_breath_sounds(api):
+    data = definitions.find_defined_concepts(
+        api, "snomed", "48348007", target_lang="ENG"
+    )
+    values = extract_definitions(data)
+    assert values
+
+
 def test_find_room_air(api):
     data = definitions.find_defined_concepts(
         api,
