@@ -31,7 +31,8 @@ def _clean_up_definition_text(text: str) -> str:
 
 def _clean_up_definition(definition: Dict) -> Dict:
     definition = definition.copy()
-    return dict(**definition, value=_clean_up_definition_text(definition.pop("value")))
+    value = _clean_up_definition_text(definition.pop("value"))
+    return dict(value=value, **definition)
 
 
 def definitions_bfs(
