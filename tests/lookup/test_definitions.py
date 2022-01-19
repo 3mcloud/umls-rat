@@ -51,6 +51,23 @@ def test_find_definitions(api):
     ]
 
 
+def test_find_normal_breath_sounds(api):
+    data = definitions.find_defined_concepts(
+        api, "snomed", "48348007", target_lang="ENG"
+    )
+    values = extract_definitions(data)
+    assert values == [
+        "Normal or abnormal findings related to the respiratory system.",
+        "Symptoms, physical examination results, and/or laboratory test results related to the respiratory system.",
+    ]
+
+
+def test_find_high_flow_ox_t(api):
+    data = definitions.definitions_bfs(api, start_cui="C5397118", target_lang="ENG")
+    values = extract_definitions(data)
+    assert values
+
+
 def test_find_room_air(api):
     data = definitions.find_defined_concepts(
         api,
@@ -112,7 +129,7 @@ primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
 years, actual domestication occurred in Egypt about 4000 years ago.
 (From Walker's Mammals of the World, 6th ed, p801)
-2. The domestic cat, Felis catus. (NCI)
+2. The domestic cat, Felis catus.
 3. The domesticated feline mammal, Felis catus, which is kept as a
 house pet."""
     )

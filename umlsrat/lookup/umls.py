@@ -5,7 +5,7 @@ import string
 from typing import Optional, Dict, List, Set, Iterator
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.util import misc, orderedset
+from umlsrat.util import misc
 from umlsrat.vocabularies import vocab_info
 from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
@@ -263,13 +263,18 @@ def get_broader_concepts(
         #                   includeSuppressible=True)
         add_params = dict()
 
-    broader = orderedset.UniqueFIFO()
+    seen = set()
+
+    def maybe_yield(next_cui: str):
+        if next_cui and next_cui not in seen:
+            yield next_cui
+            seen.add(next_cui)
 
     # first get direct relations
     for rel in api.get_relations(cui):
         if rel["relationLabel"] in allowed_relations:
             rel_c = api.get_single_result(rel["relatedId"])
-            broader.push(rel_c["ui"])
+            yield from maybe_yield(rel_c["ui"])
 
     # get all atom concepts of this umls concept
     atoms = api.get_atoms(cui, **add_params)
@@ -279,7 +284,9 @@ def get_broader_concepts(
         if not sc_url:
             continue
         sc = api.get_single_result(sc_url)
-
+        if not sc:
+            # this is very strange. possibly a bug? todo
+            continue
         relations = list(
             api.get_source_relations(
                 source_vocab=sc["rootSource"],
@@ -294,7 +301,4 @@ def get_broader_concepts(
             broader_cui = get_cui_for(
                 api, source_concept["rootSource"], source_concept["ui"]
             )
-            if broader_cui:
-                broader.push(broader_cui)
-
-    yield from broader
+            yield from maybe_yield(broader_cui)
