@@ -37,7 +37,7 @@ def _clean_up_definition(definition: Dict) -> Dict:
 def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
-    min_concepts: int = 0,
+    min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
@@ -71,36 +71,38 @@ def definitions_bfs(
         defs_url = current_concept["definitions"]
         definitions = list(api.get_results(defs_url)) if defs_url else []
 
+        if not definitions:
+            return
+
         # filter defs not in target vocab
         if target_vocabs:
             definitions = [_ for _ in definitions if _["rootSource"] in target_vocabs]
 
-        if definitions:
-            # strip random xml tags from definitions, and drop duplicates
-            cleaned = orderedset.UniqueFIFO(
-                map(_clean_up_definition, definitions),
-                keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
+        # strip random xml tags from definitions, and drop duplicates
+        cleaned = orderedset.UniqueFIFO(
+            map(_clean_up_definition, definitions),
+            keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
+        )
+
+        current_concept["definitions"] = cleaned.items
+        _resolve_semantic_types(api, current_concept)
+        current_concept["distanceFromOrigin"] = current_dist
+
+        # reorder dict for readability
+        reordered_concept = collections.OrderedDict(
+            (k, current_concept.pop(k))
+            for k in (
+                "classType",
+                "ui",
+                "name",
+                "distanceFromOrigin",
+                "definitions",
             )
+        )
+        reordered_concept.update(current_concept)
 
-            current_concept["definitions"] = cleaned.items
-            _resolve_semantic_types(api, current_concept)
-            current_concept["distanceFromOrigin"] = current_dist
-
-            # reorder dict for readability
-            reordered_concept = collections.OrderedDict(
-                (k, current_concept.pop(k))
-                for k in (
-                    "classType",
-                    "ui",
-                    "name",
-                    "distanceFromOrigin",
-                    "definitions",
-                )
-            )
-            reordered_concept.update(current_concept)
-
-            # add to defined concepts
-            defined_concepts.append(reordered_concept)
+        # add to defined concepts
+        defined_concepts.append(reordered_concept)
 
     ##
     # post visit actions are based on number of definitions and current distance from origin

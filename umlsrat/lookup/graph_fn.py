@@ -97,8 +97,8 @@ def breadth_first_search(
             continue
 
         ## Find neighbors and add to_visit
-        # neighbor_cuis = list(get_neighbors(api, current_cui))
-        # print(f"neighbor cuis: {neighbor_cuis}")
+        # neighbor_cuis = get_neighbors(api, current_cui)
+        # print(f"neighbor cuis: {list(neighbor_cuis)}")
         for cui in get_neighbors(api, current_cui):
             # remove those we have visited or plan to visit already
             if cui in visited or cui in to_visit:

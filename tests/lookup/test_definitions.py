@@ -56,6 +56,15 @@ def test_find_normal_breath_sounds(api):
         api, "snomed", "48348007", target_lang="ENG"
     )
     values = extract_definitions(data)
+    assert values == [
+        "Normal or abnormal findings related to the respiratory system.",
+        "Symptoms, physical examination results, and/or laboratory test results related to the respiratory system.",
+    ]
+
+
+def test_find_high_flow_ox_t(api):
+    data = definitions.definitions_bfs(api, start_cui="C5397118", target_lang="ENG")
+    values = extract_definitions(data)
     assert values
 
 
