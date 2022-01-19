@@ -71,12 +71,12 @@ def definitions_bfs(
         defs_url = current_concept["definitions"]
         definitions = list(api.get_results(defs_url)) if defs_url else []
 
-        if not definitions:
-            return
-
         # filter defs not in target vocab
         if target_vocabs:
             definitions = [_ for _ in definitions if _["rootSource"] in target_vocabs]
+
+        if not definitions:
+            return
 
         # strip random xml tags from definitions, and drop duplicates
         cleaned = orderedset.UniqueFIFO(

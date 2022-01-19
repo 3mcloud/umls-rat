@@ -129,7 +129,7 @@ primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
 years, actual domestication occurred in Egypt about 4000 years ago.
 (From Walker's Mammals of the World, 6th ed, p801)
-2. The domestic cat, Felis catus. (NCI)
+2. The domestic cat, Felis catus.
 3. The domesticated feline mammal, Felis catus, which is kept as a
 house pet."""
     )
