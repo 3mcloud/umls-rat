@@ -9,6 +9,12 @@ def test_cache(api):
     assert res1 != res2
 
 
+def test_cache_path(api):
+    cp = api.cache_path
+
+    assert cp
+
+
 @pytest.mark.skip(reason="get_related_concepts is too unstable")
 def test_undocumented_call(api):
     concepts = api.get_related_concepts("C4517971")
