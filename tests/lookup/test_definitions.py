@@ -14,7 +14,7 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 def find_single_mesh_def(api, snomed_code: str) -> str:
     cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
-    concepts = definitions.definitions_bfs(
+    concepts = definitions.find_broader_definitions(
         api, cui, min_concepts=1, target_vocabs=("MSH",)
     )
     return extract_definitions(concepts).pop()
@@ -60,7 +60,9 @@ def test_find_normal_breath_sounds(api):
 
 
 def test_find_high_flow_ox_t(api):
-    data = definitions.definitions_bfs(api, start_cui="C5397118", target_lang="ENG")
+    data = definitions.find_broader_definitions(
+        api, start_cui="C5397118", target_lang="ENG"
+    )
     values = extract_definitions(data)
     assert values == [
         "Actions performed to support the administration of oxygen treatment",
