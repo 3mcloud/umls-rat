@@ -5,7 +5,7 @@ from typing import Optional, Dict, List, Set, Iterator, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc, text
-from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
+from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -193,7 +193,7 @@ def get_cui_for(
     """
 
     assert concept_id
-    source_vocab = validate_vocab_abbrev(source_vocab)
+    source_vocab = vocab_tools.validate_vocab_abbrev(source_vocab)
 
     cui = _do_cui_search(api, source_vocab, concept_id)
     if cui:
@@ -239,7 +239,7 @@ def get_related_concepts(
     """
 
     if language:
-        add_params = dict(language=vocab_info.validate_language(language))
+        add_params = dict(language=vocab_tools.validate_language(language))
     else:
         add_params = dict()
 

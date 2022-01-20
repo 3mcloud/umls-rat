@@ -8,6 +8,7 @@ from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text
+from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -71,12 +72,12 @@ def definitions_bfs(
     if target_vocabs:
         target_vocabs = set(target_vocabs)
         for tv in target_vocabs:
-            info = vocab_info.get_vocab_info(tv)
+            info = vocab_tools.get_vocab_info(tv)
             assert (
                 info.Language == target_lang
             ), f"Requested vocabulary {tv} is not in the target language {target_lang}"
     else:
-        target_vocabs = set(vocab_info.vocabs_for_language(target_lang))
+        target_vocabs = set(vocab_tools.vocabs_for_language(target_lang))
         assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
     defined_concepts = []
