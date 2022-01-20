@@ -14,7 +14,7 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 def find_single_mesh_def(api, snomed_code: str) -> str:
     cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
-    concepts = definitions.find_broader_definitions(
+    concepts = definitions.broader_definitions_bfs(
         api, cui, min_concepts=1, target_vocabs=("MSH",)
     )
     return extract_definitions(concepts).pop()
@@ -59,8 +59,32 @@ def test_find_normal_breath_sounds(api):
     ]
 
 
+def test_find_faint(api):
+    data = definitions.find_defined_concepts(
+        api,
+        "snomed",
+        "a209c041-2376-4482-8044-a724ed9cb8c1",
+        source_desc="Faint (qualifier value)",
+        target_lang="ENG",
+    )
+    values = extract_definitions(data)
+    # uggh. this is not the correct definition
+    assert values == [
+        "Severity of manifested apprehension, tension, or uneasiness arising from an identifiable source"
+    ]
+
+
+def test_bfs_faint_appearance(api):
+    data = definitions.broader_definitions_bfs(
+        api, start_cui="C4554554", target_lang="ENG"
+    )
+    values = extract_definitions(data)
+    # this is quite strange. this concept has no neighbors
+    assert not values
+
+
 def test_find_high_flow_ox_t(api):
-    data = definitions.find_broader_definitions(
+    data = definitions.broader_definitions_bfs(
         api, start_cui="C5397118", target_lang="ENG"
     )
     values = extract_definitions(data)

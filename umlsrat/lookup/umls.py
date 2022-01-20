@@ -95,7 +95,7 @@ def _is_strict_match(original: str, matched: str) -> bool:
 
     return (
         # all original words are in matched
-        not (o_set - m_set)
+        (o_set & m_set) == o_set
         and
         # there are fewer than three additional words in matched
         len(m_set - o_set) < 3

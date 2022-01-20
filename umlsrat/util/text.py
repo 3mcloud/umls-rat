@@ -13,6 +13,21 @@ def clean_definition_text(text: str) -> str:
     return clean.strip()
 
 
+_RM_PUNCT_PAT = re.compile(fr"[{string.punctuation}]")
+
+
+def normalize(text_str: str) -> str:
+    normalized = text_str.lower()
+    normalized = _RM_PUNCT_PAT.sub(" ", normalized)
+    return normalized
+
+
+_STOP_WORDS = {"of", "the", "by"}
+
+
+def tokenize(text_str: str) -> List[str]:
+    return [_ for _ in text_str.split() if _ and _ not in _STOP_WORDS]
+
+
 def norm_tokenize(text_str: str) -> List[str]:
-    normalized = text_str.lower().replace(string.punctuation, "")
-    return [_ for _ in normalized.split() if _]
+    return tokenize(normalize(text_str))

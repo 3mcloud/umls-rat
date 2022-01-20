@@ -2,7 +2,7 @@ import collections
 import logging
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict, Iterator, Callable
+from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
@@ -13,13 +13,21 @@ from umlsrat.vocabularies import vocab_tools
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
+def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> Set[str]:
+    """Resolve semantic type data and return the set of type names assigned to this concept"""
+    type_names = set()
+
     sem_types = concept["semanticTypes"]
-    if sem_types:
-        for st in sem_types:
-            st_uri = st.pop("uri", None)
-            if st_uri:
-                st["data"] = api.get_single_result(st_uri)
+    if not sem_types:
+        return type_names
+
+    for st in sem_types:
+        type_names.add(st["name"])
+        st_uri = st.pop("uri", None)
+        if st_uri:
+            st["data"] = api.get_single_result(st_uri)
+
+    return type_names
 
 
 def clean_definition(definition: Dict) -> Dict:
@@ -49,10 +57,12 @@ def definitions_bfs(
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
+    preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param preserve_semantic_type:
     :param get_neighbors:
     :param target_lang:
     :param api: MetaThesaurus API
@@ -67,8 +77,7 @@ def definitions_bfs(
     assert min_concepts >= 0
     assert max_distance >= 0
 
-    ##
-    # visit will accumulate definitions
+    # first get target vocabs based on language
     if target_vocabs:
         target_vocabs = set(target_vocabs)
         for tv in target_vocabs:
@@ -80,6 +89,29 @@ def definitions_bfs(
         target_vocabs = set(vocab_tools.vocabs_for_language(target_lang))
         assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
 
+    # If we want to preserve semantic type, we need to get them for the start CUI
+    start_sem_types = None
+    if preserve_semantic_type:
+        start_concept = api.get_concept(start_cui)
+        start_sem_types = _resolve_semantic_types(api, start_concept)
+
+    ##
+    # pre visit enforces semantic type consistency
+    def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int):
+        if not preserve_semantic_type:
+            return Action.NONE
+        current_concept = api.get_concept(current_cui)
+        current_sem_types = _resolve_semantic_types(api, current_concept)
+
+        # if there is overlap: keep it. otherwise: skip it
+        if current_sem_types & start_sem_types:
+            return Action.NONE
+        else:
+            return Action.SKIP
+
+    ##
+    # visit will accumulate definitions
+    ##
     defined_concepts = []
 
     def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
@@ -101,7 +133,7 @@ def definitions_bfs(
         # clean text and drop duplicates
         cleaned = orderedset.UniqueFIFO(
             map(clean_definition, definitions),
-            keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
+            keyfn=lambda _: f"{_['rootSource']}/{text.normalize(_['value'])}",
         )
 
         current_concept["definitions"] = cleaned.items
@@ -142,6 +174,7 @@ def definitions_bfs(
         visit=visit,
         get_neighbors=get_neighbors,
         post_visit=post_visit,
+        pre_visit=pre_visit,
     )
 
     return defined_concepts
@@ -152,17 +185,19 @@ def cui_sort_key(api: MetaThesaurus, source_cui: str, new_cui: str):
     return _name_tokens_in_common(api, source_cui, new_cui), new_cui
 
 
-def find_broader_definitions(
+def broader_definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
+    preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param preserve_semantic_type:
     :param target_lang:
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
@@ -188,20 +223,23 @@ def find_broader_definitions(
         max_distance=max_distance,
         target_vocabs=target_vocabs,
         target_lang=target_lang,
+        preserve_semantic_type=preserve_semantic_type,
     )
 
 
-def find_narrower_definitions(
+def narrower_definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
+    preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param preserve_semantic_type:
     :param target_lang:
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
@@ -227,6 +265,7 @@ def find_narrower_definitions(
         max_distance=max_distance,
         target_vocabs=target_vocabs,
         target_lang=target_lang,
+        preserve_semantic_type=preserve_semantic_type,
     )
 
 
@@ -272,7 +311,7 @@ def find_defined_concepts(
         logger.info(msg)
 
     def find_broader(start_cui: str):
-        data = find_broader_definitions(
+        data = broader_definitions_bfs(
             api,
             start_cui=start_cui,
             min_concepts=min_concepts,
