@@ -1,11 +1,10 @@
 import logging
 import os.path
 import re
-import string
 from typing import Optional, Dict, List, Set, Iterator, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.util import misc
+from umlsrat.util import misc, text
 from umlsrat.vocabularies import vocab_info
 from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
 
@@ -82,15 +81,26 @@ def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
     return dict(searchTerm=term, concepts=[])
 
 
-def _normalize_for_match(text: str):
-    return re.sub(rf"[{string.punctuation}]+", " ", text.lower())
-
-
 def _is_strict_match(original: str, matched: str) -> bool:
-    original = _normalize_for_match(original)
-    matched = _normalize_for_match(matched)
+    o_tokens = text.norm_tokenize(original)
+    m_tokens = text.norm_tokenize(matched)
 
-    return original in matched
+    # if each is only one token and one contains the other exactly
+    if len(o_tokens) == len(m_tokens) == 1 and (
+        o_tokens[0] in m_tokens[0] or m_tokens[0] in o_tokens[0]
+    ):
+        return True
+
+    o_set = set(o_tokens)
+    m_set = set(m_tokens)
+
+    return (
+        # all original words are in matched
+        not (o_set - m_set)
+        and
+        # there are fewer than three additional words in matched
+        len(m_set - o_set) < 3
+    )
 
 
 def term_search(

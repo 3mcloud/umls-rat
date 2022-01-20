@@ -1,15 +1,13 @@
 import collections
 import logging
 import os.path
-import re
-import string
 import textwrap
 from typing import Optional, Iterable, List, Dict, Iterator, Callable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.util import misc, orderedset
+from umlsrat.util import orderedset, text
 from umlsrat.vocabularies import vocab_info
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -24,26 +22,15 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
                 st["data"] = api.get_single_result(st_uri)
 
 
-def _clean_up_definition_text(text: str) -> str:
-    clean = misc.strip_tags(text)
-    clean = re.sub(r"\s*\([A-Z]{3}\)\s*$", "", clean)
-    clean = re.sub(r"\[\]", "", clean)
-    return clean.strip()
-
-
-def _clean_up_definition(definition: Dict) -> Dict:
+def clean_definition(definition: Dict) -> Dict:
     definition = definition.copy()
-    value = _clean_up_definition_text(definition.pop("value"))
+    value = text.clean_definition_text(definition.pop("value"))
     return dict(value=value, **definition)
 
 
-def _tokenize(text: str) -> List[str]:
-    return text.lower().replace(string.punctuation, "").split()
-
-
 def _tokens_in_common(first: str, second: str) -> int:
-    t1 = _tokenize(first)
-    t2 = _tokenize(second)
+    t1 = text.norm_tokenize(first)
+    t2 = text.norm_tokenize(second)
     common = set(t1) | set(t2)
     return len(common)
 
@@ -113,7 +100,7 @@ def definitions_bfs(
 
         # clean text and drop duplicates
         cleaned = orderedset.UniqueFIFO(
-            map(_clean_up_definition, definitions),
+            map(clean_definition, definitions),
             keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
         )
 
@@ -253,7 +240,7 @@ def find_defined_concepts(
     target_lang: str = "ENG",
 ) -> List[Dict]:
     """
-    Find definitions in UMLS MetaThesaurus.
+    Find defined concepts in UMLS which are equal to or *broader* than the provided concept.
 
     :param api: MetaThesaurus API
     :param source_vocab: source vocab
@@ -295,29 +282,22 @@ def find_defined_concepts(
 
         return data
 
-    def find_narrower(start_cui: str):
-        data = find_narrower_definitions(
-            api,
-            start_cui=start_cui,
-            min_concepts=min_concepts,
-            max_distance=max_distance,
-            target_lang=target_lang,
-        )
-
-        return data
-
+    cui_from_code = None
     if source_code:
-        cui = umls.get_cui_for(api, source_vocab, source_code)
-        if cui:
-            logger.info(f"Searching base CUI {cui} for broader definitions")
-            defs = find_broader(cui)
+        cui_from_code = umls.get_cui_for(api, source_vocab, source_code)
+        if cui_from_code:
+            logger.info(f"Broader BFS for base CUI {cui_from_code} ")
+            defs = find_broader(cui_from_code)
             if defs:
                 return defs
-
-            # logger.info(f"Searching base CUI {cui} for narrower definitions")
-            # defs = find_narrower(cui)
+            logger.info("No broader concepts with definitions.")
+            # NOTE: we do not want narrower concepts!
+            # logger.info(f"Searching base CUI {cui_from_code} for narrower definitions")
+            # defs = find_narrower(cui_from_code)
             # if defs:
             #     return defs
+        else:
+            logger.info(f"UMLS concept not found for {source_vocab}/{source_code}")
 
     # did not find the concept directly (by code)
     if source_desc:
@@ -352,16 +332,16 @@ def find_defined_concepts(
 
 
 def _entry_to_string(name: str, definitions: List[Dict]) -> str:
-    string = ""
-    string += f"{name}\n"
-    string += "=" * len(name)
-    string += "\n"
+    value = ""
+    value += f"{name}\n"
+    value += "=" * len(name)
+    value += "\n"
     enum_defs = (
         textwrap.fill(f"{x + 1}. {datum['value']}")
         for x, datum in enumerate(definitions)
     )
-    string += "\n".join(enum_defs)
-    return string
+    value += "\n".join(enum_defs)
+    return value
 
 
 def pretty_print_defs(concepts: List[Dict]) -> str:
