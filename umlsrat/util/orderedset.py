@@ -87,6 +87,13 @@ class UniqueFIFO(object):
         for item in iterable:
             self.push(item)
 
+    def remove(self, item):
+        key = self._keyfn(item)
+        if key not in self._uniq:
+            raise KeyError(f"'{item}' not in set")
+        self._items.remove(item)
+        self._uniq.discard(key)
+
     def __iter__(self):
         return iter(self._items)
 

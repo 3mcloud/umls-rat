@@ -246,7 +246,7 @@ class MetaThesaurus(object):
         See: https://documentation.uts.nlm.nih.gov/rest/definitions/index.html
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :return: list of Definition Dicts
+        :return: generator yielding Definition Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
         return self.get_results(uri, max_results=max_results)
@@ -259,9 +259,23 @@ class MetaThesaurus(object):
         See: https://documentation.uts.nlm.nih.gov/rest/relations/index.html
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :return: list of Relation Dicts
+        :return: generator yielding Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
+        return self.get_results(uri, max_results=max_results)
+
+    def get_ancestors(
+        self, aui: str, max_results: Optional[int] = None
+    ) -> Iterator[Dict]:
+        """
+        Get ancestors of an Atom
+        See: https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html
+        :param aui: Atom Unique Identifier (AUI) for the UMLS Atom
+        :param max_results: maximum number of result to return. None = no max
+        :return: generator yielding Concept Dicts
+        """
+        assert aui.startswith("A"), f"Invalid AUI '{aui}'"
+        uri = f"{self._start_content_uri}/AUI/{aui}/ancestors"
         return self.get_results(uri, max_results=max_results)
 
     def get_atoms(
@@ -308,7 +322,9 @@ class MetaThesaurus(object):
             )
             raise e
 
-    ### Search ###
+    ###
+    # Search
+    ###
 
     def search(
         self, string: str, max_results: Optional[int] = None, **params
@@ -329,7 +345,9 @@ class MetaThesaurus(object):
         params["string"] = string
         return self.get_results(uri, max_results=max_results, **params)
 
-    ### Source Asserted ####
+    ###
+    # Source Asserted
+    ####
 
     def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
         """

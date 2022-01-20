@@ -243,6 +243,15 @@ def get_cui_for(
 #                 yield cui
 
 
+def get_ancestors(api: MetaThesaurus, cui: str) -> Iterator[Dict]:
+    for atom in api.get_atoms(cui):
+        yield from api.get_ancestors(atom["ui"])
+
+
+def get_num_ancestors(api: MetaThesaurus, cui: str) -> int:
+    return sum((1 for _ in get_ancestors(api, cui)), 0)
+
+
 def get_broader_concepts(
     api: MetaThesaurus, cui: str, language: str = None
 ) -> Iterator[str]:

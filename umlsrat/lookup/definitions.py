@@ -2,6 +2,7 @@ import collections
 import logging
 import os.path
 import re
+import string
 import textwrap
 from typing import Optional, Iterable, List, Dict, Iterator
 
@@ -34,6 +35,23 @@ def _clean_up_definition(definition: Dict) -> Dict:
     definition = definition.copy()
     value = _clean_up_definition_text(definition.pop("value"))
     return dict(value=value, **definition)
+
+
+def _tokenize(text: str) -> List[str]:
+    return text.lower().replace(string.punctuation, "").split()
+
+
+def _tokens_in_common(first: str, second: str) -> int:
+    t1 = _tokenize(first)
+    t2 = _tokenize(second)
+    common = set(t1) | set(t2)
+    return len(common)
+
+
+def _name_tokens_in_common(api: MetaThesaurus, cui1: str, cui2: str) -> int:
+    first = api.get_concept(cui1).get("name")
+    second = api.get_concept(cui2).get("name")
+    return _tokens_in_common(first, second)
 
 
 def definitions_bfs(
@@ -91,7 +109,7 @@ def definitions_bfs(
         if not definitions:
             return
 
-        # strip random xml tags from definitions, and drop duplicates
+        # clean text and drop duplicates
         cleaned = orderedset.UniqueFIFO(
             map(_clean_up_definition, definitions),
             keyfn=lambda _: f"{_['rootSource']}/{_['value']}",
@@ -129,8 +147,12 @@ def definitions_bfs(
         return Action.NONE
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
-        cuis = umls.get_broader_concepts(api, cui, language=target_lang)
-        return sorted(cuis)
+        broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
+        reordered = sorted(
+            broader_cuis,
+            key=lambda new_cui: (_name_tokens_in_common(api, cui, new_cui), new_cui),
+        )
+        return reordered
 
     # here we actually do the search
     graph_fn.breadth_first_search(
