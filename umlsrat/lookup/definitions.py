@@ -277,6 +277,7 @@ def find_defined_concepts(
     min_concepts: int = 1,
     max_distance: int = 0,
     target_lang: str = "ENG",
+    preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
     Find defined concepts in UMLS which are equal to or *broader* than the provided concept.
