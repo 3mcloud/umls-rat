@@ -69,6 +69,10 @@ class MetaThesaurus(object):
     def logger(self):
         return logging.getLogger(self.__class__.__name__)
 
+    @property
+    def cache_path(self) -> str:
+        return self._session.cache.db_path
+
     def _get_cached(self, method: str, url: str, **params) -> Optional[CachedResponse]:
         if not isinstance(self._session, CachedSession):
             return None
