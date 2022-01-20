@@ -105,3 +105,5 @@ def breadth_first_search(
                 continue
             to_visit.push(cui)
             distances.push(current_dist + 1)
+
+    return
