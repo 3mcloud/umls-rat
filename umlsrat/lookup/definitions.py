@@ -26,7 +26,7 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> None:
 
 def _clean_up_definition_text(text: str) -> str:
     clean = misc.strip_tags(text)
-    clean = re.sub(r"\s*\(NCI\)", "", clean)
+    clean = re.sub(r"\s*\([A-Z]{3}\)\s*$", "", clean)
     clean = re.sub(r"\[\]", "", clean)
     return clean.strip()
 
@@ -141,7 +141,7 @@ def definitions_bfs(
         if min_concepts and len(defined_concepts) >= min_concepts:
             return Action.STOP
 
-        if max_distance and max_distance >= current_dist:
+        if max_distance and current_dist == max_distance:
             return Action.SKIP
 
         return Action.NONE

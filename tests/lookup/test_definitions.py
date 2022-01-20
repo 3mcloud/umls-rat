@@ -114,9 +114,22 @@ def test_find_spanish(api):
     assert values == [
         "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas."
     ]
-    # assert values == [
-    #     'Neoplasia maligna formada por células epiteliales que tienden a infiltrarse en los tejidos circundantes y dan lugar a metástasis. Es un tipo histológico de neoplasia y no un sinónimo de "cáncer".'
-    # ]
+
+
+def test_max_distance(api):
+    def do_find(d):
+        return definitions.find_defined_concepts(
+            api,
+            "snomed",
+            "182166001",
+            "Entire acromioclavicular joint (body structure)",
+            max_distance=d,
+        )
+
+    no_d = do_find(0)
+    d_10 = do_find(10)
+
+    assert no_d == d_10
 
 
 def test_pretty_print(api):
