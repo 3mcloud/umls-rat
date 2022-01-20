@@ -2,7 +2,7 @@ import logging
 import os.path
 import re
 import string
-from typing import Optional, Dict, List, Set, Iterator
+from typing import Optional, Dict, List, Set, Iterator, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc
@@ -216,60 +216,22 @@ def get_cui_for(
     return None
 
 
-# def _get_broader_concepts(api: MetaThesaurus, cui: str) -> Iterable[str]:
-#     """
-#     Get broader *or synonymous* concepts. Concepts are return in order: syn first then broader
-#
-#     :param api: meta thesaurus
-#     :param cui: starting concept
-#     :return: generator over CUIs
-#     """
-#     allowed_relations = ("SY", "RN", "CHD")
-#
-#     related_concepts = api.get_related_concepts(
-#         cui, relationLabels=",".join(allowed_relations)
-#     )
-#
-#     # group by relation type
-#     grouped = collections.defaultdict(list)
-#     for rc in related_concepts:
-#         grouped[rc["label"]].append(rc["concept"])
-#
-#     seen = set()
-#     for rtype in allowed_relations:
-#         for cui in grouped[rtype]:
-#             if cui not in seen:
-#                 seen.add(cui)
-#                 yield cui
-
-
-def get_ancestors(api: MetaThesaurus, cui: str) -> Iterator[Dict]:
-    for atom in api.get_atoms(cui):
-        yield from api.get_ancestors(atom["ui"])
-
-
-def get_num_ancestors(api: MetaThesaurus, cui: str) -> int:
-    return sum((1 for _ in get_ancestors(api, cui)), 0)
-
-
-def get_broader_concepts(
-    api: MetaThesaurus, cui: str, language: str = None
+def get_related_concepts(
+    api: MetaThesaurus, cui: str, allowed_relations: Iterable[str], language: str = None
 ) -> Iterator[str]:
     """
-    Get broader concepts. **NO GUARANTEES REGARDING RETURN ORDER**
+    Get related concepts. **NO GUARANTEES REGARDING RETURN ORDER**
 
+    :param allowed_relations:
     :param language:
     :param api: meta thesaurus
     :param cui: starting concept
     :return: generator over CUIs
     """
-    allowed_relations = ("RN", "CHD")
 
     if language:
         add_params = dict(language=vocab_info.validate_language(language))
     else:
-        # add_params = dict(includeObsolete=True,
-        #                   includeSuppressible=True)
         add_params = dict()
 
     seen = set()
@@ -311,3 +273,37 @@ def get_broader_concepts(
                 api, source_concept["rootSource"], source_concept["ui"]
             )
             yield from maybe_yield(broader_cui)
+
+
+def get_broader_concepts(
+    api: MetaThesaurus, cui: str, language: str = None
+) -> Iterator[str]:
+    """
+    Get broader concepts. **NO GUARANTEES REGARDING RETURN ORDER**
+
+    :param language:
+    :param api: meta thesaurus
+    :param cui: starting concept
+    :return: generator over CUIs
+    """
+
+    yield from get_related_concepts(
+        api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
+    )
+
+
+def get_narrower_concepts(
+    api: MetaThesaurus, cui: str, language: str = None
+) -> Iterator[str]:
+    """
+    Get narrower concepts. **NO GUARANTEES REGARDING RETURN ORDER**
+
+    :param language:
+    :param api: meta thesaurus
+    :param cui: starting concept
+    :return: generator over CUIs
+    """
+
+    yield from get_related_concepts(
+        api=api, cui=cui, allowed_relations=("RB", "PAR"), language=language
+    )

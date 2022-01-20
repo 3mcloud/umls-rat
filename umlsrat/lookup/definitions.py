@@ -4,7 +4,7 @@ import os.path
 import re
 import string
 import textwrap
-from typing import Optional, Iterable, List, Dict, Iterator
+from typing import Optional, Iterable, List, Dict, Iterator, Callable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
@@ -57,6 +57,7 @@ def _name_tokens_in_common(api: MetaThesaurus, cui1: str, cui2: str) -> int:
 def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
+    get_neighbors: Callable[[MetaThesaurus, str], Iterable[str]],
     min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
@@ -65,6 +66,7 @@ def definitions_bfs(
     """
     Do a breadth-first search over UMLS, hunting for definitions.
 
+    :param get_neighbors:
     :param target_lang:
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
@@ -146,14 +148,6 @@ def definitions_bfs(
 
         return Action.NONE
 
-    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
-        broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
-        reordered = sorted(
-            broader_cuis,
-            key=lambda new_cui: (_name_tokens_in_common(api, cui, new_cui), new_cui),
-        )
-        return reordered
-
     # here we actually do the search
     graph_fn.breadth_first_search(
         api=api,
@@ -164,6 +158,89 @@ def definitions_bfs(
     )
 
     return defined_concepts
+
+
+def cui_sort_key(api: MetaThesaurus, source_cui: str, new_cui: str):
+    """Number of tokens in common with source, new CUI itself"""
+    return _name_tokens_in_common(api, source_cui, new_cui), new_cui
+
+
+def find_broader_definitions(
+    api: MetaThesaurus,
+    start_cui: str,
+    min_concepts: int = 1,
+    max_distance: int = 0,
+    target_vocabs: Optional[Iterable[str]] = None,
+    target_lang: str = "ENG",
+) -> List[Dict]:
+    """
+    Do a breadth-first search over UMLS, hunting for definitions.
+
+    :param target_lang:
+    :param api: MetaThesaurus API
+    :param start_cui: starting Concept ID
+    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param target_vocabs: only allow definitions from these vocabularies
+    :return: a list of Concepts with Definitions
+    """
+
+    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
+        broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
+        reordered = sorted(
+            broader_cuis,
+            key=lambda new_cui: cui_sort_key(api, cui, new_cui),
+        )
+        return reordered
+
+    return definitions_bfs(
+        api=api,
+        start_cui=start_cui,
+        get_neighbors=get_neighbors,
+        min_concepts=min_concepts,
+        max_distance=max_distance,
+        target_vocabs=target_vocabs,
+        target_lang=target_lang,
+    )
+
+
+def find_narrower_definitions(
+    api: MetaThesaurus,
+    start_cui: str,
+    min_concepts: int = 1,
+    max_distance: int = 0,
+    target_vocabs: Optional[Iterable[str]] = None,
+    target_lang: str = "ENG",
+) -> List[Dict]:
+    """
+    Do a breadth-first search over UMLS, hunting for definitions.
+
+    :param target_lang:
+    :param api: MetaThesaurus API
+    :param start_cui: starting Concept ID
+    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param target_vocabs: only allow definitions from these vocabularies
+    :return: a list of Concepts with Definitions
+    """
+
+    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
+        narrower_cuis = umls.get_narrower_concepts(api, cui, language=target_lang)
+        reordered = sorted(
+            narrower_cuis,
+            key=lambda new_cui: cui_sort_key(api, cui, new_cui),
+        )
+        return reordered
+
+    return definitions_bfs(
+        api=api,
+        start_cui=start_cui,
+        get_neighbors=get_neighbors,
+        min_concepts=min_concepts,
+        max_distance=max_distance,
+        target_vocabs=target_vocabs,
+        target_lang=target_lang,
+    )
 
 
 def find_defined_concepts(
@@ -207,9 +284,19 @@ def find_defined_concepts(
 
         logger.info(msg)
 
-    def do_bfs(start_cui: str):
-        assert start_cui
-        data = definitions_bfs(
+    def find_broader(start_cui: str):
+        data = find_broader_definitions(
+            api,
+            start_cui=start_cui,
+            min_concepts=min_concepts,
+            max_distance=max_distance,
+            target_lang=target_lang,
+        )
+
+        return data
+
+    def find_narrower(start_cui: str):
+        data = find_narrower_definitions(
             api,
             start_cui=start_cui,
             min_concepts=min_concepts,
@@ -222,10 +309,15 @@ def find_defined_concepts(
     if source_code:
         cui = umls.get_cui_for(api, source_vocab, source_code)
         if cui:
-            logger.info(f"Searching base CUI {cui}")
-            defs = do_bfs(cui)
+            logger.info(f"Searching base CUI {cui} for broader definitions")
+            defs = find_broader(cui)
             if defs:
                 return defs
+
+            # logger.info(f"Searching base CUI {cui} for narrower definitions")
+            # defs = find_narrower(cui)
+            # if defs:
+            #     return defs
 
     # did not find the concept directly (by code)
     if source_desc:
@@ -252,7 +344,7 @@ def find_defined_concepts(
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")
-                defs = do_bfs(cui)
+                defs = find_broader(cui)
                 if defs:
                     return defs
 
