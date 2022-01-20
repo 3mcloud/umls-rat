@@ -8,7 +8,6 @@ from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text
-from umlsrat.vocabularies import vocab_info
 
 logger = logging.getLogger(os.path.basename(__file__))
 

@@ -5,8 +5,7 @@ from typing import Optional, Dict, List, Set, Iterator, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import misc, text
-from umlsrat.vocabularies import vocab_info
-from umlsrat.vocabularies.vocab_info import validate_vocab_abbrev
+from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
 
 logger = logging.getLogger(os.path.basename(__file__))
 
