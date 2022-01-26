@@ -60,7 +60,8 @@ def definitions_bfs(
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
-    Do a breadth-first search over UMLS, hunting for definitions.
+    Do a breadth-first search over UMLS, hunting for definitions. Resulting definitions are sorted
+    by length (shortest to longest).
 
     :param preserve_semantic_type:
     :param get_neighbors:
@@ -130,9 +131,9 @@ def definitions_bfs(
         if not definitions:
             return
 
-        # clean text and drop duplicates
+        # clean text, sort by length, and drop duplicates
         cleaned = orderedset.UniqueFIFO(
-            map(clean_definition, definitions),
+            sorted(map(clean_definition, definitions), key=lambda _: len(_["value"])),
             keyfn=lambda _: f"{_['rootSource']}/{text.normalize(_['value'])}",
         )
 
