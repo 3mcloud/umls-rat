@@ -34,7 +34,7 @@ pipeline {
             steps {
                 container(name: 'target'){
                     sh 'python3 -m venv --system-site-packages venv'
-                    sh 'venv/bin/pip3 install -r requirements.txt'
+                    sh 'venv/bin/pip3 install -r jenkins/requirements.txt'
                 }
             }
         }
