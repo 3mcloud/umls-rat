@@ -138,5 +138,11 @@ pipeline {
         }
         
     }
-//todo: emails and notifications
+
+    post {
+        always {
+            maybeSendEmail(this)
+        }
+    }
+
 }
