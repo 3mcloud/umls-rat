@@ -1,4 +1,7 @@
 pipeline {
+    triggers {
+        cron(env.BRANCH_NAME == 'main' ? 'H H * * *' : '')
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '12'))
         timeout(time: 60, unit: 'MINUTES')
