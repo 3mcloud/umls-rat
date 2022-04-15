@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 import requests
 from requests import HTTPError, Response
-from requests_cache import CachedSession, CachedResponse
+from requests_cache import CachedResponse
 
 from umlsrat import const
 from umlsrat.api.auth import Authenticator
@@ -65,6 +65,7 @@ class MetaThesaurus(object):
         self.auth = Authenticator(api_key)
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._use_cache = use_cache
         self._session = api_session() if use_cache else uncached_session()
 
     @staticmethod
@@ -92,7 +93,7 @@ class MetaThesaurus(object):
         return self._session.cache.db_path
 
     def _get_cached(self, method: str, url: str, **params) -> Optional[CachedResponse]:
-        if not isinstance(self._session, CachedSession):
+        if not self._use_cache:
             return None
 
         request = requests.Request(method=method, url=url, params=params)
@@ -278,7 +279,7 @@ class MetaThesaurus(object):
         return self.get_results(uri, max_results=max_results)
 
     def get_relations(
-        self, cui: str, max_results: Optional[int] = None
+        self, cui: str, max_results: Optional[int] = None, **params
     ) -> Iterator[Dict]:
         """
         Get relations for a concept
@@ -288,7 +289,7 @@ class MetaThesaurus(object):
         :return: generator yielding Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
-        return self.get_results(uri, max_results=max_results)
+        return self.get_results(uri, max_results=max_results, **params)
 
     def get_ancestors(
         self, aui: str, max_results: Optional[int] = None
