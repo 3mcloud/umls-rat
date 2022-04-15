@@ -13,7 +13,7 @@ def clean_definition_text(text: str) -> str:
     return clean.strip()
 
 
-_RM_PUNCT_PAT = re.compile(fr"[{string.punctuation}]")
+_RM_PUNCT_PAT = re.compile(rf"[{string.punctuation}]")
 
 
 def normalize(text_str: str) -> str:

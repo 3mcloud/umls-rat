@@ -1,6 +1,19 @@
 import pytest
 
 
+def test_get_concept(api):
+    c = api.get_concept("C0009044")
+    assert c
+    assert c.get("ui") == "C0009044"
+    assert c.get("name") == "Closed fracture of carpal bone"
+
+
+def test_get_relations(api):
+    r = api.get_relations("C0009044")
+    r = list(r)
+    assert len(r) == 5
+
+
 def test_cache(api):
     concept_url = "https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044"
     res1 = api.get_single_result(concept_url)

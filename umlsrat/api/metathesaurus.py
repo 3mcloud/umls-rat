@@ -159,11 +159,11 @@ class MetaThesaurus(object):
         if not response_json:
             return
 
-        assert (
-            "pageNumber" in response_json
-        ), "Expected pagination fields in response:\n" "{}".format(
-            json.dumps(response_json, indent=2)
-        )
+        if "pageNumber" not in response_json:
+            raise ValueError(
+                "Expected pagination fields in response:\n"
+                "{}".format(json.dumps(response_json, indent=2))
+            )
 
         if "pageNumber" not in params:
             params["pageNumber"] = 1
@@ -183,6 +183,10 @@ class MetaThesaurus(object):
                 n_yielded += 1
                 if n_yielded == max_results:
                     return
+
+            if response_json.get("pageCount", None) == params["pageNumber"]:
+                # no more pages
+                return
 
             # next page
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
