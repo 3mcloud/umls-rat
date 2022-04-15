@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 from typing import Any, Dict, Iterator, List, Optional
@@ -6,6 +7,7 @@ import requests
 from requests import HTTPError, Response
 from requests_cache import CachedSession, CachedResponse
 
+from umlsrat import const
 from umlsrat.api.auth import Authenticator
 from umlsrat.api.session import api_session, uncached_session
 from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
@@ -64,6 +66,22 @@ class MetaThesaurus(object):
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
         self._session = api_session() if use_cache else uncached_session()
+
+    @staticmethod
+    def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        group = parser.add_argument_group("MetaThesaurus")
+        group.add_argument(
+            "--umls-version",
+            type=str,
+            help="UMLS version to use",
+            default=const.DEFAULT_UMLS_VERSION,
+        )
+        group.add_argument(
+            "--no-cache", help="Do not use the cache", action="store_true"
+        )
+        group.add_argument("--api-key", type=str, help="API key", required=True)
+
+        return parser
 
     @property
     def logger(self):
