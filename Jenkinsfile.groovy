@@ -1,4 +1,7 @@
 pipeline {
+    triggers {
+        cron(env.BRANCH_NAME == 'main' ? 'H H * * *' : '')
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '12'))
         timeout(time: 60, unit: 'MINUTES')
@@ -34,7 +37,7 @@ pipeline {
             steps {
                 container(name: 'target'){
                     sh 'python3 -m venv --system-site-packages venv'
-                    sh 'venv/bin/pip3 install -r requirements.txt'
+                    sh 'venv/bin/pip3 install -r jenkins/requirements.txt'
                 }
             }
         }
@@ -135,5 +138,11 @@ pipeline {
         }
         
     }
-//todo: emails and notifications
+
+    post {
+        always {
+            maybeSendEmail(this)
+        }
+    }
+
 }

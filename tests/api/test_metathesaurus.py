@@ -1,6 +1,27 @@
 import pytest
 
 
+@pytest.mark.parametrize(
+    ("cui", "name"),
+    [
+        ("C0009044", "Closed fracture of carpal bone"),
+        ("C3887398", "Closed fracture of left wrist"),
+    ],
+)
+def test_get_concept(api, cui, name):
+    c = api.get_concept(cui)
+    assert c
+    assert c.get("ui") == cui
+    assert c.get("name") == name
+
+
+@pytest.mark.parametrize(("cui", "num_rel"), [("C0009044", 5), ("C3887398", -1)])
+def test_get_relations(api, cui, num_rel):
+    r = api.get_relations(cui)
+    r = list(r)
+    assert len(r) == num_rel
+
+
 def test_cache(api):
     concept_url = "https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0009044"
     res1 = api.get_single_result(concept_url)

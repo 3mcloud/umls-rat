@@ -1,5 +1,6 @@
 import pytest
 
+from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
 
 
@@ -11,11 +12,27 @@ def pytest_addoption(parser):
         required=True,
     )
     parser.addoption("--no-cache", help="Do not use cache", action="store_true")
+    parser.addoption(
+        "--umls-version",
+        type=str,
+        help="UMLS version",
+        default=const.DEFAULT_UMLS_VERSION,
+    )
 
 
 @pytest.fixture(scope="session")
 def _no_cache(request):
     value = request.config.option.no_cache
+    if value is None:
+        pytest.skip()
+        return None
+
+    return value
+
+
+@pytest.fixture(scope="session")
+def _umls_version(request):
+    value = request.config.option.umls_version
     if value is None:
         pytest.skip()
         return None
@@ -34,5 +51,5 @@ def api_key(request):
 
 
 @pytest.fixture(scope="session")
-def api(api_key, _no_cache):
-    return MetaThesaurus(api_key, use_cache=not _no_cache)
+def api(api_key, _no_cache, _umls_version):
+    return MetaThesaurus(api_key, version=_umls_version, use_cache=not _no_cache)

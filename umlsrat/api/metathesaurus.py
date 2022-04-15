@@ -1,11 +1,13 @@
+import argparse
 import json
 import logging
 from typing import Any, Dict, Iterator, List, Optional
 
 import requests
 from requests import HTTPError, Response
-from requests_cache import CachedSession, CachedResponse
+from requests_cache import CachedResponse
 
+from umlsrat import const
 from umlsrat.api.auth import Authenticator
 from umlsrat.api.session import api_session, uncached_session
 from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
@@ -63,7 +65,24 @@ class MetaThesaurus(object):
         self.auth = Authenticator(api_key)
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._use_cache = use_cache
         self._session = api_session() if use_cache else uncached_session()
+
+    @staticmethod
+    def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        group = parser.add_argument_group("MetaThesaurus")
+        group.add_argument(
+            "--umls-version",
+            type=str,
+            help="UMLS version to use",
+            default=const.DEFAULT_UMLS_VERSION,
+        )
+        group.add_argument(
+            "--no-cache", help="Do not use the cache", action="store_true"
+        )
+        group.add_argument("--api-key", type=str, help="API key", required=True)
+
+        return parser
 
     @property
     def logger(self):
@@ -74,7 +93,7 @@ class MetaThesaurus(object):
         return self._session.cache.db_path
 
     def _get_cached(self, method: str, url: str, **params) -> Optional[CachedResponse]:
-        if not isinstance(self._session, CachedSession):
+        if not self._use_cache:
             return None
 
         request = requests.Request(method=method, url=url, params=params)
@@ -159,11 +178,11 @@ class MetaThesaurus(object):
         if not response_json:
             return
 
-        assert (
-            "pageNumber" in response_json
-        ), "Expected pagination fields in response:\n" "{}".format(
-            json.dumps(response_json, indent=2)
-        )
+        if "pageNumber" not in response_json:
+            raise ValueError(
+                "Expected pagination fields in response:\n"
+                "{}".format(json.dumps(response_json, indent=2))
+            )
 
         if "pageNumber" not in params:
             params["pageNumber"] = 1
@@ -183,6 +202,10 @@ class MetaThesaurus(object):
                 n_yielded += 1
                 if n_yielded == max_results:
                     return
+
+            if response_json.get("pageCount", None) == params["pageNumber"]:
+                # no more pages
+                return
 
             # next page
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
@@ -256,7 +279,7 @@ class MetaThesaurus(object):
         return self.get_results(uri, max_results=max_results)
 
     def get_relations(
-        self, cui: str, max_results: Optional[int] = None
+        self, cui: str, max_results: Optional[int] = None, **params
     ) -> Iterator[Dict]:
         """
         Get relations for a concept
@@ -266,7 +289,7 @@ class MetaThesaurus(object):
         :return: generator yielding Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
-        return self.get_results(uri, max_results=max_results)
+        return self.get_results(uri, max_results=max_results, **params)
 
     def get_ancestors(
         self, aui: str, max_results: Optional[int] = None

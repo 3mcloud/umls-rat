@@ -14,6 +14,8 @@ logger = logging.getLogger(os.path.basename(__file__))
 def main():
     parser = argparse.ArgumentParser()
 
+    MetaThesaurus.add_args(parser)
+
     source_group = parser.add_argument_group("Source")
     source_group.add_argument(
         "--source-code", help="Find definitions for this code.", type=str, default=None
@@ -52,10 +54,6 @@ def main():
         type=str,
         default="definitions",
     )
-
-    # parser.add_argument("--version", type=str, help="UMLS version to use", default='2021AB')
-    parser.add_argument("--no-cache", help="Do not use the cache", action="store_true")
-    parser.add_argument("--api-key", type=str, help="API key", required=True)
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
