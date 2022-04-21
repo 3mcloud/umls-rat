@@ -163,15 +163,14 @@ def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
 
 
 def _do_cui_search(
-    api: MetaThesaurus, source_vocab: str, concept_id: str
+    api: MetaThesaurus, source_vocab: str, concept_id: str, **kwargs
 ) -> Optional[str]:
     search_params = dict(
         inputType="sourceUi",
         searchType="exact",
-        includeObsolete=True,
-        includeSuppressible=True,
         sabs=source_vocab,
     )
+    search_params.update(kwargs)
     results = list(api.search(string=concept_id, **search_params))
 
     if results:
@@ -201,6 +200,12 @@ def get_cui_for(
         return cui
 
     ## might have an obsolete concept
+    cui = _do_cui_search(
+        api, source_vocab, concept_id, includeObsolete=True, includeSuppressible=True
+    )
+    if cui:
+        return cui
+
     def get_related(label: str):
         relations = api.get_source_relations(
             source_vocab=source_vocab,
@@ -210,17 +215,17 @@ def get_cui_for(
 
         concepts = [api.get_single_result(rel["relatedId"]) for rel in relations]
 
-        return concepts
+        return [(_["rootSource"], _["ui"]) for _ in concepts]
 
     # check synonyms
-    for related_concept in get_related("SY"):
-        cui = _do_cui_search(api, related_concept["rootSource"], related_concept["ui"])
+    for rc_source, rc_ui in get_related("SY"):
+        cui = _do_cui_search(api, rc_source, rc_ui)
         if cui:
             return cui
 
     # check other relations
-    for related_concept in get_related("RO"):
-        cui = _do_cui_search(api, related_concept["rootSource"], related_concept["ui"])
+    for rc_source, rc_ui in get_related("RO"):
+        cui = _do_cui_search(api, rc_source, rc_ui)
         if cui:
             return cui
 

@@ -26,31 +26,17 @@ def find_single_mesh_def(api, snomed_code: str) -> str:
 @pytest.mark.parametrize(
     ["snomed_code", "expected_def"],
     [
-        # ("450807008",
-        #  "The rear surface of an upright primate from the shoulders to the hip, "
-        #  "or the dorsal surface of tetrapods."),
+        (
+            "450807008",
+            "The rear surface of an upright primate from the shoulders to the hip, "
+            "or the dorsal surface of tetrapods.",
+        ),
         ("10937761000119101", "Injuries to the wrist or the wrist joint."),
     ],
 )
 def test_single_mesh_def(api, snomed_code, expected_def):
     definition = find_single_mesh_def(api, snomed_code)
     assert definition == expected_def
-
-
-def test_old_back(api):
-    # old back
-    definition = find_single_mesh_def(api, "450807008")
-    assert (
-        definition
-        == "The rear surface of an upright primate from the shoulders to the hip, "
-        "or the dorsal surface of tetrapods."
-    )
-
-
-def test_wrist(api):
-    # Closed fracture of left wrist (10937761000119101)
-    definition = find_single_mesh_def(api, "10937761000119101")
-    assert definition == "Injuries to the wrist or the wrist joint."
 
 
 def test_find_definitions(api):
