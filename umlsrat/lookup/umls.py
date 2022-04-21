@@ -168,11 +168,12 @@ def _do_cui_search(
     search_params = dict(
         inputType="sourceUi",
         searchType="exact",
-        # includeObsolete=True,
-        # includeSuppressible=True,
+        includeObsolete=True,
+        includeSuppressible=True,
         sabs=source_vocab,
     )
-    results = list(api.search(string=concept_id, max_results=1, **search_params))
+    results = list(api.search(string=concept_id, **search_params))
+
     if results:
         return results[0]["ui"]
 
@@ -201,14 +202,15 @@ def get_cui_for(
 
     ## might have an obsolete concept
     def get_related(label: str):
-        return [
-            api.get_single_result(rel["relatedId"])
-            for rel in api.get_source_relations(
-                source_vocab=source_vocab,
-                concept_id=concept_id,
-                includeRelationLabels=label,
-            )
-        ]
+        relations = api.get_source_relations(
+            source_vocab=source_vocab,
+            concept_id=concept_id,
+            includeRelationLabels=label,
+        )
+
+        concepts = [api.get_single_result(rel["relatedId"]) for rel in relations]
+
+        return concepts
 
     # check synonyms
     for related_concept in get_related("SY"):

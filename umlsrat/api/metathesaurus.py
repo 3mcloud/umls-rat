@@ -125,8 +125,8 @@ class MetaThesaurus(object):
         self, url: str, strict: Optional[bool] = False, **params
     ) -> Optional[Dict]:
         """
-        Get data from arbitrary URI. Will return an empty list on 400
-        unless `strict=True` is in kwargs, in which case it will raise.
+        Get data from arbitrary URI. Will return an empty list on 400 or 404
+        unless `strict=True`, in which case it will raise.
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param params: get parameters *excluding* `ticket`
         :return: json response
@@ -147,7 +147,7 @@ class MetaThesaurus(object):
                 raise e
 
             self.logger.debug("Caught HTTPError: %s", e)
-            if e.response.status_code == 400:
+            if e.response.status_code == 400 or e.response.status_code == 404:
                 # we interpret this as "you're looking for something that isn't there"
                 return None
             else:

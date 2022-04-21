@@ -2,16 +2,23 @@ from typing import Dict
 
 from umlsrat.lookup import umls
 from umlsrat.lookup.umls import term_search
+import pytest
 
 
-def test_find_umls_old_back(api):
-    cui = umls.get_cui_for(api, "SNOMEDCT_US", "450807008")
-    assert cui == "C4517971"
-
-
-def test_find_umls_funky(api):
-    concept = umls.get_cui_for(api, "SNOMEDCT_US", "282024004")
-    assert concept == "C5546171"
+@pytest.mark.parametrize(
+    ["code_system", "code", "expected_cui"],
+    [
+        # # Entire back of trunk
+        # ("SNOMEDCT_US", "450807008", "C4517971"),
+        # # Entire lumbosacral junction of vertebral column
+        # ("SNOMEDCT_US", "282024004", "C5546171"),
+        # Closed fracture of left wrist
+        ("SNOMEDCT_US", "10937761000119101", "C3887398"),
+    ],
+)
+def test_get_cui_for(api, code_system, code, expected_cui):
+    cui = umls.get_cui_for(api, code_system, code)
+    assert cui == expected_cui
 
 
 def do_search(api, term: str) -> Dict:

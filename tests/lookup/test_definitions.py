@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+import pytest
+
 import umlsrat.lookup.umls
 from umlsrat.lookup import definitions
 
@@ -14,10 +16,25 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 def find_single_mesh_def(api, snomed_code: str) -> str:
     cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
+    assert cui
     concepts = definitions.broader_definitions_bfs(
         api, cui, min_concepts=1, target_vocabs=("MSH",)
     )
     return extract_definitions(concepts).pop()
+
+
+@pytest.mark.parametrize(
+    ["snomed_code", "expected_def"],
+    [
+        # ("450807008",
+        #  "The rear surface of an upright primate from the shoulders to the hip, "
+        #  "or the dorsal surface of tetrapods."),
+        ("10937761000119101", "Injuries to the wrist or the wrist joint."),
+    ],
+)
+def test_single_mesh_def(api, snomed_code, expected_def):
+    definition = find_single_mesh_def(api, snomed_code)
+    assert definition == expected_def
 
 
 def test_old_back(api):

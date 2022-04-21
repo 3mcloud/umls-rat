@@ -42,7 +42,7 @@ def api_session() -> CachedSession:
     session = CachedSession(
         cache_name=_cache_path("api-cache"),
         ignored_parameters=["ticket"],
-        allowable_codes=[200, 400],
+        allowable_codes=[200, 400, 404],
     )
     return _configure_session(session)
 
