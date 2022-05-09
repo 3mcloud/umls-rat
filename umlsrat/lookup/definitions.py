@@ -2,7 +2,10 @@ import collections
 import logging
 import os.path
 import textwrap
+import time
 from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
+
+import editdistance
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
@@ -36,17 +39,21 @@ def clean_definition(definition: Dict) -> Dict:
     return dict(value=value, **definition)
 
 
-def _tokens_in_common(first: str, second: str) -> int:
-    t1 = text.norm_tokenize(first)
-    t2 = text.norm_tokenize(second)
-    common = set(t1) | set(t2)
-    return len(common)
+def _distance(source: str, target: str) -> float:
+    source_tok = text.norm_tokenize(source)
+    target_tok = text.norm_tokenize(target)
+    editdistance.eval(source_tok, target_tok)
+    h_val = text.hammingish(source_tok, target_tok)
+    return h_val
 
 
-def _name_tokens_in_common(api: MetaThesaurus, cui1: str, cui2: str) -> int:
-    first = api.get_concept(cui1).get("name")
-    second = api.get_concept(cui2).get("name")
-    return _tokens_in_common(first, second)
+def _distance_from_source(
+    api: MetaThesaurus, source_cui: str, neighbor_cui: str
+) -> float:
+    source = api.get_concept(source_cui).get("name")
+    target = api.get_concept(neighbor_cui).get("name")
+    dist = _distance(source, target)
+    return dist
 
 
 def definitions_bfs(
@@ -183,7 +190,7 @@ def definitions_bfs(
 
 def cui_sort_key(api: MetaThesaurus, source_cui: str, new_cui: str):
     """Number of tokens in common with source, new CUI itself"""
-    return _name_tokens_in_common(api, source_cui, new_cui), new_cui
+    return _distance_from_source(api, source_cui, new_cui), new_cui
 
 
 def broader_definitions_bfs(
@@ -210,9 +217,15 @@ def broader_definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
         broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
+        t0 = time.time()
         reordered = sorted(
             broader_cuis,
             key=lambda new_cui: cui_sort_key(api, cui, new_cui),
+        )
+        print(
+            "{} retrieved {} neighbors in {:.3f} sec".format(
+                cui, len(reordered), time.time() - t0
+            )
         )
         return reordered
 

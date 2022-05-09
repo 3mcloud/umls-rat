@@ -4,7 +4,7 @@ import re
 from typing import Optional, Dict, List, Set, Iterator, Iterable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.util import misc, text
+from umlsrat.util import text
 from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -19,47 +19,47 @@ def _get_umls_concept(api: MetaThesaurus, result: Dict) -> Optional[Dict]:
                 return c
 
 
-def _find_umls(api: MetaThesaurus, source_res: Dict) -> Dict:
-    umls = _get_umls_concept(api, source_res)
-    if umls:
-        return umls
+# def _find_umls(api: MetaThesaurus, source_res: Dict) -> Dict:
+#     umls = _get_umls_concept(api, source_res)
+#     if umls:
+#         return umls
+#
+#     # if we didn't find a UMLS concept directly, check 'SY' then 'RO' relations
+#     relations = api.get_results(source_res.get("relations"))
+#     grouped = misc.group_data(relations, lambda _: _["relationLabel"])
+#
+#     for rel_type in (
+#         "SY",
+#         "RO",
+#     ):
+#         rels = grouped.get(rel_type)
+#         if not rels:
+#             logger.info(f"'{source_res['ui']}' has no '{rel_type}' relations")
+#             continue
+#
+#         for rel in rels:
+#             rel_concept = api.get_single_result(rel["relatedId"])
+#             return _get_umls_concept(api, rel_concept)
+#
+#     raise ValueError(f"Impossible to find UMLS concept for:\n{source_res}")
 
-    # if we didn't find a UMLS concept directly, check 'SY' then 'RO' relations
-    relations = api.get_results(source_res.get("relations"))
-    grouped = misc.group_data(relations, lambda _: _["relationLabel"])
 
-    for rel_type in (
-        "SY",
-        "RO",
-    ):
-        rels = grouped.get(rel_type)
-        if not rels:
-            logger.info(f"'{source_res['ui']}' has no '{rel_type}' relations")
-            continue
-
-        for rel in rels:
-            rel_concept = api.get_single_result(rel["relatedId"])
-            return _get_umls_concept(api, rel_concept)
-
-    raise ValueError(f"Impossible to find UMLS concept for:\n{source_res}")
-
-
-def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optional[str]:
-    """
-    Get the UMLS CUI for a concept from a source vocabulary.
-
-    :param api: MetaThesaurus API
-    :param source_vocab: source vocabulary abbrev (i.e. SNOMEDCT_US)
-    :param concept_id: source concept ID
-    :return: UMLS CUI or None
-    """
-    source_res = api.get_source_concept(source_vocab, concept_id)
-    if not source_res:
-        logger.info(f"Concept not found: {source_vocab}/{concept_id}")
-        return None
-
-    concept_res = _find_umls(api, source_res)
-    return concept_res["ui"]
+# def find_umls(api: MetaThesaurus, source_vocab: str, concept_id: str) -> Optional[str]:
+#     """
+#     Get the UMLS CUI for a concept from a source vocabulary.
+#
+#     :param api: MetaThesaurus API
+#     :param source_vocab: source vocabulary abbrev (i.e. SNOMEDCT_US)
+#     :param concept_id: source concept ID
+#     :return: UMLS CUI or None
+#     """
+#     source_res = api.get_source_concept(source_vocab, concept_id)
+#     if not source_res:
+#         logger.info(f"Concept not found: {source_vocab}/{concept_id}")
+#         return None
+#
+#     concept_res = _find_umls(api, source_res)
+#     return concept_res["ui"]
 
 
 def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
