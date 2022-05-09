@@ -27,7 +27,7 @@ def run_hammingish(source: str, target: str):
         ),
     ),
 )
-def test_hammingish(source: str, targets: List[str]):
+def test_hammingish_order(source: str, targets: List[str]):
     rng = random.Random(234908723)
     # shuffle targets
     shuffled = rng.sample(targets, len(targets))
