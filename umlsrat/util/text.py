@@ -36,8 +36,8 @@ def norm_tokenize(text_str: str) -> List[str]:
     return tokenize(normalize(text_str))
 
 
-def hammingish(source: List[str], target: List[str]) -> int:
+def hammingish(source: List[str], target: List[str]) -> float:
     """This distance metric favors shorter 'target' sequences"""
     ss, st = set(source), set(target)
-    common = ss & st
-    return len(st) - len(common)
+
+    return len(st - ss) / len(st)
