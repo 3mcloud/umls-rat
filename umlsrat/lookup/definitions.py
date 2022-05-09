@@ -5,8 +5,6 @@ import textwrap
 import time
 from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
 
-import editdistance
-
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
@@ -42,7 +40,6 @@ def clean_definition(definition: Dict) -> Dict:
 def _distance(source: str, target: str) -> float:
     source_tok = text.norm_tokenize(source)
     target_tok = text.norm_tokenize(target)
-    editdistance.eval(source_tok, target_tok)
     h_val = text.hammingish(source_tok, target_tok)
     return h_val
 
