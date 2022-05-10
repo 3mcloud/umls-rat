@@ -81,16 +81,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             "Unmodified air as existing in the immediate surroundings.",
         ),
         (
-            dict(source_desc="Cancer", target_lang="SPA"),
-            ["Neoplasms"],
-            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
-        ),
-        (
-            dict(source_desc="Cancer"),
-            ["Malignant Neoplasms"],
-            "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
-        ),
-        (
             dict(
                 source_vocab="snomed",
                 source_code="a209c041-2376-4482-8044-a724ed9cb8c1",
@@ -101,6 +91,16 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ["Sense of smell altered"],
             "Distorted perception of smells.",
         ),
+        (
+            dict(source_desc="Cancer", target_lang="SPA"),
+            ["Neoplasms"],
+            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
+        ),
+        (
+            dict(source_desc="Cancer"),
+            ["Malignant Neoplasms"],
+            "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
+        ),
     ),
 )
 def test_find_defined_concepts(
@@ -108,7 +108,7 @@ def test_find_defined_concepts(
 ):
     data = definitions.find_defined_concepts(api, **kwargs)
     names = extract_concept_names(data)
-    assert expected_names == names
+    assert names == expected_names
     if a_definition:
         assert a_definition in extract_definitions(data)
     else:
