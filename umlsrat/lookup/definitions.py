@@ -219,7 +219,7 @@ def broader_definitions_bfs(
             broader_cuis,
             key=lambda new_cui: cui_sort_key(api, cui, new_cui),
         )
-        print(
+        logger.debug(
             "{} retrieved {} neighbors in {:.3f} sec".format(
                 cui, len(reordered), time.time() - t0
             )

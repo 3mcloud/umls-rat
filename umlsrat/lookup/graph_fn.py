@@ -68,6 +68,12 @@ def breadth_first_search(
         current_cui = to_visit.peek()
         current_dist = distances.peek()
 
+        logger.info(
+            f"{len(visited)} '{current_cui}' "
+            f"curDistance = {current_dist} "
+            f"numToVisit = {len(to_visit)} "
+        )
+
         pre_visit_action = pre_visit(api, current_cui, current_dist)
         if pre_visit_action == Action.STOP:
             break
@@ -78,12 +84,6 @@ def breadth_first_search(
         ## Mark as visited
         visited.push(to_visit.pop())
         distances.pop()
-
-        logger.info(
-            f"curDistance = {current_dist} "
-            f"numToVisit = {len(to_visit)} "
-            f"numVisited = {len(visited)}"
-        )
 
         if pre_visit_action == Action.SKIP:
             continue
