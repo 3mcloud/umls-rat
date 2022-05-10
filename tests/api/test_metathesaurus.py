@@ -15,9 +15,9 @@ def test_get_concept(api, cui, name):
     assert c.get("name") == name
 
 
-@pytest.mark.parametrize(("cui", "num_rel"), [("C0009044", 5), ("C3887398", -1)])
+@pytest.mark.parametrize(("cui", "num_rel"), [("C0009044", 5), ("C3887398", 0)])
 def test_get_relations(api, cui, num_rel):
-    r = api.get_relations(cui)
+    r = api.get_relations(cui, includeObsolete=True, includeSuppressible=True)
     r = list(r)
     assert len(r) == num_rel
 
