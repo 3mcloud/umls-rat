@@ -3,7 +3,6 @@ from typing import Dict
 import pytest
 
 from umlsrat.lookup import umls
-from umlsrat.lookup.umls import term_search
 
 
 @pytest.mark.parametrize(
@@ -55,25 +54,61 @@ def test_get_source_relations(
     assert len(relations) == expected_len
 
 
-def do_search(api, term: str) -> Dict:
-    search_result = term_search(api, term)
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    (
+        (dict(cui="C0559890"), ["Lumbosacral region of spine"]),
+        (dict(cui="C3472551"), ["Entire back"]),
+    ),
+)
+@pytest.mark.skip("TODO: fix for WSD")
+def test_get_relations(api, kwargs, expected):
+    result = list(api.get_relations(**kwargs))
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    ((dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), None),),
+)
+def test_get_atoms(api, kwargs, expected):
+    result = list(api.get_atoms(**kwargs))
+    assert result
+    for atom in result:
+        ancestors = list(api.get_ancestors(atom["ui"]))
+        print(ancestors)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_name"),
+    (
+        (dict(term="Room air", max_results=1, strict_match=False), "Room Air"),
+        (
+            dict(term="Anticoagulant", max_results=1, strict_match=False),
+            "Anticoagulants",
+        ),
+        # This would solve our back problem, but alas it does not work...
+        # (dict(term="Entire back", max_results=1, strict_match=False), 'Back'),
+        (
+            dict(
+                term="Protein-calorie malnutrition", max_results=1, strict_match=False
+            ),
+            "Protein-Energy Malnutrition",
+        ),
+    ),
+)
+def test_term_search(api, kwargs, expected_name):
+    result = umls.term_search(api, **kwargs)
+    assert result
+    concepts = result.pop("concepts")
+    names = [_["name"] for _ in concepts]
+    assert expected_name in names
+
+
+def simple_search(api, term: str) -> Dict:
+    search_result = umls.term_search(api, term)
     if search_result:
         return search_result["concepts"].pop(0)
-
-
-def test_term_search(api):
-    c1 = do_search(api, "Room air")
-    assert c1
-    c2 = do_search(api, "Room Air")
-    assert c2
-    c3 = do_search(api, "Room air (substance)")
-    assert c3
-    c4 = do_search(api, "Anticoagulant")
-    assert c4
-
-    assert c1 == c2
-    assert c1 == c3
-    assert c4
 
 
 def test_search_idempotence(api):
@@ -84,6 +119,11 @@ def test_search_idempotence(api):
         api, term="Faint (qualifier value)", max_results=5, strict_match=True
     )
     assert first == second
+
+    c1 = simple_search(api, "Room air")
+    c2 = simple_search(api, "Room Air")
+    c3 = simple_search(api, "Room air (substance)")
+    assert c1 == c2 == c3
 
 
 def test_pagination(api):
