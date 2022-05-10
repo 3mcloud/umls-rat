@@ -1,5 +1,6 @@
 import re
 import string
+import typing
 from typing import List
 
 
@@ -41,3 +42,13 @@ def hammingish(source: List[str], target: List[str]) -> float:
     ss, st = set(source), set(target)
 
     return len(st - ss) / len(st)
+
+
+def hammingish_partial(source_txt: str) -> typing.Callable[[str], float]:
+    source = norm_tokenize(source_txt)
+
+    def sort_key(target_txt: str) -> float:
+        target = norm_tokenize(target_txt)
+        return hammingish(source, target)
+
+    return sort_key

@@ -6,6 +6,7 @@ import time
 from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.api.sorting import cui_by_concept_name_dist
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text
@@ -185,11 +186,6 @@ def definitions_bfs(
     return defined_concepts
 
 
-def cui_sort_key(api: MetaThesaurus, source_cui: str, new_cui: str):
-    """Number of tokens in common with source, new CUI itself"""
-    return _distance_from_source(api, source_cui, new_cui), new_cui
-
-
 def broader_definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
@@ -215,9 +211,10 @@ def broader_definitions_bfs(
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
         broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
         t0 = time.time()
+        key_fn = cui_by_concept_name_dist(api, cui)
         reordered = sorted(
             broader_cuis,
-            key=lambda new_cui: cui_sort_key(api, cui, new_cui),
+            key=key_fn,
         )
         logger.debug(
             "{} retrieved {} neighbors in {:.3f} sec".format(
@@ -262,10 +259,8 @@ def narrower_definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
         narrower_cuis = umls.get_narrower_concepts(api, cui, language=target_lang)
-        reordered = sorted(
-            narrower_cuis,
-            key=lambda new_cui: cui_sort_key(api, cui, new_cui),
-        )
+        key_fn = cui_by_concept_name_dist(api, cui)
+        reordered = sorted(narrower_cuis, key=key_fn)
         return reordered
 
     return definitions_bfs(

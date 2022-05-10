@@ -75,6 +75,12 @@ def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
             # filter bogus results
             concepts = [_ for _ in concepts if _["ui"]]
             if concepts:
+                txt_key = text.hammingish_partial(term)
+
+                def sort_key(c: Dict) -> float:
+                    return txt_key(c["name"])
+
+                concepts = sorted(concepts, key=sort_key)
                 return dict(**search_params, searchTerm=term, concepts=concepts)
 
     return dict(searchTerm=term, concepts=[])
