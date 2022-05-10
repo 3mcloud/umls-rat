@@ -61,7 +61,6 @@ def test_get_source_relations(
         (dict(cui="C3472551"), ["Entire back"]),
     ),
 )
-@pytest.mark.skip("TODO: fix for WSD")
 def test_get_relations(api, kwargs, expected):
     result = list(api.get_relations(**kwargs))
     assert result == expected
