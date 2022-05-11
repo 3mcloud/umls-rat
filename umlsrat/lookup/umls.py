@@ -203,6 +203,14 @@ def get_related_concepts(
     :return: generator over CUIs
     """
 
+    seen = {cui}
+
+    def maybe_yield(next_cui: str):
+        if next_cui:
+            if next_cui not in seen:
+                yield next_cui
+            seen.add(next_cui)
+
     if language:
         add_params["language"] = vocab_tools.validate_language(language)
 
@@ -210,7 +218,7 @@ def get_related_concepts(
     for rel in api.get_relations(cui):
         if rel["relationLabel"] in allowed_relations:
             rel_c = api.get_single_result(rel["relatedId"])
-            yield rel_c["ui"]
+            yield from maybe_yield(rel_c["ui"])
 
     # get all atom concepts of this umls concept
     atoms = api.get_atoms(cui, **add_params)
@@ -219,10 +227,18 @@ def get_related_concepts(
         code_url = atom["code"]
         if not code_url:
             raise ValueError("'code' is not available")
+        # if not atom["sourceConcept"]:
+        #     assert code_url.endswith("NOCODE"), code_url
+        #     assert "NOCODE" in code_url, code_url
+        #     continue
+
+        if code_url.endswith("NOCODE"):
+            continue
+
         code = api.get_single_result(code_url)
         if not code:
-            # this is very strange. possibly a bug? todo
-            continue
+            raise ValueError(f"Got null code for {code_url}")
+
         relations = list(
             api.get_source_relations(
                 source_vocab=code["rootSource"],
@@ -231,7 +247,7 @@ def get_related_concepts(
                 **add_params,
             )
         )
-        # print(f"relations={relations}")
+
         for rel in relations:
             related = api.get_single_result(rel["relatedId"])
 
@@ -240,14 +256,45 @@ def get_related_concepts(
             elif related.get("concepts"):
                 concepts = api.get_results(related["concepts"])
             else:
-                raise AssertionError()
+                raise ValueError(f"Malformed result has no concept(s)\n{related}")
 
             for related_concept in concepts:
-                yield related_concept["ui"]
-            # broader_cui = get_cui_for(
-            #     api, related["rootSource"], related["ui"]
-            # )
-            # yield from maybe_yield(broader_cui)
+                yield from maybe_yield(related_concept["ui"])
+
+
+def get_related_concepts_relaxed(
+    api: MetaThesaurus,
+    cui: str,
+    allowed_relations: Iterable[str],
+    language: str = None,
+) -> Iterator[str]:
+    """
+    Get *all* related concepts. If no related concepts are found, we will try
+    Obsolete and Suppressible. **NO GUARANTEES REGARDING RETURN ORDER**
+
+    :param allowed_relations:
+    :param language:
+    :param api: meta thesaurus
+    :param cui: starting concept
+    :return: generator over CUIs
+    """
+
+    got_something = False
+    for _ in get_related_concepts(
+        api=api, cui=cui, allowed_relations=allowed_relations, language=language
+    ):
+        yield _
+        got_something = True
+
+    if not got_something:
+        yield from get_related_concepts(
+            api=api,
+            cui=cui,
+            allowed_relations=allowed_relations,
+            language=language,
+            includeObsolete=True,
+            includeSuppressible=True,
+        )
 
 
 def get_broader_concepts(
@@ -261,23 +308,9 @@ def get_broader_concepts(
     :param cui: starting concept
     :return: generator over CUIs
     """
-
-    got_something = False
-    for _ in get_related_concepts(
+    yield from get_related_concepts_relaxed(
         api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
-    ):
-        yield _
-        got_something = True
-
-    if not got_something:
-        yield from get_related_concepts(
-            api=api,
-            cui=cui,
-            allowed_relations=("RN", "CHD"),
-            language=language,
-            includeObsolete=True,
-            includeSuppressible=True,
-        )
+    )
 
 
 def get_narrower_concepts(
@@ -291,7 +324,6 @@ def get_narrower_concepts(
     :param cui: starting concept
     :return: generator over CUIs
     """
-
-    yield from get_related_concepts(
+    yield from get_related_concepts_relaxed(
         api=api, cui=cui, allowed_relations=("RB", "PAR"), language=language
     )

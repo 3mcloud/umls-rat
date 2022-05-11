@@ -35,9 +35,7 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
     [
         (
             "450807008",
-            None
-            # "The rear surface of an upright primate from the shoulders to the hip, "
-            # "or the dorsal surface of tetrapods.",
+            "The central part of the body to which the neck and limbs are attached.",
         ),
         ("10937761000119101", "Injuries to the wrist or the wrist joint."),
     ],
@@ -62,13 +60,13 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     (
         (
             dict(source_vocab="snomed", source_code="282024004", target_lang="ENG"),
-            [],
-            None,
+            ["Vertebral column"],
+            "The spinal or vertebral column.",
         ),
         (
             dict(source_vocab="snomed", source_code="48348007", target_lang="ENG"),
-            ["Respiratory System Finding"],
-            "Normal or abnormal findings related to the respiratory system.",
+            ["Respiratory Sounds"],
+            "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
         ),
         (
             dict(

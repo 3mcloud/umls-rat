@@ -16,30 +16,6 @@ def test_get_concept(api, cui, name):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_names"),
-    (
-        (dict(cui="C0559890"), ["Lumbosacral region of spine"]),
-        (dict(cui="C3472551"), ["Entire back"]),
-        (
-            dict(cui="C0009044"),
-            [
-                "Colles' Fracture",
-                "Closed fracture dislocation of wrist",
-                "Bone structure of carpus",
-                "Closed fracture of lower end of radius AND ulna",
-                "Unspecified site injury",
-            ],
-        ),
-        (dict(cui="C3887398"), ["something"]),
-    ),
-)
-def test_get_relations(api, kwargs, expected_names):
-    result = list(api.get_relations(**kwargs))
-    names = [_["relatedIdName"] for _ in result]
-    assert names == expected_names
-
-
-@pytest.mark.parametrize(
     ["source_vocab", "concept_id", "allowable_labels", "expected_len"],
     [("MSH", "D002415", {"RN", "CHD"}, 1)],
 )
