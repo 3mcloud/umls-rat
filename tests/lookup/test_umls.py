@@ -66,3 +66,22 @@ def test_search_idempotence(api):
     c2 = simple_search(api, "Room Air")
     c3 = simple_search(api, "Room air (substance)")
     assert c1 == c2 == c3
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_cuis"),
+    (
+        # (dict(cui="C0559890"), {'C0559887', 'C0574025'}),
+        # (dict(cui="C3472551"), {'C0460009'}),
+        # (dict(cui="C3887398"), {'C3886880', 'C4281104', 'C0009044'}),
+        (dict(cui="C0009044"), {}),
+    ),
+)
+def test_get_broader_concepts(api, kwargs, expected_cuis):
+    assert "cui" in kwargs
+    result = list(umls.get_broader_concepts(api, **kwargs))
+    assert result
+    cuis = set(result)
+    assert len(cuis) == len(result), "Result should not return duplicates"
+    assert kwargs["cui"] not in cuis
+    assert cuis == expected_cuis

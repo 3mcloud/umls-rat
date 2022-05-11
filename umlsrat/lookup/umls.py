@@ -187,7 +187,11 @@ def get_cui_for(
 
 
 def get_related_concepts(
-    api: MetaThesaurus, cui: str, allowed_relations: Iterable[str], language: str = None
+    api: MetaThesaurus,
+    cui: str,
+    allowed_relations: Iterable[str],
+    language: str = None,
+    **add_params,
 ) -> Iterator[str]:
     """
     Get related concepts. **NO GUARANTEES REGARDING RETURN ORDER**
@@ -200,49 +204,50 @@ def get_related_concepts(
     """
 
     if language:
-        add_params = dict(language=vocab_tools.validate_language(language))
-    else:
-        add_params = dict()
-
-    seen = set()
-
-    def maybe_yield(next_cui: str):
-        if next_cui and next_cui not in seen:
-            yield next_cui
-            seen.add(next_cui)
+        add_params["language"] = vocab_tools.validate_language(language)
 
     # first get direct relations
     for rel in api.get_relations(cui):
         if rel["relationLabel"] in allowed_relations:
             rel_c = api.get_single_result(rel["relatedId"])
-            yield from maybe_yield(rel_c["ui"])
+            yield rel_c["ui"]
 
     # get all atom concepts of this umls concept
     atoms = api.get_atoms(cui, **add_params)
 
     for atom in atoms:
-        sc_url = atom["sourceConcept"]
-        if not sc_url:
-            continue
-        sc = api.get_single_result(sc_url)
-        if not sc:
+        code_url = atom["code"]
+        if not code_url:
+            raise ValueError("'code' is not available")
+        code = api.get_single_result(code_url)
+        if not code:
             # this is very strange. possibly a bug? todo
             continue
         relations = list(
             api.get_source_relations(
-                source_vocab=sc["rootSource"],
-                concept_id=sc["ui"],
+                source_vocab=code["rootSource"],
+                concept_id=code["ui"],
                 includeRelationLabels=",".join(allowed_relations),
                 **add_params,
             )
         )
         # print(f"relations={relations}")
         for rel in relations:
-            source_concept = api.get_single_result(rel["relatedId"])
-            broader_cui = get_cui_for(
-                api, source_concept["rootSource"], source_concept["ui"]
-            )
-            yield from maybe_yield(broader_cui)
+            related = api.get_single_result(rel["relatedId"])
+
+            if related.get("concept"):
+                concepts = (api.get_single_result(related["concept"]),)
+            elif related.get("concepts"):
+                concepts = api.get_results(related["concepts"])
+            else:
+                raise AssertionError()
+
+            for related_concept in concepts:
+                yield related_concept["ui"]
+            # broader_cui = get_cui_for(
+            #     api, related["rootSource"], related["ui"]
+            # )
+            # yield from maybe_yield(broader_cui)
 
 
 def get_broader_concepts(
@@ -257,9 +262,22 @@ def get_broader_concepts(
     :return: generator over CUIs
     """
 
-    yield from get_related_concepts(
+    got_something = False
+    for _ in get_related_concepts(
         api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
-    )
+    ):
+        yield _
+        got_something = True
+
+    if not got_something:
+        yield from get_related_concepts(
+            api=api,
+            cui=cui,
+            allowed_relations=("RN", "CHD"),
+            language=language,
+            includeObsolete=True,
+            includeSuppressible=True,
+        )
 
 
 def get_narrower_concepts(
