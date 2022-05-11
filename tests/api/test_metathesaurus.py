@@ -15,11 +15,79 @@ def test_get_concept(api, cui, name):
     assert c.get("name") == name
 
 
-@pytest.mark.parametrize(("cui", "num_rel"), [("C0009044", 5), ("C3887398", 0)])
-def test_get_relations(api, cui, num_rel):
-    r = api.get_relations(cui, includeObsolete=True, includeSuppressible=True)
-    r = list(r)
-    assert len(r) == num_rel
+@pytest.mark.parametrize(
+    ("kwargs", "expected_names"),
+    (
+        (dict(cui="C0559890"), ["Lumbosacral region of spine"]),
+        (dict(cui="C3472551"), ["Entire back"]),
+        (
+            dict(cui="C0009044"),
+            [
+                "Colles' Fracture",
+                "Closed fracture dislocation of wrist",
+                "Bone structure of carpus",
+                "Closed fracture of lower end of radius AND ulna",
+                "Unspecified site injury",
+            ],
+        ),
+        (dict(cui="C3887398"), ["something"]),
+    ),
+)
+def test_get_relations(api, kwargs, expected_names):
+    result = list(api.get_relations(**kwargs))
+    names = [_["relatedIdName"] for _ in result]
+    assert names == expected_names
+
+
+@pytest.mark.parametrize(
+    ["source_vocab", "concept_id", "allowable_labels", "expected_len"],
+    [("MSH", "D002415", {"RN", "CHD"}, 1)],
+)
+def test_get_source_relations(
+    api, source_vocab, concept_id, allowable_labels, expected_len
+):
+    relations = list(
+        api.get_source_relations(
+            source_vocab=source_vocab,
+            concept_id=concept_id,
+            includeRelationLabels=",".join(allowable_labels),
+            language="ENG",
+        )
+    )
+    # all resulting relation labels should appear in the "includeRelationLabels"
+    for rel in relations:
+        assert rel["relationLabel"] in allowable_labels
+
+    # assert expected length
+    assert len(relations) == expected_len
+
+
+def test_include_flags(api):
+    uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
+    res = list(api.get_results(uri))
+
+    include_uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?includeObsolete=True&includeSuppressible=True&string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
+    include_res = list(api.get_results(include_uri))
+
+    assert len(include_res) >= len(res)
+
+
+def test_pagination(api):
+    results = api.search("star trek vs star wars", pageSize=25)
+    assert not list(results)
+    results = api.search("bone", pageSize=25, max_results=100)
+    assert len(list(results)) == 100
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    ((dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), None),),
+)
+def test_get_atoms(api, kwargs, expected):
+    result = list(api.get_atoms(**kwargs))
+    assert result
+    for atom in result:
+        list(api.get_ancestors(atom["ui"]))
 
 
 def test_cache(api):

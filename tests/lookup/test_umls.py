@@ -21,63 +21,6 @@ def test_get_cui_for(api, code_system, code, expected_cui):
     assert cui == expected_cui
 
 
-def test_include_flags(api):
-    uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
-    res = list(api.get_results(uri))
-
-    include_uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?includeObsolete=True&includeSuppressible=True&string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
-    include_res = list(api.get_results(include_uri))
-
-    assert len(include_res) >= len(res)
-
-
-@pytest.mark.parametrize(
-    ["source_vocab", "concept_id", "allowable_labels", "expected_len"],
-    [("MSH", "D002415", {"RN", "CHD"}, 1)],
-)
-def test_get_source_relations(
-    api, source_vocab, concept_id, allowable_labels, expected_len
-):
-    relations = list(
-        api.get_source_relations(
-            source_vocab=source_vocab,
-            concept_id=concept_id,
-            includeRelationLabels=",".join(allowable_labels),
-            language="ENG",
-        )
-    )
-    # all resulting relation labels should appear in the "includeRelationLabels"
-    for rel in relations:
-        assert rel["relationLabel"] in allowable_labels
-
-    # assert expected length
-    assert len(relations) == expected_len
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "expected"),
-    (
-        (dict(cui="C0559890"), ["Lumbosacral region of spine"]),
-        (dict(cui="C3472551"), ["Entire back"]),
-    ),
-)
-def test_get_relations(api, kwargs, expected):
-    result = list(api.get_relations(**kwargs))
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "expected"),
-    ((dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), None),),
-)
-def test_get_atoms(api, kwargs, expected):
-    result = list(api.get_atoms(**kwargs))
-    assert result
-    for atom in result:
-        ancestors = list(api.get_ancestors(atom["ui"]))
-        print(ancestors)
-
-
 @pytest.mark.parametrize(
     ("kwargs", "expected_name"),
     (
@@ -123,13 +66,3 @@ def test_search_idempotence(api):
     c2 = simple_search(api, "Room Air")
     c3 = simple_search(api, "Room air (substance)")
     assert c1 == c2 == c3
-
-
-def test_pagination(api):
-    results = api.search("star trek vs star wars", pageSize=25)
-    assert not list(results)
-    results = api.search("bone", pageSize=25, max_results=100)
-    assert len(list(results)) == 100
-
-    # x = list(umls.get_broader_concepts(api, 'C4517971'))
-    # assert x
