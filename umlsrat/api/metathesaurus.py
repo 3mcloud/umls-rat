@@ -318,37 +318,6 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
         return self.get_results(uri, max_results=max_results, **params)
 
-    def get_related_concepts(
-        self, cui: str, max_results: Optional[int] = None, **params
-    ) -> Iterator[Dict]:
-        """
-        Get related concepts
-
-        Email from NLM Support:
-
-        I see what you mean. We don't have a documented way to recreate what the web interface does without making several calls, but the web interface uses:
-
-        https://uts-api.nlm.nih.gov/content/angular/current/CUI/C4517971/relatedConcepts?relationLabels=RB,PAR,RN,CHD&ticket=
-
-        This aggregates broader and narrower relations for a particular UMLS Concept.
-
-        Because this is not documented it may change at any time, but I don't expect it to change in the near future.
-
-        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
-        :param max_results: maximum number of result to return. None = no max
-        :return: list of Relation Dicts
-        """
-        uri = f"https://uts-api.nlm.nih.gov/content/angular/{self.version}/CUI/{cui}/relatedConcepts"
-        try:
-            return self.get_results(uri, max_results=max_results, **params)
-            # return MetaThesaurus._default_extract_results(self._get(uri, **params))
-        except requests.exceptions.ConnectionError as e:
-            self.logger.exception(
-                "Connection failed when getting related concepts! Try restricting "
-                "results with 'relationLabels' e.g. relationLabels=RN,CHD"
-            )
-            raise e
-
     ###
     # Search
     ###

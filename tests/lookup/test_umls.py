@@ -21,64 +21,6 @@ def test_get_cui_for(api, code_system, code, expected_cui):
     assert cui == expected_cui
 
 
-def test_include_flags(api):
-    uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
-    res = list(api.get_results(uri))
-
-    include_uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?includeObsolete=True&includeSuppressible=True&string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
-    include_res = list(api.get_results(include_uri))
-
-    assert len(include_res) >= len(res)
-
-
-@pytest.mark.parametrize(
-    ["source_vocab", "concept_id", "allowable_labels", "expected_len"],
-    [("MSH", "D002415", {"RN", "CHD"}, 1)],
-)
-def test_get_source_relations(
-    api, source_vocab, concept_id, allowable_labels, expected_len
-):
-    relations = list(
-        api.get_source_relations(
-            source_vocab=source_vocab,
-            concept_id=concept_id,
-            includeRelationLabels=",".join(allowable_labels),
-            language="ENG",
-        )
-    )
-    # all resulting relation labels should appear in the "includeRelationLabels"
-    for rel in relations:
-        assert rel["relationLabel"] in allowable_labels
-
-    # assert expected length
-    assert len(relations) == expected_len
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "expected"),
-    (
-        (dict(cui="C0559890"), ["Lumbosacral region of spine"]),
-        (dict(cui="C3472551"), ["Entire back"]),
-    ),
-)
-@pytest.mark.skip("TODO: fix for WSD")
-def test_get_relations(api, kwargs, expected):
-    result = list(api.get_relations(**kwargs))
-    assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "expected"),
-    ((dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), None),),
-)
-def test_get_atoms(api, kwargs, expected):
-    result = list(api.get_atoms(**kwargs))
-    assert result
-    for atom in result:
-        ancestors = list(api.get_ancestors(atom["ui"]))
-        print(ancestors)
-
-
 @pytest.mark.parametrize(
     ("kwargs", "expected_name"),
     (
@@ -126,11 +68,23 @@ def test_search_idempotence(api):
     assert c1 == c2 == c3
 
 
-def test_pagination(api):
-    results = api.search("star trek vs star wars", pageSize=25)
-    assert not list(results)
-    results = api.search("bone", pageSize=25, max_results=100)
-    assert len(list(results)) == 100
-
-    # x = list(umls.get_broader_concepts(api, 'C4517971'))
-    # assert x
+@pytest.mark.parametrize(
+    ("kwargs", "expected_cuis"),
+    (
+        (dict(cui="C0559890"), {"C0559887", "C0574025"}),
+        (dict(cui="C3472551"), {"C0460009"}),
+        (dict(cui="C3887398"), {"C3886880", "C4281104", "C0009044"}),
+        (
+            dict(cui="C0009044"),
+            {"C0178316", "C0016644", "C0029509", "C0016659", "C0272588"},
+        ),
+    ),
+)
+def test_get_broader_concepts(api, kwargs, expected_cuis):
+    assert "cui" in kwargs
+    result = list(umls.get_broader_concepts(api, **kwargs))
+    assert result
+    cuis = set(result)
+    assert len(cuis) == len(result), "Result should not return duplicates"
+    assert kwargs["cui"] not in cuis
+    assert cuis == expected_cuis
