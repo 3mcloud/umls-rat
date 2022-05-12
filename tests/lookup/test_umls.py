@@ -6,19 +6,44 @@ from umlsrat.lookup import umls
 
 
 @pytest.mark.parametrize(
-    ["code_system", "code", "expected_cui"],
+    ["kwargs", "expected_cui"],
     [
         # Entire back of trunk
-        ("SNOMEDCT_US", "450807008", "C3472551"),
+        (dict(source_vocab="SNOMEDCT_US", ui="450807008"), "C3472551"),
         # Entire lumbosacral junction of vertebral column
-        ("SNOMEDCT_US", "282024004", "C0559890"),
+        (dict(source_vocab="SNOMEDCT_US", ui="282024004"), "C0559890"),
         # Closed fracture of left wrist
-        ("SNOMEDCT_US", "10937761000119101", "C3887398"),
+        (dict(source_vocab="SNOMEDCT_US", ui="10937761000119101"), "C3887398"),
+        # Right
+        (dict(source_vocab="SNOMEDCT_US", ui="24028007"), "C0450415"),
     ],
 )
-def test_get_cui_for(api, code_system, code, expected_cui):
-    cui = umls.get_cui_for(api, code_system, code)
+def test_get_cui_for(api, kwargs, expected_cui):
+    cui = umls.get_cui_for(api, **kwargs)
     assert cui == expected_cui
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_cuis"),
+    (
+        (dict(cui="C0559890"), {"C0559887", "C0574025"}),
+        (dict(cui="C3472551"), {"C0460009"}),
+        (dict(cui="C3887398"), {"C3886880", "C4281104", "C0009044"}),
+        (
+            dict(cui="C0009044"),
+            {"C0178316", "C0016644", "C0029509", "C0016659", "C0272588"},
+        ),
+        (dict(cui="C0450415"), {}),
+    ),
+)
+def test_get_broader_concepts(api, kwargs, expected_cuis):
+    assert "cui" in kwargs
+    cui_list = list(umls.get_broader_concepts(api, **kwargs))
+    assert cui_list
+    cui_set = set(cui_list)
+    assert len(cui_set) == len(cui_list), "Result should not return duplicates"
+    assert kwargs["cui"] not in cui_set
+    assert cui_set == expected_cuis
 
 
 @pytest.mark.parametrize(
@@ -66,25 +91,3 @@ def test_search_idempotence(api):
     c2 = simple_search(api, "Room Air")
     c3 = simple_search(api, "Room air (substance)")
     assert c1 == c2 == c3
-
-
-@pytest.mark.parametrize(
-    ("kwargs", "expected_cuis"),
-    (
-        (dict(cui="C0559890"), {"C0559887", "C0574025"}),
-        (dict(cui="C3472551"), {"C0460009"}),
-        (dict(cui="C3887398"), {"C3886880", "C4281104", "C0009044"}),
-        (
-            dict(cui="C0009044"),
-            {"C0178316", "C0016644", "C0029509", "C0016659", "C0272588"},
-        ),
-    ),
-)
-def test_get_broader_concepts(api, kwargs, expected_cuis):
-    assert "cui" in kwargs
-    result = list(umls.get_broader_concepts(api, **kwargs))
-    assert result
-    cuis = set(result)
-    assert len(cuis) == len(result), "Result should not return duplicates"
-    assert kwargs["cui"] not in cuis
-    assert cuis == expected_cuis
