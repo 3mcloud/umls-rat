@@ -2,11 +2,9 @@ import collections
 import logging
 import os.path
 import textwrap
-import time
 from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.api.sorting import cui_by_concept_name_dist
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text
@@ -208,20 +206,8 @@ def broader_definitions_bfs(
     :return: a list of Concepts with Definitions
     """
 
-    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
-        broader_cuis = umls.get_broader_concepts(api, cui, language=target_lang)
-        t0 = time.time()
-        key_fn = cui_by_concept_name_dist(api, cui)
-        reordered = sorted(
-            broader_cuis,
-            key=key_fn,
-        )
-        logger.debug(
-            "{} retrieved {} neighbors in {:.3f} sec".format(
-                cui, len(reordered), time.time() - t0
-            )
-        )
-        return reordered
+    def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
+        return umls.get_broader_concepts(api, cui, language=target_lang)
 
     return definitions_bfs(
         api=api,
@@ -258,10 +244,7 @@ def narrower_definitions_bfs(
     """
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
-        narrower_cuis = umls.get_narrower_concepts(api, cui, language=target_lang)
-        key_fn = cui_by_concept_name_dist(api, cui)
-        reordered = sorted(narrower_cuis, key=key_fn)
-        return reordered
+        return umls.get_narrower_concepts(api, cui, language=target_lang)
 
     return definitions_bfs(
         api=api,

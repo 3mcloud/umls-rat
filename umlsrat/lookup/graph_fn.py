@@ -1,7 +1,8 @@
 import logging
 import os.path
+import time
 from enum import Enum
-from typing import Callable, Optional, Iterable
+from typing import Callable, List, Optional
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util.orderedset import UniqueFIFO, FIFO
@@ -30,7 +31,7 @@ def breadth_first_search(
     api: MetaThesaurus,
     start_cui: str,
     visit: Callable[[MetaThesaurus, str, int], None],
-    get_neighbors: Callable[[MetaThesaurus, str], Iterable[str]],
+    get_neighbors: Callable[[MetaThesaurus, str], List[str]],
     pre_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
     post_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
 ) -> None:
@@ -97,13 +98,18 @@ def breadth_first_search(
             continue
 
         ## Find neighbors and add to_visit
-        # print(f"neighbor cuis: {list(get_neighbors(api, current_cui))}")
-        # print()
-        for cui in get_neighbors(api, current_cui):
+        t0 = time.time()
+        neighbors = get_neighbors(api, current_cui)
+        logger.debug(
+            "{} retrieved {} neighbors in {:.3f} sec".format(
+                current_cui, len(neighbors), time.time() - t0
+            )
+        )
+        for neighbor_cui in neighbors:
             # remove those we have visited or plan to visit already
-            if cui in visited or cui in to_visit:
+            if neighbor_cui in visited or neighbor_cui in to_visit:
                 continue
-            to_visit.push(cui)
+            to_visit.push(neighbor_cui)
             distances.push(current_dist + 1)
 
     return

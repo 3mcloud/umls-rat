@@ -26,14 +26,17 @@ def test_get_cui_for(api, kwargs, expected_cui):
 @pytest.mark.parametrize(
     ("kwargs", "expected_cuis"),
     (
-        (dict(cui="C0559890"), {"C0559887", "C0574025"}),
-        (dict(cui="C3472551"), {"C0460009"}),
-        (dict(cui="C3887398"), {"C3886880", "C4281104", "C0009044"}),
+        (dict(cui="C0559890"), ["C0574025", "C0559887"]),
+        (dict(cui="C3472551"), ["C0460009"]),
+        (dict(cui="C3887398"), ["C4281104", "C3886880", "C0009044"]),
         (
             dict(cui="C0009044"),
-            {"C0178316", "C0016644", "C0029509", "C0016659", "C0272588"},
+            ["C0016644", "C0272588", "C0016659", "C0178316", "C0029509"],
         ),
-        (dict(cui="C0450415"), {}),
+        (
+            dict(cui="C0450415"),
+            ["C0205093", "C0332191", "C0205089", "C1180190", "C0441987"],
+        ),
     ),
 )
 def test_get_broader_concepts(api, kwargs, expected_cuis):
@@ -43,7 +46,7 @@ def test_get_broader_concepts(api, kwargs, expected_cuis):
     cui_set = set(cui_list)
     assert len(cui_set) == len(cui_list), "Result should not return duplicates"
     assert kwargs["cui"] not in cui_set
-    assert cui_set == expected_cuis
+    assert cui_list == expected_cuis
 
 
 @pytest.mark.parametrize(
