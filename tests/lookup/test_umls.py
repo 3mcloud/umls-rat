@@ -16,6 +16,8 @@ from umlsrat.lookup import umls
         (dict(source_vocab="SNOMEDCT_US", ui="10937761000119101"), "C3887398"),
         # Right
         (dict(source_vocab="SNOMEDCT_US", ui="24028007"), "C0450415"),
+        # Coronary arteriosclerosis (disorder)
+        (dict(source_vocab="SNOMEDCT_US", ui="53741008"), "C1956346"),
     ],
 )
 def test_get_cui_for(api, kwargs, expected_cui):
@@ -29,6 +31,7 @@ def test_get_cui_for(api, kwargs, expected_cui):
         (dict(cui="C0559890"), ["C0574025", "C0559887"]),
         (dict(cui="C3472551"), ["C0460009"]),
         (dict(cui="C3887398"), ["C4281104", "C3886880", "C0009044"]),
+        # (dict(cui="C1956346"), []),
         (
             dict(cui="C0009044"),
             ["C0016644", "C0272588", "C0016659", "C0178316", "C0029509"],
