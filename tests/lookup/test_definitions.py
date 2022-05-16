@@ -178,6 +178,5 @@ house pet.
 comprising over 30 different breeds. The domestic cat is descended
 primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
-years, actual domestication occurred in Egypt about 4000 years ago.
-(From Walker's Mammals of the World, 6th ed, p801)"""
+years, actual domestication occurred in Egypt about 4000 years ago."""
     )

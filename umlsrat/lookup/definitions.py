@@ -319,19 +319,17 @@ def find_defined_concepts(
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
-            all_def = list(
+            defined_cocnepts = list(
                 itertools.chain(*(find_broader(cui) for cui in cuis_from_code))
             )
-            if all_def:
+            if defined_cocnepts:
                 # since we searched multiple CUIs, ensure that they are returned in
-                # order of closest to farthest.
-                return sorted(all_def, key=lambda _: _.get("distanceFromOrigin"))
+                # order of closest to farthest. Also, need to ensure uniqueness.
+                unique = {c["ui"]: c for c in defined_cocnepts}
+                return sorted(
+                    unique.values(), key=lambda _: _.get("distanceFromOrigin")
+                )
             logger.info("No broader concepts with definitions.")
-            # NOTE: we do not want narrower concepts!
-            # logger.info(f"Searching base CUI {cui_from_code} for narrower definitions")
-            # defs = find_narrower(cui_from_code)
-            # if defs:
-            #     return defs
         else:
             logger.info(f"UMLS concept not found for {source_vocab}/{source_ui}")
 

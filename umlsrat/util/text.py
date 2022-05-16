@@ -3,14 +3,40 @@ import string
 import typing
 from typing import List
 
+_ENCLOSING_CITATION = {")": "(", "]": "[", ">": "<"}
+
+
+def _clean_trailing_citation(text: str) -> str:
+    close_char = text[-1]
+    if close_char in _ENCLOSING_CITATION:
+        stack = [close_char]
+        open_char = _ENCLOSING_CITATION[text[-1]]
+        i = len(text) - 2
+        while i >= 0:
+            cur_char = text[i]
+            if cur_char == open_char:
+                stack.pop()
+                if not stack:
+                    break
+            elif cur_char == close_char:
+                stack.append(close_char)
+
+            i -= 1
+        if i > 0:
+            return text[:i]
+
+    return text
+
 
 def clean_definition_text(text: str) -> str:
+    clean = text.strip()
+    if not clean:
+        return clean
+    # clean trailing citation
+    clean = _clean_trailing_citation(clean)
     # xml tags
-    clean = re.sub(r"<[^<]+?>", "", text)
-    # random trailing abbrevs
-    clean = re.sub(r"\s*\([A-Z]{3}\)\s*$", "", clean)
-    # trailing []
-    clean = re.sub(r"\[\]", "", clean)
+    clean = re.sub(r"<[^<]+?>", "", clean)
+
     return clean.strip()
 
 
