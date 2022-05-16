@@ -128,7 +128,7 @@ def _do_cui_search(
 
     cuis = [_["ui"] for _ in results]
 
-    ordered = sorted(cuis, key=cui_order.relation_count(api, dsc=True))
+    ordered = sorted(cuis, key=cui_order.relation_count(api, dsc=False))
     return ordered
 
 
@@ -294,7 +294,7 @@ def get_full_ordered_cuis(
             )
         )
 
-    ordered = sorted(related_cuis, key=cui_sorting.cui_name_sim(api, cui))
+    ordered = sorted(related_cuis, key=cui_order.cui_name_sim(api, cui))
     return ordered
 
 

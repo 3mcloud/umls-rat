@@ -14,15 +14,15 @@ from umlsrat.lookup import umls
         (dict(source_vocab="SNOMEDCT_US", source_ui="282024004"), ["C0559890"]),
         # Closed fracture of left wrist
         (dict(source_vocab="SNOMEDCT_US", source_ui="10937761000119101"), ["C3887398"]),
+        # Coronary arteriosclerosis (disorder)
+        (
+            dict(source_vocab="SNOMEDCT_US", source_ui="53741008"),
+            ["C0010054", "C1956346", "C0010068"],
+        ),
         # Right
         (
             dict(source_vocab="SNOMEDCT_US", source_ui="24028007"),
             ["C0450415", "C0205090"],
-        ),
-        # Coronary arteriosclerosis (disorder)
-        (
-            dict(source_vocab="SNOMEDCT_US", source_ui="53741008"),
-            ["C1956346", "C0010054", "C0010068"],
         ),
     ],
 )

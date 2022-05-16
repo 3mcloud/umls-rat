@@ -3,7 +3,7 @@ import itertools
 import logging
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict, Iterator, Callable, Set
+from typing import Optional, Iterable, List, Dict, Callable, Set
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
@@ -56,7 +56,7 @@ def _distance_from_source(
 def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
-    get_neighbors: Callable[[MetaThesaurus, str], Iterable[str]],
+    get_neighbors: Callable[[MetaThesaurus, str], List[str]],
     min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
@@ -244,7 +244,7 @@ def narrower_definitions_bfs(
     :return: a list of Concepts with Definitions
     """
 
-    def get_neighbors(api: MetaThesaurus, cui: str) -> Iterator[str]:
+    def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
         return umls.get_narrower_concepts(api, cui, language=target_lang)
 
     return definitions_bfs(
@@ -323,7 +323,9 @@ def find_defined_concepts(
                 itertools.chain(*(find_broader(cui) for cui in cuis_from_code))
             )
             if all_def:
-                return all_def
+                # since we searched multiple CUIs, ensure that they are returned in
+                # order of closest to farthest.
+                return sorted(all_def, key=lambda _: _.get("distanceFromOrigin"))
             logger.info("No broader concepts with definitions.")
             # NOTE: we do not want narrower concepts!
             # logger.info(f"Searching base CUI {cui_from_code} for narrower definitions")
