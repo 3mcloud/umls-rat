@@ -69,7 +69,7 @@ def main():
     definitions = find_defined_concepts(
         api=api,
         source_vocab=source_vocab,
-        source_code=source_code,
+        source_ui=source_code,
         source_desc=source_desc,
         min_concepts=min_concepts,
         target_lang=target_language,

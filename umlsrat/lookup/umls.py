@@ -1,9 +1,8 @@
 import logging
 import os.path
-import re
 from typing import Optional, Dict, List, Set, Iterator, Iterable
 
-from umlsrat.api import cui_sorting
+from umlsrat.api import cui_order
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import text
 from umlsrat.vocabularies import vocab_tools
@@ -64,9 +63,7 @@ def term_search(
     max_results: Optional[int] = 1000,
     strict_match: Optional[bool] = False,
 ) -> Dict:
-    # remove trailing parentheses e.g. Room air (substance)
-    normalized = re.sub(r"\s*\(.+?\)\s*$", "", term)
-    result = _term_search(api, normalized, max_results)
+    result = _term_search(api, term, max_results)
 
     if strict_match:
         result["concepts"] = [
@@ -119,8 +116,8 @@ def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
 
 
 def _do_cui_search(
-    api: MetaThesaurus, source_vocab: str, concept_id: str, **kwargs
-) -> Optional[str]:
+    api: MetaThesaurus, source_vocab: str, concept_id: str, desc: str = None, **kwargs
+) -> List[str]:
     search_params = dict(
         inputType="sourceUi",
         searchType="exact",
@@ -129,40 +126,43 @@ def _do_cui_search(
     search_params.update(kwargs)
     results = list(api.search(string=concept_id, **search_params))
 
-    if results:
-        return results[0]["ui"]
+    cuis = [_["ui"] for _ in results]
 
-    return None
+    ordered = sorted(cuis, key=cui_order.relation_count(api, dsc=False))
+    return ordered
 
 
-def get_cui_for(api: MetaThesaurus, source_vocab: str, ui: str) -> Optional[str]:
+def get_cuis_for(
+    api: MetaThesaurus, source_vocab: str, source_ui: str, source_desc: str = None
+) -> List[str]:
     """
     Get UMLS CUI for a source concept.
 
     :param api: MetaThesaurus
     :param source_vocab: e.g. SNOMED
-    :param ui: concept ID in the source vocab
+    :param source_ui: concept ID in the source vocab
+    :param source_desc: description for the source code
     :return: CUI or None if not found
     """
 
-    assert ui
+    assert source_ui
     source_vocab = vocab_tools.validate_vocab_abbrev(source_vocab)
 
-    cui = _do_cui_search(api, source_vocab, ui)
-    if cui:
-        return cui
+    cuis = _do_cui_search(api, source_vocab, source_ui)
+    if cuis:
+        return cuis
 
     ## might have an obsolete concept
-    cui = _do_cui_search(
-        api, source_vocab, ui, includeObsolete=True, includeSuppressible=True
+    cuis = _do_cui_search(
+        api, source_vocab, source_ui, includeObsolete=True, includeSuppressible=True
     )
-    if cui:
-        return cui
+    if cuis:
+        return cuis
 
     def get_related(label: str):
         relations = api.get_source_relations(
             source_vocab=source_vocab,
-            concept_id=ui,
+            concept_id=source_ui,
             includeRelationLabels=label,
         )
 
@@ -172,17 +172,17 @@ def get_cui_for(api: MetaThesaurus, source_vocab: str, ui: str) -> Optional[str]
 
     # check synonyms
     for rc_source, rc_ui in get_related("SY"):
-        cui = _do_cui_search(api, rc_source, rc_ui)
-        if cui:
-            return cui
+        cuis = _do_cui_search(api, rc_source, rc_ui)
+        if cuis:
+            return cuis
 
-    # check other relations
+    # check other relations -- this is questionable
     for rc_source, rc_ui in get_related("RO"):
-        cui = _do_cui_search(api, rc_source, rc_ui)
-        if cui:
-            return cui
+        cuis = _do_cui_search(api, rc_source, rc_ui)
+        if cuis:
+            return cuis
 
-    return None
+    return []
 
 
 def get_related_concepts(
@@ -294,7 +294,7 @@ def get_full_ordered_cuis(
             )
         )
 
-    ordered = sorted(related_cuis, key=cui_sorting.cui_distance(api, cui))
+    ordered = sorted(related_cuis, key=cui_order.cui_name_sim(api, cui))
     return ordered
 
 

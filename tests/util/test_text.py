@@ -39,3 +39,21 @@ def test_hammingish_order(source: str, targets: List[str]):
     ordered = sorted(shuffled, key=sort_key)
 
     assert ordered == targets
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    (
+        ("Aggression towards oneself. [HPO:sdoelken]", "Aggression towards oneself."),
+        (
+            "Pathologically, this condition may be associated with LEUKOMALACIA, PERIVENTRICULAR. (From Dev Med Child Neurol 1998 Aug;40(8):520-7)",
+            "Pathologically, this condition may be associated with LEUKOMALACIA, PERIVENTRICULAR.",
+        ),
+        (
+            "This one is made up (as in not real). But, it must be cited! (Klopfer 2022)",
+            "This one is made up (as in not real). But, it must be cited!",
+        ),
+    ),
+)
+def test_clean_definition(definition: str, expected: str):
+    assert text.clean_definition_text(definition) == expected

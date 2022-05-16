@@ -19,15 +19,15 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
-    cui = umlsrat.lookup.umls.get_cui_for(api, "SNOMEDCT_US", snomed_code)
-    assert cui
-    concepts = definitions.broader_definitions_bfs(
-        api, cui, min_concepts=1, target_vocabs=("MSH",)
-    )
-    results = extract_definitions(concepts)
-    if not results:
-        return None
-    return results.pop()
+    cuis = umlsrat.lookup.umls.get_cuis_for(api, "SNOMEDCT_US", snomed_code)
+    assert cuis
+    for cui in cuis:
+        concepts = definitions.broader_definitions_bfs(
+            api, cui, min_concepts=1, target_vocabs=("MSH",)
+        )
+        results = extract_definitions(concepts)
+        if results:
+            return results.pop()
 
 
 @pytest.mark.parametrize(
@@ -59,19 +59,19 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     ("kwargs", "expected_names", "a_definition"),
     (
         (
-            dict(source_vocab="snomed", source_code="282024004", target_lang="ENG"),
+            dict(source_vocab="snomed", source_ui="282024004", target_lang="ENG"),
             ["Vertebral column"],
             "The spinal or vertebral column.",
         ),
         (
-            dict(source_vocab="snomed", source_code="48348007", target_lang="ENG"),
+            dict(source_vocab="snomed", source_ui="48348007", target_lang="ENG"),
             ["Respiratory Sounds"],
             "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
         ),
         (
             dict(
                 source_vocab="snomed",
-                source_code="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
                 min_concepts=2,
             ),
@@ -81,7 +81,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_code="a209c041-2376-4482-8044-a724ed9cb8c1",
+                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
                 source_desc="Faint (qualifier value)",
                 target_lang="ENG",
                 max_distance=1,
@@ -98,6 +98,19 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             dict(source_desc="Cancer"),
             ["Malignant Neoplasms"],
             "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
+        ),
+        (
+            # Right (qualifier value) (snomed/24028007)
+            dict(
+                source_vocab="snomed",
+                source_ui="24028007",
+                source_desc="Right (qualifier value)",
+            ),
+            [
+                "Right",
+                "Lateral",
+            ],
+            "Being or located on or directed toward the side of the body to the east when facing north.",
         ),
     ),
 )
@@ -150,7 +163,7 @@ def test_max_distance(api):
 
 def test_pretty_print(api):
     data = definitions.find_defined_concepts(
-        api, source_vocab="snomed", source_code="448169003"
+        api, source_vocab="snomed", source_ui="448169003"
     )
 
     pp = definitions.pretty_print_defs(data)
@@ -165,6 +178,5 @@ house pet.
 comprising over 30 different breeds. The domestic cat is descended
 primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
-years, actual domestication occurred in Egypt about 4000 years ago.
-(From Walker's Mammals of the World, 6th ed, p801)"""
+years, actual domestication occurred in Egypt about 4000 years ago."""
     )
