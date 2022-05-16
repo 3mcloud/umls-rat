@@ -23,7 +23,7 @@ def run_hammingish(source: str, target: str):
     (
         (
             "this is a test",
-            ["this", "this is a slice of cheese", "this is some cheese", "cheese"],
+            ["this is a slice of cheese", "this is some cheese", "this", "cheese"],
         ),
     ),
 )

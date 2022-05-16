@@ -2,6 +2,7 @@ from typing import Dict
 
 import pytest
 
+import utilities
 from umlsrat.lookup import umls
 
 
@@ -51,11 +52,17 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
 def test_get_broader_concepts(api, kwargs, expected_cuis):
     assert "cui" in kwargs
     cui_list = list(umls.get_broader_concepts(api, **kwargs))
+
     assert cui_list
     cui_set = set(cui_list)
     assert len(cui_set) == len(cui_list), "Result should not return duplicates"
     assert kwargs["cui"] not in cui_set
-    assert cui_list == expected_cuis
+
+    # map to names
+    source = umls.get_concept_name(api, kwargs["cui"])
+    actual = utilities.map_cuis_to_names(api, cui_list)
+    expected = utilities.map_cuis_to_names(api, expected_cuis)
+    assert actual == expected, f"Got wrong concepts for '{source}'"
 
 
 @pytest.mark.parametrize(
