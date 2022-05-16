@@ -47,6 +47,11 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
             dict(cui="C0450415"),
             ["C0205093", "C0332191", "C0205089", "C1180190", "C0441987"],
         ),
+        # (
+        # Descriptors
+        #     dict(cui='C0282354'),
+        #     []
+        # )
     ),
 )
 def test_get_broader_concepts(api, kwargs, expected_cuis):

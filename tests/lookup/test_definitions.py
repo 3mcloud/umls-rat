@@ -143,6 +143,17 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             [],
             None,
         ),
+        (
+            # This is clearly garbage...
+            # Bipolar (qualifier value) (snomed/260994008)
+            dict(
+                source_vocab="snomed",
+                source_ui="260994008",
+                source_desc="Bipolar (qualifier value)",
+            ),
+            ["Vocabulary, Controlled"],
+            "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
+        ),
     ),
 )
 def test_find_defined_concepts(
