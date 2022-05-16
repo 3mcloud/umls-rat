@@ -50,7 +50,7 @@ def _is_strict_match(original: str, matched: str) -> bool:
         return True
 
     hdist = text.hammingish(o_tokens, m_tokens)
-    return hdist < 1
+    return hdist < 0.5
 
 
 def term_search(

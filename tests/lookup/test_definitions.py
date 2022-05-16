@@ -79,17 +79,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             "Unmodified air as existing in the immediate surroundings.",
         ),
         (
-            dict(
-                source_vocab="snomed",
-                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
-                source_desc="Faint (qualifier value)",
-                target_lang="ENG",
-                max_distance=1,
-            ),
-            ["Sense of smell altered"],
-            "Distorted perception of smells.",
-        ),
-        (
             dict(source_desc="Cancer", target_lang="SPA"),
             ["Neoplasms"],
             "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
@@ -141,6 +130,18 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ),
             ["Joint Prosthesis (device)"],
             "Prostheses used to partially or totally replace a human or animal joint.",
+        ),
+        (
+            # cannot find this one
+            dict(
+                source_vocab="snomed",
+                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
+                source_desc="Faint (qualifier value)",
+                target_lang="ENG",
+                max_distance=1,
+            ),
+            [],
+            None,
         ),
     ),
 )
