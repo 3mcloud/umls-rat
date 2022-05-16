@@ -112,6 +112,26 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ],
             "Being or located on or directed toward the side of the body to the east when facing north.",
         ),
+        (
+            # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
+            dict(
+                source_vocab="snomed",
+                source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
+                source_desc="Protein-calorie malnutrition (disorder)",
+            ),
+            ["Protein-Energy Malnutrition"],
+            "A nutritional deficit that is caused by inadequate protein or calorie intake.",
+        ),
+        (
+            # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
+            dict(
+                source_vocab="snomed",
+                source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
+                source_desc="Anticoagulant",
+            ),
+            ["Anticoagulants"],
+            "Agents that prevent BLOOD CLOTTING.",
+        ),
     ),
 )
 def test_find_defined_concepts(

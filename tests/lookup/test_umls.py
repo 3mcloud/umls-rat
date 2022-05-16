@@ -59,12 +59,16 @@ def test_get_broader_concepts(api, kwargs, expected_cuis):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_name"),
+    ("kwargs", "expected_names"),
     (
-        (dict(term="Room air", max_results=1, strict_match=False), "Room Air"),
+        (dict(term="Room air", max_results=1, strict_match=False), ["Room Air"]),
         (
             dict(term="Anticoagulant", max_results=1, strict_match=False),
-            "Anticoagulants",
+            ["Anticoagulants"],
+        ),
+        (
+            dict(term="Anticoagulant", max_results=1, strict_match=True),
+            ["Anticoagulants"],
         ),
         # This would solve our back problem, but alas it does not work...
         # (dict(term="Entire back", max_results=1, strict_match=False), 'Back'),
@@ -72,16 +76,16 @@ def test_get_broader_concepts(api, kwargs, expected_cuis):
             dict(
                 term="Protein-calorie malnutrition", max_results=1, strict_match=False
             ),
-            "Protein-Energy Malnutrition",
+            ["Protein-Energy Malnutrition"],
         ),
     ),
 )
-def test_term_search(api, kwargs, expected_name):
+def test_term_search(api, kwargs, expected_names):
     result = umls.term_search(api, **kwargs)
     assert result
     concepts = result.pop("concepts")
     names = [_["name"] for _ in concepts]
-    assert expected_name in names
+    assert names == expected_names
 
 
 def simple_search(api, term: str) -> Dict:
