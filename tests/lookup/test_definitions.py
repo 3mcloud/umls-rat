@@ -79,17 +79,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             "Unmodified air as existing in the immediate surroundings.",
         ),
         (
-            dict(
-                source_vocab="snomed",
-                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
-                source_desc="Faint (qualifier value)",
-                target_lang="ENG",
-                max_distance=1,
-            ),
-            ["Sense of smell altered"],
-            "Distorted perception of smells.",
-        ),
-        (
             dict(source_desc="Cancer", target_lang="SPA"),
             ["Neoplasms"],
             "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
@@ -111,6 +100,59 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 "Lateral",
             ],
             "Being or located on or directed toward the side of the body to the east when facing north.",
+        ),
+        (
+            # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
+            dict(
+                source_vocab="snomed",
+                source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
+                source_desc="Protein-calorie malnutrition (disorder)",
+            ),
+            ["Protein-Energy Malnutrition"],
+            "A nutritional deficit that is caused by inadequate protein or calorie intake.",
+        ),
+        (
+            # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
+            dict(
+                source_vocab="snomed",
+                source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
+                source_desc="Anticoagulant",
+            ),
+            ["Anticoagulants"],
+            "Agents that prevent BLOOD CLOTTING.",
+        ),
+        (
+            # Bipolar joint prosthesis (physical object) (snomed/c31fc990-0824-4d8e-962b-86f56b33e580)
+            dict(
+                source_vocab="snomed",
+                source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
+                source_desc="Bipolar joint prosthesis (physical object)",
+            ),
+            ["Joint Prosthesis (device)"],
+            "Prostheses used to partially or totally replace a human or animal joint.",
+        ),
+        (
+            # cannot find this one
+            dict(
+                source_vocab="snomed",
+                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
+                source_desc="Faint (qualifier value)",
+                target_lang="ENG",
+                max_distance=1,
+            ),
+            [],
+            None,
+        ),
+        (
+            # This is clearly garbage...
+            # Bipolar (qualifier value) (snomed/260994008)
+            dict(
+                source_vocab="snomed",
+                source_ui="260994008",
+                source_desc="Bipolar (qualifier value)",
+            ),
+            ["Vocabulary, Controlled"],
+            "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
         ),
     ),
 )
