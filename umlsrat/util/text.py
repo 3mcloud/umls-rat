@@ -14,6 +14,11 @@ def clean_definition_text(text: str) -> str:
     return clean.strip()
 
 
+def clean_desc(desc: str) -> str:
+    # remove trailing parentheses e.g. Room air (substance)
+    return re.sub(r"\s*\(.+?\)\s*$", "", desc)
+
+
 _RM_PUNCT_PAT = re.compile(rf"[{string.punctuation}]")
 
 

@@ -6,23 +6,29 @@ from umlsrat.lookup import umls
 
 
 @pytest.mark.parametrize(
-    ["kwargs", "expected_cui"],
+    ["kwargs", "expected_cuis"],
     [
         # Entire back of trunk
-        (dict(source_vocab="SNOMEDCT_US", ui="450807008"), "C3472551"),
+        (dict(source_vocab="SNOMEDCT_US", source_ui="450807008"), ["C3472551"]),
         # Entire lumbosacral junction of vertebral column
-        (dict(source_vocab="SNOMEDCT_US", ui="282024004"), "C0559890"),
+        (dict(source_vocab="SNOMEDCT_US", source_ui="282024004"), ["C0559890"]),
         # Closed fracture of left wrist
-        (dict(source_vocab="SNOMEDCT_US", ui="10937761000119101"), "C3887398"),
+        (dict(source_vocab="SNOMEDCT_US", source_ui="10937761000119101"), ["C3887398"]),
         # Right
-        (dict(source_vocab="SNOMEDCT_US", ui="24028007"), "C0450415"),
+        (
+            dict(source_vocab="SNOMEDCT_US", source_ui="24028007"),
+            ["C0450415", "C0205090"],
+        ),
         # Coronary arteriosclerosis (disorder)
-        (dict(source_vocab="SNOMEDCT_US", ui="53741008"), "C1956346"),
+        (
+            dict(source_vocab="SNOMEDCT_US", source_ui="53741008"),
+            ["C1956346", "C0010054", "C0010068"],
+        ),
     ],
 )
-def test_get_cui_for(api, kwargs, expected_cui):
-    cui = umls.get_cui_for(api, **kwargs)
-    assert cui == expected_cui
+def test_get_cuis_for(api, kwargs, expected_cuis):
+    cui = umls.get_cuis_for(api, **kwargs)
+    assert cui == expected_cuis
 
 
 @pytest.mark.parametrize(
