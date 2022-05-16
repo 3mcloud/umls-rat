@@ -10,6 +10,10 @@ from umlsrat.vocabularies import vocab_tools
 logger = logging.getLogger(os.path.basename(__file__))
 
 
+def get_concept_name(api: MetaThesaurus, cui: str) -> Optional[str]:
+    return api.get_concept(cui).get("name", None)
+
+
 def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
     for st in ("words", "normalizedWords", "approximate"):
         for it in (
@@ -45,16 +49,8 @@ def _is_strict_match(original: str, matched: str) -> bool:
     ):
         return True
 
-    o_set = set(o_tokens)
-    m_set = set(m_tokens)
-
-    return (
-        # all original words are in matched
-        (o_set & m_set) == o_set
-        and
-        # there are fewer than three additional words in matched
-        len(m_set - o_set) < 3
-    )
+    hdist = text.hammingish(o_tokens, m_tokens)
+    return hdist < 1
 
 
 def term_search(

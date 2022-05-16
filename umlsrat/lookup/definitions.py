@@ -313,7 +313,6 @@ def find_defined_concepts(
         return data
 
     if source_ui:
-
         cuis_from_code = umls.get_cuis_for(
             api, source_vocab=source_vocab, source_ui=source_ui, source_desc=source_desc
         )

@@ -58,60 +58,70 @@ def test_single_mesh_def(api, snomed_code, expected_def):
 @pytest.mark.parametrize(
     ("kwargs", "expected_names", "a_definition"),
     (
-        (
-            dict(source_vocab="snomed", source_ui="282024004", target_lang="ENG"),
-            ["Vertebral column"],
-            "The spinal or vertebral column.",
-        ),
-        (
-            dict(source_vocab="snomed", source_ui="48348007", target_lang="ENG"),
-            ["Respiratory Sounds"],
-            "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
-        ),
-        (
-            dict(
-                source_vocab="snomed",
-                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
-                source_desc="Room air (substance)",
-                min_concepts=2,
-            ),
-            ["Room Air", "Air (substance)"],
-            "Unmodified air as existing in the immediate surroundings.",
-        ),
-        (
-            dict(
-                source_vocab="snomed",
-                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
-                source_desc="Faint (qualifier value)",
-                target_lang="ENG",
-                max_distance=1,
-            ),
-            ["Sense of smell altered"],
-            "Distorted perception of smells.",
-        ),
-        (
-            dict(source_desc="Cancer", target_lang="SPA"),
-            ["Neoplasms"],
-            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
-        ),
-        (
-            dict(source_desc="Cancer"),
-            ["Malignant Neoplasms"],
-            "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
-        ),
-        (
-            # Right (qualifier value) (snomed/24028007)
-            dict(
-                source_vocab="snomed",
-                source_ui="24028007",
-                source_desc="Right (qualifier value)",
-            ),
-            [
-                "Right",
-                "Lateral",
-            ],
-            "Being or located on or directed toward the side of the body to the east when facing north.",
-        ),
+        # (
+        #         dict(source_vocab="snomed", source_ui="282024004", target_lang="ENG"),
+        #         ["Vertebral column"],
+        #         "The spinal or vertebral column.",
+        # ),
+        # (
+        #         dict(source_vocab="snomed", source_ui="48348007", target_lang="ENG"),
+        #         ["Respiratory Sounds"],
+        #         "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
+        # ),
+        # (
+        #         dict(
+        #             source_vocab="snomed",
+        #             source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+        #             source_desc="Room air (substance)",
+        #             min_concepts=2,
+        #         ),
+        #         ["Room Air", "Air (substance)"],
+        #         "Unmodified air as existing in the immediate surroundings.",
+        # ),
+        # (
+        #         dict(
+        #             source_vocab="snomed",
+        #             source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
+        #             source_desc="Faint (qualifier value)",
+        #             target_lang="ENG",
+        #             max_distance=1,
+        #         ),
+        #         ["Sense of smell altered"],
+        #         "Distorted perception of smells.",
+        # ),
+        # (
+        #         dict(source_desc="Cancer", target_lang="SPA"),
+        #         ["Neoplasms"],
+        #         "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
+        # ),
+        # (
+        #         dict(source_desc="Cancer"),
+        #         ["Malignant Neoplasms"],
+        #         "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
+        # ),
+        # (
+        #         # Right (qualifier value) (snomed/24028007)
+        #         dict(
+        #             source_vocab="snomed",
+        #             source_ui="24028007",
+        #             source_desc="Right (qualifier value)",
+        #         ),
+        #         [
+        #             "Right",
+        #             "Lateral",
+        #         ],
+        #         "Being or located on or directed toward the side of the body to the east when facing north.",
+        # ),
+        # (
+        #         # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
+        #         dict(
+        #             source_vocab="snomed",
+        #             source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
+        #             source_desc="Protein-calorie malnutrition (disorder)",
+        #         ),
+        #         ["Protein-Energy Malnutrition"],
+        #         "A nutritional deficit that is caused by inadequate protein or calorie intake.",
+        # ),
         (
             # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
             dict(
@@ -121,16 +131,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ),
             ["Anticoagulants"],
             "Agents that prevent BLOOD CLOTTING.",
-        ),
-        (
-            # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
-            dict(
-                source_vocab="snomed",
-                source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
-                source_desc="Protein-calorie malnutrition (disorder)",
-            ),
-            ["Protein-Energy Malnutrition"],
-            "A nutritional deficit that is caused by inadequate protein or calorie intake.",
         ),
     ),
 )

@@ -1,7 +1,6 @@
 import re
 import string
-import typing
-from typing import List
+from typing import List, Callable, Iterable
 
 _ENCLOSING_CITATION = {")": "(", "]": "[", ">": "<"}
 
@@ -68,14 +67,23 @@ def norm_tokenize(text_str: str) -> List[str]:
     return tokenize(normalize(text_str))
 
 
-def hammingish(source: List[str], target: List[str]) -> float:
+def _hammingish(source: Iterable[str], target: Iterable[str]) -> float:
     """This distance metric favors shorter 'target' sequences"""
     ss, st = set(source), set(target)
 
-    return len(st - ss) / len(st)
+    dist = len(st - ss) / len(st)
+    return dist
 
 
-def hammingish_partial(source_txt: str) -> typing.Callable[[str], float]:
+def hammingish(source: List[str], target: List[str]) -> float:
+    return max(_hammingish(source, target), _hammingish(target, source))
+
+
+def hammingish_str(source: str, target: str) -> float:
+    return hammingish(norm_tokenize(source), norm_tokenize(target))
+
+
+def hammingish_partial(source_txt: str) -> Callable[[str], float]:
     source = norm_tokenize(source_txt)
 
     def sort_key(target_txt: str) -> float:
