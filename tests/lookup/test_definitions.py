@@ -154,6 +154,16 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ["Vocabulary, Controlled"],
             "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
         ),
+        (
+            # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
+            dict(
+                source_vocab="snomed",
+                source_ui="312886007",
+                source_desc="Entire costovertebral angle of twelfth rib (body structure)",
+            ),
+            [],
+            "",
+        ),
     ),
 )
 def test_find_defined_concepts(
