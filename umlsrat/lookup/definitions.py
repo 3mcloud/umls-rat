@@ -287,6 +287,7 @@ def find_defined_concepts(
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
     :param target_lang: target definitions in this language
+    :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
     assert min_concepts >= 0
@@ -316,6 +317,7 @@ def find_defined_concepts(
             min_concepts=min_concepts,
             max_distance=max_distance,
             target_lang=target_lang,
+            preserve_semantic_type=preserve_semantic_type,
         )
 
         return data
@@ -326,13 +328,13 @@ def find_defined_concepts(
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
-            defined_cocnepts = list(
+            defined_concepts = list(
                 itertools.chain(*(find_broader(cui) for cui in cuis_from_code))
             )
-            if defined_cocnepts:
+            if defined_concepts:
                 # since we searched multiple CUIs, ensure that they are returned in
                 # order of closest to farthest. Also, need to ensure uniqueness.
-                unique = {c["ui"]: c for c in defined_cocnepts}
+                unique = {c["ui"]: c for c in defined_concepts}
                 return sorted(
                     unique.values(), key=lambda _: _.get("distanceFromOrigin")
                 )
