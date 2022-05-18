@@ -19,11 +19,15 @@ class Action(Enum):
     NONE = 3
 
 
-def _pre_visit_passthrough(api: MetaThesaurus, cui: str, distance: int) -> Action:
+def _pre_visit_passthrough(
+    api: MetaThesaurus, cui: str, distance: int, distances: FIFO
+) -> Action:
     return Action.NONE
 
 
-def _post_visit_passthrough(api: MetaThesaurus, cui: str, distance: int) -> Action:
+def _post_visit_passthrough(
+    api: MetaThesaurus, cui: str, distance: int, distances: FIFO
+) -> Action:
     return Action.NONE
 
 
@@ -32,8 +36,8 @@ def breadth_first_search(
     start_cui: str,
     visit: Callable[[MetaThesaurus, str, int], None],
     get_neighbors: Callable[[MetaThesaurus, str], List[str]],
-    pre_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
-    post_visit: Optional[Callable[[MetaThesaurus, str, int], Action]] = None,
+    pre_visit: Optional[Callable[[MetaThesaurus, str, int, FIFO], Action]] = None,
+    post_visit: Optional[Callable[[MetaThesaurus, str, int, FIFO], Action]] = None,
 ) -> None:
     """
     Do a breadth-first search over UMLS, hunting for definitions.
@@ -75,7 +79,7 @@ def breadth_first_search(
             f"numToVisit = {len(to_visit)} "
         )
 
-        pre_visit_action = pre_visit(api, current_cui, current_dist)
+        pre_visit_action = pre_visit(api, current_cui, current_dist, distances)
         if pre_visit_action == Action.STOP:
             break
 
@@ -89,7 +93,7 @@ def breadth_first_search(
         if pre_visit_action == Action.SKIP:
             continue
 
-        post_visit_action = post_visit(api, current_cui, current_dist)
+        post_visit_action = post_visit(api, current_cui, current_dist, distances)
 
         if post_visit_action == Action.STOP:
             break

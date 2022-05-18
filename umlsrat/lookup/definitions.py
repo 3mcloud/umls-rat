@@ -9,6 +9,7 @@ from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text
+from umlsrat.util.orderedset import FIFO
 from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -102,7 +103,9 @@ def definitions_bfs(
 
     ##
     # pre visit enforces semantic type consistency
-    def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int):
+    def pre_visit(
+        api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
+    ):
         if not preserve_semantic_type:
             return Action.NONE
         current_concept = api.get_concept(current_cui)
@@ -163,9 +166,14 @@ def definitions_bfs(
 
     ##
     # post visit actions are based on number of definitions and current distance from origin
-    def post_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
+    def post_visit(
+        api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
+    ) -> Action:
         if min_concepts and len(defined_concepts) >= min_concepts:
-            return Action.STOP
+            if not distances or distances.peek() > current_dist:
+                return Action.STOP
+            else:
+                return Action.SKIP
 
         if max_distance and current_dist == max_distance:
             return Action.SKIP

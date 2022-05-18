@@ -27,7 +27,7 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
         )
         results = extract_definitions(concepts)
         if results:
-            return results.pop()
+            return results.pop(0)
 
 
 @pytest.mark.parametrize(
@@ -95,10 +95,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="24028007",
                 source_desc="Right (qualifier value)",
             ),
-            [
-                "Right",
-                "Lateral",
-            ],
+            ["Right", "Lateral", "Side"],
             "Being or located on or directed toward the side of the body to the east when facing north.",
         ),
         (
@@ -151,7 +148,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="260994008",
                 source_desc="Bipolar (qualifier value)",
             ),
-            ["Vocabulary, Controlled"],
+            ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
             "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
         ),
         (
@@ -161,8 +158,8 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="312886007",
                 source_desc="Entire costovertebral angle of twelfth rib (body structure)",
             ),
-            [],
-            "",
+            ["Back", "Bona fide anatomical line"],
+            "The back or upper side of an animal.",
         ),
     ),
 )
@@ -178,23 +175,36 @@ def test_find_defined_concepts(
         assert not extract_definitions(data)
 
 
-def test_bfs_faint_appearance(api):
-    data = definitions.broader_definitions_bfs(
-        api, start_cui="C4554554", target_lang="ENG"
-    )
+@pytest.mark.parametrize(
+    ("kwargs", "expected_names", "a_definition"),
+    (
+        (
+            # no english definitions for "faint"
+            dict(start_cui="C4554554", target_lang="ENG"),
+            [],
+            None,
+        ),
+        (
+            # no definitions for "faint" in any language
+            dict(start_cui="C4554554"),
+            [],
+            None,
+        ),
+        (
+            dict(start_cui="C5397118", target_lang="ENG"),
+            ["Oxygen Therapy Care", "Therapeutic procedure"],
+            "Administration of oxygen and monitoring of its effectiveness",
+        ),
+    ),
+)
+def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
+    data = definitions.broader_definitions_bfs(api, **kwargs)
     names = extract_concept_names(data)
-    assert not names
-    values = extract_definitions(data)
-    # this is quite strange. this concept has no neighbors
-    assert not values
-
-
-def test_find_high_flow_ox_t(api):
-    data = definitions.broader_definitions_bfs(
-        api, start_cui="C5397118", target_lang="ENG"
-    )
-    names = extract_concept_names(data)
-    assert names == ["Oxygen Therapy Care"]
+    assert names == expected_names
+    if a_definition:
+        assert a_definition in extract_definitions(data)
+    else:
+        assert not extract_definitions(data)
 
 
 def test_max_distance(api):
