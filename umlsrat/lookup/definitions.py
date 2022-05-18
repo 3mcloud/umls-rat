@@ -8,7 +8,8 @@ from typing import Optional, Iterable, List, Dict, Callable, Set
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.util import orderedset, text
+from umlsrat.util import orderedset, text, iterators
+from umlsrat.util.orderedset import FIFO
 from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -102,7 +103,9 @@ def definitions_bfs(
 
     ##
     # pre visit enforces semantic type consistency
-    def pre_visit(api: MetaThesaurus, current_cui: str, current_dist: int):
+    def pre_visit(
+        api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
+    ):
         if not preserve_semantic_type:
             return Action.NONE
         current_concept = api.get_concept(current_cui)
@@ -163,9 +166,14 @@ def definitions_bfs(
 
     ##
     # post visit actions are based on number of definitions and current distance from origin
-    def post_visit(api: MetaThesaurus, current_cui: str, current_dist: int) -> Action:
+    def post_visit(
+        api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
+    ) -> Action:
         if min_concepts and len(defined_concepts) >= min_concepts:
-            return Action.STOP
+            if not distances or distances.peek() > current_dist:
+                return Action.STOP
+            else:
+                return Action.SKIP
 
         if max_distance and current_dist == max_distance:
             return Action.SKIP
@@ -279,6 +287,7 @@ def find_defined_concepts(
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
     :param target_lang: target definitions in this language
+    :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
     assert min_concepts >= 0
@@ -308,6 +317,7 @@ def find_defined_concepts(
             min_concepts=min_concepts,
             max_distance=max_distance,
             target_lang=target_lang,
+            preserve_semantic_type=preserve_semantic_type,
         )
 
         return data
@@ -318,13 +328,14 @@ def find_defined_concepts(
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
-            defined_cocnepts = list(
-                itertools.chain(*(find_broader(cui) for cui in cuis_from_code))
+
+            defined_concepts = itertools.chain.from_iterable(
+                find_broader(cui) for cui in cuis_from_code
             )
-            if defined_cocnepts:
+            if defined_concepts:
                 # since we searched multiple CUIs, ensure that they are returned in
                 # order of closest to farthest. Also, need to ensure uniqueness.
-                unique = {c["ui"]: c for c in defined_cocnepts}
+                unique = {c["ui"]: c for c in defined_concepts}
                 return sorted(
                     unique.values(), key=lambda _: _.get("distanceFromOrigin")
                 )
@@ -386,3 +397,14 @@ def pretty_print_defs(concepts: List[Dict]) -> str:
     """
     entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
     return "\n\n".join(entries)
+
+
+def definitions_itr(concepts: List[Dict]) -> Iterable[str]:
+    """Iterate over definitions. Nearest to farthest. If there are multiple concepts at a given
+    distance iterate over them, in a round-robin order"""
+    # group by distance; anything closer will always come first
+    for dist, group in itertools.groupby(
+        concepts, key=lambda _: _["distanceFromOrigin"]
+    ):
+        defs = ((obj.get("value") for obj in _.get("definitions")) for _ in group)
+        yield from iterators.roundrobin(*defs)

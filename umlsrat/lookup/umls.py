@@ -1,3 +1,4 @@
+import json
 import logging
 import os.path
 from typing import Optional, Dict, List, Set, Iterator, Iterable
@@ -228,7 +229,9 @@ def get_related_concepts(
 
         code = api.get_single_result(code_url)
         if not code:
-            raise ValueError(f"Got null code for {code_url}")
+            raise ValueError(
+                f"Got null code for {code_url} from\n" f"{json.dumps(atom, indent=2)}"
+            )
 
         relations = list(
             api.get_source_relations(

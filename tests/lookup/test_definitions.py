@@ -27,7 +27,7 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
         )
         results = extract_definitions(concepts)
         if results:
-            return results.pop()
+            return results.pop(0)
 
 
 @pytest.mark.parametrize(
@@ -95,10 +95,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="24028007",
                 source_desc="Right (qualifier value)",
             ),
-            [
-                "Right",
-                "Lateral",
-            ],
+            ["Right", "Lateral", "Side"],
             "Being or located on or directed toward the side of the body to the east when facing north.",
         ),
         (
@@ -151,40 +148,148 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="260994008",
                 source_desc="Bipolar (qualifier value)",
             ),
-            ["Vocabulary, Controlled"],
+            ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
             "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
+        ),
+        (
+            # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
+            dict(
+                source_vocab="snomed",
+                source_ui="312886007",
+                source_desc="Entire costovertebral angle of twelfth rib (body structure)",
+            ),
+            ["Back", "Bona fide anatomical line"],
+            "The back or upper side of an animal.",
         ),
     ),
 )
 def test_find_defined_concepts(
     api, kwargs, expected_names: List[str], a_definition: str
 ):
-    data = definitions.find_defined_concepts(api, **kwargs)
-    names = extract_concept_names(data)
+    concepts = definitions.find_defined_concepts(api, **kwargs)
+    names = extract_concept_names(concepts)
     assert names == expected_names
     if a_definition:
-        assert a_definition in extract_definitions(data)
+        assert a_definition in extract_definitions(concepts)
     else:
-        assert not extract_definitions(data)
+        assert not extract_definitions(concepts)
 
 
-def test_bfs_faint_appearance(api):
-    data = definitions.broader_definitions_bfs(
-        api, start_cui="C4554554", target_lang="ENG"
-    )
-    names = extract_concept_names(data)
-    assert not names
-    values = extract_definitions(data)
-    # this is quite strange. this concept has no neighbors
-    assert not values
+@pytest.mark.parametrize(
+    ("kwargs", "expected_names", "a_definition"),
+    (
+        (
+            # no english definitions for "faint"
+            dict(start_cui="C4554554", target_lang="ENG"),
+            [],
+            None,
+        ),
+        (
+            # no definitions for "faint" in any language
+            dict(start_cui="C4554554"),
+            [],
+            None,
+        ),
+        (
+            dict(start_cui="C5397118", target_lang="ENG"),
+            ["Oxygen Therapy Care", "Therapeutic procedure"],
+            "Administration of oxygen and monitoring of its effectiveness",
+        ),
+    ),
+)
+def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
+    concepts = definitions.broader_definitions_bfs(api, **kwargs)
+    names = extract_concept_names(concepts)
+    assert names == expected_names
+    if a_definition:
+        assert a_definition in extract_definitions(concepts)
+    else:
+        assert not extract_definitions(concepts)
 
 
-def test_find_high_flow_ox_t(api):
-    data = definitions.broader_definitions_bfs(
-        api, start_cui="C5397118", target_lang="ENG"
-    )
-    names = extract_concept_names(data)
-    assert names == ["Oxygen Therapy Care"]
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    (
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                source_desc="Room air (substance)",
+                min_concepts=2,
+            ),
+            [
+                "Unmodified air as existing in the immediate surroundings.",
+                "A mixture of gases making up the earth's atmosphere, consisting mainly of "
+                "nitrogen, oxygen, argon, and carbon dioxide.",
+                "The mixture of gases present in the earth's atmosphere consisting of oxygen, "
+                "nitrogen, carbon dioxide, and small amounts of other gases.",
+            ],
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
+                source_desc="Bipolar joint prosthesis (physical object)",
+                min_concepts=2,
+            ),
+            [
+                "Prostheses used to partially or totally replace a human or animal joint.",
+                "artificial substitute, constructed of either synthetic or biological "
+                "material, which is used to partially or totally replace or repair injured or "
+                "diseased joints.",
+                "Implantable prostheses designed for total or partial replacement of a joint. "
+                "These prostheses typically consist of two or more articulated components; "
+                "they are usually made of metal (e.g., cobalt-chromium alloys), hard plastics "
+                "(e.g., polyethylene), or a combination of materials. Many joint prostheses "
+                "include a component that resembles a ball and another that includes a "
+                "socket. Some joint prostheses components may be used alone as a partial "
+                "prosthesis; a total prosthesis usually includes all the components to permit "
+                "complete replacement of the joint. Joint prostheses are implanted to replace "
+                "articulations such as the knee, hip, ankle, shoulder, and elbow; they are "
+                "used mainly in patients who suffer from osteoarthritis or rheumatoid "
+                "arthritis, as well as after trauma.",
+                "artificial substitute, constructed of either synthetic or biological "
+                "material, which is used to partially or totally replace or repair injured or "
+                "diseased muscles, cartilage, connective tissue, etc; for bones use BONE "
+                "PROSTHESIS.",
+                "artificial substitute for a missing body part or function",
+                "Artificial substitutes for body parts, and materials inserted into tissue "
+                "for functional, cosmetic, or therapeutic purposes. Prostheses can be "
+                "functional, as in the case of artificial arms and legs, or cosmetic, as in "
+                "the case of an artificial eye. Implants, all surgically inserted or grafted "
+                "into the body, tend to be used therapeutically. IMPLANTS, EXPERIMENTAL is "
+                "available for those used experimentally.",
+                "Nonexpendable items used in the performance of orthopedic surgery and "
+                "related therapy. They are differentiated from ORTHOTIC DEVICES, apparatus "
+                "used to prevent or correct deformities in patients.",
+                "A device, such as an artificial leg, that replaces a part of the body.",
+                "artificial substitute for a missing body part or function; used for "
+                "functional or cosmetic reasons, or both.",
+                "A device which is an artificial substitute for a missing body part or "
+                "function; used for functional or cosmetic reasons, or both.",
+                "Functional, reconstructive, and/or cosmetic artificial or, less frequently, "
+                "biological passive replacements for missing, disabled, or abnormal tissues, "
+                "organs, or other body parts. These devices may be externally attached to the "
+                "body (e.g., nose, earlobe, upper limb, denture) or totally or partially "
+                "implanted (e.g., joint prosthesis, ossicles). Prostheses intended for "
+                "insertion into tubular body structures (e.g., biliary duct, ureter) to "
+                "provide support and/or to maintain patency are usually called stents or "
+                "endoprostheses; implantable prosthetic devices intended mainly for passive "
+                "replacement of body parts (e.g., tooth root, ureter) are usually known as "
+                "implants. Dedicated prostheses are available in many different sizes, "
+                "shapes, and materials. They are used mainly in orthopedic (e.g., limbs, "
+                "joints), cardiac (e.g., valves, heart ventricles), and other surgical "
+                "procedures; to improve a patient's capabilities (e.g., dentures, eye "
+                "lenses); and for reconstructive and/or cosmetic purposes (e.g., facial and "
+                "body muscle enhancements).",
+            ],
+        ),
+    ),
+)
+def test_definitions_itr(api, kwargs, expected):
+    concepts = definitions.find_defined_concepts(api, **kwargs)
+    defs = list(definitions.definitions_itr(concepts))
+    assert defs == expected
 
 
 def test_max_distance(api):
