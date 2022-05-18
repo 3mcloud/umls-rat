@@ -3,12 +3,9 @@ import json
 import logging
 from typing import Any, Dict, Iterator, List, Optional
 
-import requests
 from requests import HTTPError, Response
-from requests_cache import CachedResponse
 
 from umlsrat import const
-from umlsrat.api.auth import Authenticator
 from umlsrat.api.session import api_session, uncached_session
 from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
 
@@ -62,7 +59,7 @@ class MetaThesaurus(object):
         version: Optional[str] = "2021AB",
         use_cache: Optional[bool] = True,
     ):
-        self.auth = Authenticator(api_key)
+        self._api_key = api_key
         self.version = version
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
         self._use_cache = use_cache
@@ -92,27 +89,13 @@ class MetaThesaurus(object):
     def cache_path(self) -> str:
         return self._session.cache.db_path
 
-    def _get_cached(self, method: str, url: str, **params) -> Optional[CachedResponse]:
-        if not self._use_cache:
-            return None
-
-        request = requests.Request(method=method, url=url, params=params)
-        request = self._session.prepare_request(request)
-
-        # verify goes here
-        key = self._session.cache.create_key(request, verify=self._session.verify)
-        value = self._session.cache.get_response(key)
-
-        return value
-
     def _do_get_request(self, uri: str, **params) -> Response:
-        # check the cache first
-        response = self._get_cached("GET", url=uri, **params)
-        if response is not None:
-            return response
+        if "apiKey" in params:
+            self.logger.warning(
+                f"'apiKey' should not be in params! Will be overwritten..."
+            )
 
-        params["ticket"] = self.auth.get_ticket()
-
+        params["apiKey"] = self._api_key
         try:
             response = self._session.get(uri, params=params)
         except Exception as e:
@@ -132,11 +115,6 @@ class MetaThesaurus(object):
         :return: json response
         """
         assert url, "Must provide URL"
-
-        if "ticket" in params:
-            self.logger.warning(
-                f"'ticket' should not be in params! Will be overwritten..."
-            )
 
         r = self._do_get_request(url, **params)
 
