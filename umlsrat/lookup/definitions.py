@@ -278,7 +278,8 @@ def find_defined_concepts(
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
-    Find defined concepts in UMLS which are equal to or *broader* than the provided concept.
+    Find defined concepts in UMLS which are equal to or *broader* than the provided source concept.
+    Use this function when you do not have a UMLS CUI.
 
     :param api: MetaThesaurus API
     :param source_vocab: source vocab

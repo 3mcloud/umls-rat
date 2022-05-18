@@ -1,21 +1,20 @@
-UMLS RAT
-=========
+.. _Examples/Definitions:
 
-UMLS RAT (**R**EST **A**PI **T**ool) provides a reasonable interface to
-the [UMLS Metathesaurus](https://uts.nlm.nih.gov/uts/umls/home) via
-the [REST API](https://documentation.uts.nlm.nih.gov/rest/home.html).
-
-Definitions
-===========
+Definitions Dump
+================
 
 At this time, this repository is mostly used to find definitions for concepts in SNOMED, etc where
 definitions are not provided. The script `definitions-dump.py` provides example usage. 
 
 Get definitions for this out-dated "back" concept: `450807008`
 
-```bash
-python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --api-key=${UMLS_API_KEY}
-```
+.. code-block:: console
+
+    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --api-key=${UMLS_API_KEY}
+
+
+::
+
     ...
     Back structure, including back of neck
     ======================================
@@ -26,9 +25,13 @@ python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --
 
 Now get one in Spanish
 
-```bash
-python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --target-language=SPA --api-key=${UMLS_API_KEY}
-```
+.. code-block:: console
+
+    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --target-language=SPA --api-key=${UMLS_API_KEY}
+
+
+::
+
     ...
     Body Regions
     ============
@@ -37,9 +40,12 @@ python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --
 
 Look for a concept using the description only
 
-```bash
-python definitions-dump.py --source-desc="Physical therapy" --target-language=SPA --api-key=${UMLS_API_KEY}
-```
+.. code-block:: console
+
+    python definitions-dump.py --source-desc="Physical therapy" --target-language=SPA --api-key=${UMLS_API_KEY}
+
+::
+
     ...
     Rehabilitation therapy
     ======================

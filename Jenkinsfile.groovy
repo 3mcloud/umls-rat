@@ -36,8 +36,7 @@ pipeline {
         stage ('Install Requirements') {
             steps {
                 container(name: 'target'){
-                    sh 'python3 -m venv --system-site-packages venv'
-                    sh 'venv/bin/pip3 install -r jenkins/requirements.txt'
+                    sh 'pip3 install -r jenkins/requirements.txt'
                 }
             }
         }
@@ -47,15 +46,37 @@ pipeline {
                 container(name: 'target'){
                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                             variable: 'API_KEY')]) {
-                        sh 'venv/bin/python -m pytest -p no:cacheprovider -v --junitxml unittests.xml tests/ --api-key=${API_KEY}'
+                        sh 'python -m pytest -p no:cacheprovider -v --junitxml unittests.xml tests/ --api-key=${API_KEY}'
                         // running again should use cached requests, be super speedy, and also still work
-                        sh 'venv/bin/python -m pytest -p no:cacheprovider -v --junitxml unittests-cached.xml tests/ --api-key=${API_KEY}'
+                        sh 'python -m pytest -p no:cacheprovider -v --junitxml unittests-cached.xml tests/ --api-key=${API_KEY}'
                     }
                 }
             }
             post {
                 always {
                     junit testResults: 'unittests*.xml'
+                }
+            }
+        }
+
+        stage ('Documentation') {
+            steps {
+                container(name: 'target'){
+                    dir('docs') {
+                        sh 'make clean html'
+                    }
+                }
+            }
+            post {
+                success {
+                    publishHTML (target: [
+                                  allowMissing: false,
+                                  alwaysLinkToLastBuild: true,
+                                  keepAll: true,
+                                  reportDir: 'docs/_build/html/',
+                                  reportFiles: 'index.html',
+                                  reportName: "Documentation"
+                                ])
                 }
             }
         }
@@ -97,8 +118,8 @@ pipeline {
         stage('Build'){
             steps{
                 container('target') {
-                    sh 'venv/bin/python3 -m pip install build'
-                    sh "PYPI_VERSION=${PYPI_VERSION} venv/bin/python3 -m build"
+                    sh 'python3 -m pip install build'
+                    sh "PYPI_VERSION=${PYPI_VERSION} python3 -m build"
                 }
             }
             post {
