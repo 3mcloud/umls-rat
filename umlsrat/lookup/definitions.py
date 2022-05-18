@@ -406,6 +406,5 @@ def definitions_itr(concepts: List[Dict]) -> Iterable[str]:
     for dist, group in itertools.groupby(
         concepts, key=lambda _: _["distanceFromOrigin"]
     ):
-        # group = list(group)
-        defs = [[obj.get("value") for obj in _.get("definitions")] for _ in group]
+        defs = ((obj.get("value") for obj in _.get("definitions")) for _ in group)
         yield from iterators.roundrobin(*defs)
