@@ -12,16 +12,16 @@ from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
 _NONE = "NONE"
 
 
-def _interp_none(value: Any):
+def _interpret_none(value: Any):
     if isinstance(value, str):
         if value == _NONE:
             return None
         else:
             return value
     elif isinstance(value, Dict):
-        return {key: _interp_none(value) for key, value in value.items()}
+        return {key: _interpret_none(value) for key, value in value.items()}
     elif isinstance(value, List):
-        return [_interp_none(_) for _ in value]
+        return [_interpret_none(_) for _ in value]
     else:
         return value
 
@@ -135,7 +135,7 @@ class MetaThesaurus(object):
             else:
                 raise e
 
-        return _interp_none(r.json())
+        return _interpret_none(r.json())
 
     def _get_paginated(
         self,
