@@ -1,6 +1,5 @@
 import functools
 import os
-from datetime import timedelta
 from os.path import expanduser
 
 from requests import Session
@@ -41,24 +40,8 @@ def api_session() -> CachedSession:
     """
     session = CachedSession(
         cache_name=_cache_path("api-cache"),
-        ignored_parameters=["ticket"],
+        ignored_parameters=["apiKey"],
         allowable_codes=[200, 400, 404],
-    )
-    return _configure_session(session)
-
-
-@functools.lru_cache(maxsize=1)
-def tgt_session() -> CachedSession:
-    """
-    Get a session for acquiring Ticket-Granting Ticket (TGT)
-    See: https://documentation.uts.nlm.nih.gov/rest/authentication.html
-    :return:session
-    """
-    # expire a bit early
-    session = CachedSession(
-        cache_name=_cache_path("tgt-cache"),
-        allowable_methods=["POST"],
-        expire_after=timedelta(hours=7.8),
     )
     return _configure_session(session)
 
