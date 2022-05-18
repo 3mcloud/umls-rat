@@ -56,11 +56,15 @@ class MetaThesaurus(object):
     def __init__(
         self,
         api_key: str,
-        version: Optional[str] = "2021AB",
+        version: Optional[str] = None,
         use_cache: Optional[bool] = True,
     ):
         self._api_key = api_key
-        self.version = version
+        if version:
+            self.version = version
+        else:
+            self.version = const.DEFAULT_UMLS_VERSION
+
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
         self._use_cache = use_cache
         self._session = api_session() if use_cache else uncached_session()
