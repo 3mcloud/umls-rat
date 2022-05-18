@@ -8,7 +8,7 @@ from typing import Optional, Iterable, List, Dict, Callable, Set
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
-from umlsrat.util import orderedset, text
+from umlsrat.util import orderedset, text, iterators
 from umlsrat.util.orderedset import FIFO
 from umlsrat.vocabularies import vocab_tools
 
@@ -328,8 +328,9 @@ def find_defined_concepts(
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
-            defined_concepts = list(
-                itertools.chain(*(find_broader(cui) for cui in cuis_from_code))
+
+            defined_concepts = itertools.chain.from_iterable(
+                find_broader(cui) for cui in cuis_from_code
             )
             if defined_concepts:
                 # since we searched multiple CUIs, ensure that they are returned in
@@ -396,3 +397,15 @@ def pretty_print_defs(concepts: List[Dict]) -> str:
     """
     entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
     return "\n\n".join(entries)
+
+
+def definitions_itr(concepts: List[Dict]) -> Iterable[str]:
+    """Iterate over definitions. Nearest to farthest. If there are multiple concepts at a given
+    distance iterate over them, in a round-robin order"""
+    # group by distance; anything closer will always come first
+    for dist, group in itertools.groupby(
+        concepts, key=lambda _: _["distanceFromOrigin"]
+    ):
+        # group = list(group)
+        defs = [[obj.get("value") for obj in _.get("definitions")] for _ in group]
+        yield from iterators.roundrobin(*defs)
