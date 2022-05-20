@@ -18,5 +18,5 @@ Included is one sample entry point ``definitions-dump.py``. Examles can be found
 Links
 -----
 
-* Find the repo source on `Github <https://github.mmm.com/OneNLU/umls-rat>`_.
-* A link to the latest `documentation <https://jenkins.firebird.mmm.com/job/MMODAL/job/NLU-ML-Libraries/job/umls-rat/job/main/Documentation/index.html#>`_.
+* `Source on Github <https://github.mmm.com/OneNLU/umls-rat>`_.
+* `Latest documentation <https://jenkins.firebird.mmm.com/job/MMODAL/job/NLU-ML-Libraries/job/umls-rat/job/main/Documentation/index.html#>`_.
