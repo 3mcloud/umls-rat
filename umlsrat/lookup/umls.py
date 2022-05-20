@@ -1,7 +1,7 @@
 import json
 import logging
 import os.path
-from typing import Optional, Dict, List, Set, Iterator, Iterable
+from typing import Optional, Dict, List, Iterator, Iterable
 
 from umlsrat.api import cui_order
 from umlsrat.api.metathesaurus import MetaThesaurus
@@ -12,6 +12,13 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 
 def get_concept_name(api: MetaThesaurus, cui: str) -> Optional[str]:
+    """
+    Convenience function gets the name for a CUI.
+
+    :param api: api object
+    :param cui: the cui
+    :return: concept name or None if it's not set
+    """
     return api.get_concept(cui).get("name", None)
 
 
@@ -60,6 +67,15 @@ def term_search(
     max_results: Optional[int] = 1000,
     strict_match: Optional[bool] = False,
 ) -> Dict:
+    """
+    Search for a term in UMLS.
+
+    :param api: api object
+    :param term: the term to search for
+    :param max_results: maximum number of results (default: 1000)
+    :param strict_match: only allow strict matches (default: False)
+    :return: search result Dict
+    """
     result = _term_search(api, term, max_results)
 
     if strict_match:
@@ -70,46 +86,6 @@ def term_search(
         ]
 
     return result
-
-
-def get_semantic_types(api: MetaThesaurus, cui: str) -> List[Dict]:
-    """
-    Get semantic type info associated with this concept. Resulting type information takes the form,
-    {
-        "name": name of semantic type,
-        "info": extended information about that type
-    }
-    :param api: meta thesaurus
-    :param cui: target concept
-    :return: list of semantic type information objects
-    """
-    concept = api.get_concept(cui)
-    if not concept:
-        raise ValueError(f"No such concept '{cui}")
-
-    semantic_types = concept.get("semanticTypes")
-    if not semantic_types:
-        return []
-
-    return [
-        {
-            "name": stype["name"],
-            "data": api.get_single_result(stype["uri"]),
-        }
-        for stype in semantic_types
-    ]
-
-
-def get_semantic_type_groups(api: MetaThesaurus, cui: str) -> Set[str]:
-    """Convenience function to get the set of semantic type *group* names for a concept"""
-    sem_types = get_semantic_types(api, cui)
-    return {_["data"]["semanticTypeGroup"]["expandedForm"] for _ in sem_types}
-
-
-def get_semantic_type_names(api: MetaThesaurus, cui: str) -> Set[str]:
-    """Convenience function to get the set of semantic type names for a concept"""
-    sem_types = get_semantic_types(api, cui)
-    return {_["name"] for _ in sem_types}
 
 
 def _do_cui_search(
@@ -306,7 +282,7 @@ def get_broader_concepts(
     :param language:
     :param api: meta thesaurus
     :param cui: starting concept
-    :return: generator over CUIs
+    :return: list of CUIs
     """
     return get_full_ordered_cuis(
         api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
@@ -322,7 +298,7 @@ def get_narrower_concepts(
     :param language:
     :param api: meta thesaurus
     :param cui: starting concept
-    :return: generator over CUIs
+    :return: list of CUIs
     """
     return get_full_ordered_cuis(
         api=api, cui=cui, allowed_relations=("RB", "PAR"), language=language
