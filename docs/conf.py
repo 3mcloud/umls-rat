@@ -63,7 +63,7 @@ html_static_path = ["_static"]
 html_logo = "_static/logo-3m.svg"
 
 
-BRANCH_NAME = os.getenv("CHANGE_BRANCH", os.getenv("BRANCH_NAME", "<unk>"))
+BRANCH_NAME = os.getenv("CHANGE_BRANCH", os.getenv("BRANCH_NAME", "master"))
 
 html_context = {
     "github_host": "github.mmm.com",
@@ -71,5 +71,5 @@ html_context = {
     "github_user": "OneNLU",  # Username
     "github_repo": "umls-rat",  # Repo name
     "github_version": BRANCH_NAME,  # Version
-    # "conf_py_path": "/docs/source/",  # Path in the checkout to the docs root
+    "conf_py_path": "/docs/",  # Path in the checkout to the docs root
 }
