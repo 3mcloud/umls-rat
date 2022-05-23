@@ -313,7 +313,7 @@ def test_pretty_print(api):
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = definitions.pretty_print_defs(data)
+    pp = definitions.definitions_to_md(data)
     assert (
         pp
         == """Felis catus

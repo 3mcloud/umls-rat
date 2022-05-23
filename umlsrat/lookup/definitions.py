@@ -27,12 +27,12 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> Set[str]:
         type_names.add(st["name"])
         st_uri = st.pop("uri", None)
         if st_uri:
-            st["data"] = api.get_single_result(st_uri)
+            st["data"] = api._get_single_result(st_uri)
 
     return type_names
 
 
-def clean_definition(definition: Dict) -> Dict:
+def _clean_definition(definition: Dict) -> Dict:
     definition = definition.copy()
     value = text.clean_definition_text(definition.pop("value"))
     return dict(value=value, **definition)
@@ -54,7 +54,7 @@ def _distance_from_source(
     return dist
 
 
-def definitions_bfs(
+def _definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     get_neighbors: Callable[[MetaThesaurus, str], List[str]],
@@ -65,12 +65,16 @@ def definitions_bfs(
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
-    Do a breadth-first search over UMLS, hunting for definitions. Resulting definitions are sorted
-    by length (shortest to longest).
+    Do a breadth-first search over UMLS for concepts with associated definitions.
 
-    :param preserve_semantic_type:
-    :param get_neighbors:
-    :param target_lang:
+
+    Resulting concepts
+    are returned in order of closest to farthest (relative to ``start_cui``). Within each concept,
+    definitions are sorted by length (shortest to longest).
+
+    :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
+    :param get_neighbors: fn to get neighbors of a CUI (e.g. get_broader or get_narrower)
+    :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
@@ -129,7 +133,7 @@ def definitions_bfs(
         if not defs_url:
             return
 
-        definitions = list(api.get_results(defs_url))
+        definitions = list(api._get_results(defs_url))
 
         # filter defs not in target vocab
         if target_vocabs:
@@ -140,7 +144,7 @@ def definitions_bfs(
 
         # clean text, sort by length, and drop duplicates
         cleaned = orderedset.UniqueFIFO(
-            sorted(map(clean_definition, definitions), key=lambda _: len(_["value"])),
+            sorted(map(_clean_definition, definitions), key=lambda _: len(_["value"])),
             keyfn=lambda _: f"{_['rootSource']}/{text.normalize(_['value'])}",
         )
 
@@ -203,10 +207,16 @@ def broader_definitions_bfs(
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
-    Do a breadth-first search over UMLS, hunting for definitions.
+    Do a breadth-first search over UMLS for concepts with associated definitions.
 
-    :param preserve_semantic_type:
-    :param target_lang:
+    Resulting concepts are returned in order of closest to farthest (relative to ``start_cui``).
+    Within each concept, definitions are sorted by length (shortest to longest).
+
+    Use this method when you have a CUI. If you do not have a CUI,
+    use :meth:`umlsrat.lookup.definitions.find_defined_concepts`
+
+    :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
+    :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
@@ -216,9 +226,9 @@ def broader_definitions_bfs(
     """
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_broader_concepts(api, cui, language=target_lang)
+        return umls.get_broader_cuis(api, cui, language=target_lang)
 
-    return definitions_bfs(
+    return _definitions_bfs(
         api=api,
         start_cui=start_cui,
         get_neighbors=get_neighbors,
@@ -230,7 +240,7 @@ def broader_definitions_bfs(
     )
 
 
-def narrower_definitions_bfs(
+def _narrower_definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     min_concepts: int = 1,
@@ -253,9 +263,9 @@ def narrower_definitions_bfs(
     """
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_narrower_concepts(api, cui, language=target_lang)
+        return umls.get_narrower_cuis(api, cui, language=target_lang)
 
-    return definitions_bfs(
+    return _definitions_bfs(
         api=api,
         start_cui=start_cui,
         get_neighbors=get_neighbors,
@@ -278,8 +288,18 @@ def find_defined_concepts(
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
-    Find defined concepts in UMLS which are equal to or *broader* than the provided source concept.
-    Use this function when you do not have a UMLS CUI.
+    Find defined concepts in UMLS which are equivalent to or *broader* than the source concept.
+
+    Resulting concepts are returned in order of closest to farthest (relative to ``start_cui``).
+    Within each concept, definitions are sorted by length (shortest to longest).
+
+    Use this function when you do not have a UMLS CUI. If you do have a CUI, you can use
+    :meth:`umlsrat.lookup.definitions.broader_definitions_bfs`.
+
+    1. Look up CUIs
+        * use the source UI (if given). if not found,
+        * use the source description
+    2. Run :meth:`umlsrat.lookup.definitions.broader_definitions_bfs` for resulting CUIs
 
     :param api: MetaThesaurus API
     :param source_vocab: source vocab
@@ -325,7 +345,7 @@ def find_defined_concepts(
 
     if source_ui:
         cuis_from_code = umls.get_cuis_for(
-            api, source_vocab=source_vocab, source_ui=source_ui, source_desc=source_desc
+            api, source_vocab=source_vocab, source_ui=source_ui
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
@@ -362,10 +382,7 @@ def find_defined_concepts(
             search_term = search_result["searchTerm"]
             logger.info(f"Results for term search '{search_term}'")
 
-            # todo don't take concepts that are too far from original?
-            concepts = search_result["concepts"]
-
-            for concept in concepts:
+            for concept in search_result["concepts"]:
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")
@@ -389,12 +406,12 @@ def _entry_to_string(name: str, definitions: List[Dict]) -> str:
     return value
 
 
-def pretty_print_defs(concepts: List[Dict]) -> str:
+def definitions_to_md(concepts: List[Dict]) -> str:
     """
-    Get pretty string for list of Description Dicts
+    Write list of defined concepts as MarkDown.
 
-    :param concepts: list of Description Dicts
-    :return: pretty string
+    :param concepts: list of concept Dicts
+    :return: MarkDown string
     """
     entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
     return "\n\n".join(entries)

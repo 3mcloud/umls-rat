@@ -56,7 +56,7 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
 )
 def test_get_broader_concepts(api, kwargs, expected_cuis):
     assert "cui" in kwargs
-    cui_list = list(umls.get_broader_concepts(api, **kwargs))
+    cui_list = list(umls.get_broader_cuis(api, **kwargs))
 
     assert cui_list
     cui_set = set(cui_list)

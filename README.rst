@@ -13,7 +13,36 @@ Install
 Usage
 -----
 
-Included is one sample entry point ``definitions-dump.py``. Examles can be found here :ref:`Examples/Definitions`
+Included is one sample entry point ``definitions-dump.py``. See :doc:`/examples` for more information.
+
+Development
+-----------
+
+Install requirements. 
+
+.. code-block:: console
+
+    pip install -r requirements.txt
+
+Execute unit tests with your API key. 
+
+.. code-block:: console
+
+    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY}
+
+Cached requests are stored in ``~/.cache/umls-rat``. Caching can be disabled when running the tests, with the ``--no-cache`` flag, eg
+
+.. code-block:: console
+
+    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY} --no-cache
+
+
+The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UMLS_VERSION`. The version used for testing can be modified at runtime with the ``--umls-version`` arg, eg
+
+.. code-block:: console
+
+    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY} --no-cache --umls-version current
+
 
 Links
 -----

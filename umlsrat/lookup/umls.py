@@ -13,7 +13,7 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 def get_concept_name(api: MetaThesaurus, cui: str) -> Optional[str]:
     """
-    Convenience function gets the name for a CUI.
+    Get the name for a CUI.
 
     :param api: api object
     :param cui: the cui
@@ -23,13 +23,12 @@ def get_concept_name(api: MetaThesaurus, cui: str) -> Optional[str]:
 
 
 def _term_search(api: MetaThesaurus, term: str, max_results: int) -> Dict:
-    for st in ("words", "normalizedWords", "approximate"):
-        for it in (
-            "sourceConcept",
-            "sourceDescriptor",
-        ):
+    for search_type in ("words", "normalizedWords", "approximate"):
+        for input_type in ("sourceConcept", "sourceDescriptor"):
             search_params = dict(
-                inputType=it, searchType=st, pageSize=min(25, max_results)
+                inputType=input_type,
+                searchType=search_type,
+                pageSize=min(25, max_results),
             )
             concepts = api.search(term, max_results=max_results, **search_params)
             # filter bogus results
@@ -68,7 +67,18 @@ def term_search(
     strict_match: Optional[bool] = False,
 ) -> Dict:
     """
-    Search for a term in UMLS.
+    Search for a term in UMLS. Increasing the flexibility of the search with each iteration.
+
+
+    .. code-block:: python
+
+        for search_type in ("words", "normalizedWords", "approximate"):
+            for input_type in ( "sourceConcept", "sourceDescriptor"):
+                # Search for the term with above params.
+                # If found, return.
+                ...
+
+    See: https://documentation.uts.nlm.nih.gov/rest/search/index.html
 
     :param api: api object
     :param term: the term to search for
@@ -105,16 +115,22 @@ def _do_cui_search(
     return ordered
 
 
-def get_cuis_for(
-    api: MetaThesaurus, source_vocab: str, source_ui: str, source_desc: str = None
-) -> List[str]:
+def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[str]:
     """
-    Get UMLS CUI for a source concept.
+    Get UMLS CUIs for a source concept.
+
+    **Remember** there can be more than one CUI associated with
+    a given source concept.
+
+    Try the following in order until we find some CUIs:
+
+    #. Search for this concept using search API
+    #. Same search including Obsolete and Suppressible
+    #. Get synonymous (SY-related) concepts and search for those concepts
 
     :param api: MetaThesaurus
-    :param source_vocab: e.g. SNOMED
+    :param source_vocab: source vocabulary e.g. SNOMED
     :param source_ui: concept ID in the source vocab
-    :param source_desc: description for the source code
     :return: CUI or None if not found
     """
 
@@ -132,33 +148,33 @@ def get_cuis_for(
     if cuis:
         return cuis
 
-    def get_related(label: str):
+    def get_source_related(label: str):
         relations = api.get_source_relations(
             source_vocab=source_vocab,
             concept_id=source_ui,
             includeRelationLabels=label,
         )
 
-        concepts = [api.get_single_result(rel["relatedId"]) for rel in relations]
+        concepts = [api._get_single_result(rel["relatedId"]) for rel in relations]
 
         return [(_["rootSource"], _["ui"]) for _ in concepts]
 
     # check synonyms
-    for rc_source, rc_ui in get_related("SY"):
+    for rc_source, rc_ui in get_source_related("SY"):
         cuis = _do_cui_search(api, rc_source, rc_ui)
         if cuis:
             return cuis
 
     # check other relations -- this is questionable
-    for rc_source, rc_ui in get_related("RO"):
-        cuis = _do_cui_search(api, rc_source, rc_ui)
-        if cuis:
-            return cuis
+    # for rc_source, rc_ui in get_source_related("RO"):
+    #     cuis = _do_cui_search(api, rc_source, rc_ui)
+    #     if cuis:
+    #         return cuis
 
     return []
 
 
-def get_related_concepts(
+def _get_related_cuis(
     api: MetaThesaurus,
     cui: str,
     allowed_relations: Iterable[str],
@@ -168,10 +184,11 @@ def get_related_concepts(
     """
     Get related concepts. **NO GUARANTEES REGARDING RETURN ORDER**
 
-    :param allowed_relations:
-    :param language:
     :param api: meta thesaurus
-    :param cui: starting concept
+    :param cui: starting concept CUI
+    :param allowed_relations: relations of interest
+    :param language: language of relations?
+    :param add_params: additional parameters to be passed to the call
     :return: generator over CUIs
     """
 
@@ -187,9 +204,9 @@ def get_related_concepts(
         add_params["language"] = vocab_tools.validate_language(language)
 
     # first get direct relations
-    for rel in api.get_relations(cui):
+    for rel in api.get_relations(cui, **add_params):
         if rel["relationLabel"] in allowed_relations:
-            rel_c = api.get_single_result(rel["relatedId"])
+            rel_c = api._get_single_result(rel["relatedId"])
             yield from maybe_yield(rel_c["ui"])
 
     # get all atom concepts of this umls concept
@@ -203,7 +220,7 @@ def get_related_concepts(
         if code_url.endswith("NOCODE"):
             continue
 
-        code = api.get_single_result(code_url)
+        code = api._get_single_result(code_url)
         if not code:
             raise ValueError(
                 f"Got null code for {code_url} from\n" f"{json.dumps(atom, indent=2)}"
@@ -219,12 +236,12 @@ def get_related_concepts(
         )
 
         for rel in relations:
-            related = api.get_single_result(rel["relatedId"])
+            related = api._get_single_result(rel["relatedId"])
 
             if related.get("concept"):
-                concepts = (api.get_single_result(related["concept"]),)
+                concepts = (api._get_single_result(related["concept"]),)
             elif related.get("concepts"):
-                concepts = api.get_results(related["concepts"])
+                concepts = api._get_results(related["concepts"])
             else:
                 raise ValueError(f"Malformed result has no concept(s)\n{related}")
 
@@ -232,34 +249,37 @@ def get_related_concepts(
                 yield from maybe_yield(related_concept["ui"])
 
 
-def get_full_ordered_cuis(
+def get_related_cuis(
     api: MetaThesaurus,
     cui: str,
     allowed_relations: Iterable[str],
     language: str = None,
 ) -> List[str]:
     """
-    Get related concepts. If no related concepts are found, we will try
-    Obsolete and Suppressible.
+    Get CUIs for related concepts.
+
+    Concepts must be related via ``allowed_relations``. If no related concepts are
+    found, try Obsolete and Suppressible.
 
     CUIs are returned in a fixed order.
 
-    :param allowed_relations:
-    :param language:
     :param api: meta thesaurus
-    :param cui: starting concept
+    :param cui: starting concept CUI
+    :param allowed_relations: relations of interest
+    :param language: language of relations?
+
     :return: list of CUIs
     """
 
     related_cuis = list(
-        get_related_concepts(
+        _get_related_cuis(
             api=api, cui=cui, allowed_relations=allowed_relations, language=language
         )
     )
 
     if not related_cuis:
         related_cuis = list(
-            get_related_concepts(
+            _get_related_cuis(
                 api=api,
                 cui=cui,
                 allowed_relations=allowed_relations,
@@ -273,33 +293,33 @@ def get_full_ordered_cuis(
     return ordered
 
 
-def get_broader_concepts(
-    api: MetaThesaurus, cui: str, language: str = None
-) -> List[str]:
+def get_broader_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List[str]:
     """
-    Get broader concepts. CUIs are returned in a fixed order.
+    Get CUIs for broader, related concepts.
 
-    :param language:
+    CUIs are returned in a fixed order.
+
     :param api: meta thesaurus
-    :param cui: starting concept
+    :param cui: starting concept CUI
+    :param language: language of relations?
     :return: list of CUIs
     """
-    return get_full_ordered_cuis(
+    return get_related_cuis(
         api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
     )
 
 
-def get_narrower_concepts(
-    api: MetaThesaurus, cui: str, language: str = None
-) -> List[str]:
+def get_narrower_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List[str]:
     """
-    Get narrower concepts. CUIs are returned in a fixed order.
+    Get CUIs for narrower, related concepts.
 
-    :param language:
+    CUIs are returned in a fixed order.
+
     :param api: meta thesaurus
-    :param cui: starting concept
+    :param cui: starting concept CUI
+    :param language: language of relations?
     :return: list of CUIs
     """
-    return get_full_ordered_cuis(
+    return get_related_cuis(
         api=api, cui=cui, allowed_relations=("RB", "PAR"), language=language
     )

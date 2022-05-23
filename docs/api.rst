@@ -52,14 +52,14 @@ This is a collection of utilty functions for searching ontologies for desired co
 
 .. rubric:: Definitions
 
-Functions for finding definitions of concepts. 
+Functions for finding defined concepts. 
 
 .. autosummary::
    :nosignatures:
 
    umlsrat.lookup.definitions.find_defined_concepts
    umlsrat.lookup.definitions.broader_definitions_bfs
-
+   
 .. rubric:: UMLS
 
 Functions which find UMLS concepts and CUIs
@@ -68,7 +68,13 @@ Functions which find UMLS concepts and CUIs
    :nosignatures:
    :recursive:
    
-   umlsrat.lookup.umls
+   umlsrat.lookup.umls.get_cuis_for
+   umlsrat.lookup.umls.get_related_cuis
+   umlsrat.lookup.umls.get_broader_cuis
+   umlsrat.lookup.umls.get_narrower_cuis
+   umlsrat.lookup.umls.term_search
+   
+
 
 
 Signatures
