@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Any, Dict, Iterator, List, Optional
 
-from requests import HTTPError, Response
+from requests import HTTPError
 
 from umlsrat import const
 from umlsrat.api.session import api_session, uncached_session
@@ -79,8 +79,9 @@ class MetaThesaurus(object):
     def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         """
         Add constructor arguments to parser.
-        :param parser: argparse parser
-        :return: the parser
+
+        :param parser: parser
+        :return: the same parser
         """
         group = parser.add_argument_group("MetaThesaurus")
         group.add_argument(
@@ -100,21 +101,6 @@ class MetaThesaurus(object):
     def _logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    def _do_get_request(self, uri: str, **params) -> Response:
-        if "apiKey" in params:
-            self._logger.warning(
-                f"'apiKey' should not be in params! Will be overwritten..."
-            )
-
-        params["apiKey"] = self._api_key
-        try:
-            response = self._session.get(uri, params=params)
-        except Exception as e:
-            self._logger.exception("Failed to get %s", uri)
-            raise e
-
-        return response
-
     def _get(
         self, url: str, strict: Optional[bool] = False, **params
     ) -> Optional[Dict]:
@@ -127,10 +113,20 @@ class MetaThesaurus(object):
         """
         assert url, "Must provide URL"
 
-        r = self._do_get_request(url, **params)
+        if "apiKey" in params:
+            self._logger.warning(
+                f"'apiKey' should not be in params! Will be overwritten..."
+            )
+
+        params["apiKey"] = self._api_key
+        try:
+            response = self._session.get(url, params=params)
+        except Exception as e:
+            self._logger.exception("Failed to get %s", url)
+            raise e
 
         try:
-            r.raise_for_status()
+            response.raise_for_status()
         except HTTPError as e:
             if strict:
                 raise e
@@ -142,7 +138,7 @@ class MetaThesaurus(object):
             else:
                 raise e
 
-        return _interpret_none(r.json())
+        return _interpret_none(response.json())
 
     def _get_paginated(
         self,
@@ -200,7 +196,7 @@ class MetaThesaurus(object):
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
             response_json = self._get(url, **params)
 
-    def get_results(
+    def _get_results(
         self, url: str, max_results: Optional[int] = None, **params
     ) -> Iterator[Dict]:
         """
@@ -218,7 +214,7 @@ class MetaThesaurus(object):
             **params,
         )
 
-    def get_single_result(self, url: str, **params) -> Optional[Dict]:
+    def _get_single_result(self, url: str, **params) -> Optional[Dict]:
         """
         When you know there will only be one coming back
 
@@ -255,7 +251,7 @@ class MetaThesaurus(object):
         """
         assert cui
         uri = f"{self._start_content_uri}/CUI/{cui}"
-        return self.get_single_result(uri)
+        return self._get_single_result(uri)
 
     def get_definitions(
         self, cui: str, max_results: Optional[int] = None
@@ -270,7 +266,7 @@ class MetaThesaurus(object):
         :return: generator yielding Definition Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
-        return self.get_results(uri, max_results=max_results)
+        return self._get_results(uri, max_results=max_results)
 
     def get_relations(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -285,7 +281,7 @@ class MetaThesaurus(object):
         :return: generator yielding Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
-        return self.get_results(uri, max_results=max_results, **params)
+        return self._get_results(uri, max_results=max_results, **params)
 
     def get_ancestors(
         self, aui: str, max_results: Optional[int] = None
@@ -301,7 +297,7 @@ class MetaThesaurus(object):
         """
         assert aui.startswith("A"), f"Invalid AUI '{aui}'"
         uri = f"{self._start_content_uri}/AUI/{aui}/ancestors"
-        return self.get_results(uri, max_results=max_results)
+        return self._get_results(uri, max_results=max_results)
 
     def get_atoms(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -316,7 +312,7 @@ class MetaThesaurus(object):
         :return: list of Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
-        return self.get_results(uri, max_results=max_results, **params)
+        return self._get_results(uri, max_results=max_results, **params)
 
     ###
     # Search
@@ -341,7 +337,7 @@ class MetaThesaurus(object):
                 "Overwriting existing 'string' value %s", params["string"]
             )
         params["string"] = string
-        return self.get_results(uri, max_results=max_results, **params)
+        return self._get_results(uri, max_results=max_results, **params)
 
     ###
     # Source Asserted
@@ -360,7 +356,7 @@ class MetaThesaurus(object):
         source_vocab = validate_vocab_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}"
-        return self.get_single_result(uri)
+        return self._get_single_result(uri)
 
     def get_source_relations(
         self,
@@ -381,7 +377,7 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/relations"
 
-        return self.get_results(uri, **params)
+        return self._get_results(uri, **params)
 
     def get_source_parents(
         self,
@@ -402,7 +398,7 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/parents"
 
-        return self.get_results(uri)
+        return self._get_results(uri)
 
     def get_source_ancestors(
         self,
@@ -422,4 +418,4 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/ancestors"
 
-        return self.get_results(uri)
+        return self._get_results(uri)

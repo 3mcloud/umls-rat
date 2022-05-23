@@ -5,7 +5,7 @@ import os
 import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup.definitions import find_defined_concepts, pretty_print_defs
+from umlsrat.lookup.definitions import find_defined_concepts, definitions_to_md
 from umlsrat.vocabularies.vocab_tools import available_languages, available_vocabs
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -75,7 +75,7 @@ def main():
         target_lang=target_language,
     )
 
-    logger.info("Definitions:\n\n" + pretty_print_defs(definitions))
+    logger.info("Definitions:\n\n" + definitions_to_md(definitions))
 
     out_dir = args.out_dir
     out_dir = os.path.join(out_dir, target_language)
