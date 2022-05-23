@@ -49,7 +49,7 @@ def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
 
 class MetaThesaurus(object):
     """
-    `UMLS MetaThesaurus API <https://documentation.uts.nlm.nih.gov/rest/home.html>`_ with caching.
+    `UMLS MetaThesaurus API <https://documentation.uts.nlm.nih.gov/rest/home.html>`_ interface with caching.
     """
 
     def __init__(
@@ -63,7 +63,7 @@ class MetaThesaurus(object):
 
         :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`_
         :param version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
-        :param use_cache: use cache for requests
+        :param use_cache: use cache for requests (default ``True``)
         """
         self._api_key = api_key
         if version:
@@ -107,6 +107,7 @@ class MetaThesaurus(object):
         """
         Get data from arbitrary URI. Will return an empty list on 400 or 404
         unless `strict=True`, in which case it will raise.
+
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param params: get parameters *excluding* `ticket`
         :return: json response
@@ -244,7 +245,36 @@ class MetaThesaurus(object):
         """
         Get a UMLS concept by CUI.
 
-        See: https://documentation.uts.nlm.nih.gov/rest/concept/index.html
+        Example
+
+        .. code-block:: python
+
+            api_instance.get_concept("C0009044")
+            # {
+            #   "ui": "C0009044",
+            #   "name": "Closed fracture of carpal bone",
+            #   "dateAdded": "09-30-1990",
+            #   "majorRevisionDate": "03-16-2016",
+            #   "classType": "Concept",
+            #   "suppressible": false,
+            #   "status": "R",
+            #   "semanticTypes": [
+            #     {
+            #       "name": "Injury or Poisoning",
+            #       "uri": "https://uts-ws.nlm.nih.gov/rest/semantic-network/2021AB/TUI/T037"
+            #     }
+            #   ],
+            #   "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms",
+            #   "definitions": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/definitions",
+            #   "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/relations",
+            #   "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms/preferred",
+            #   "atomCount": 71,
+            #   "cvMemberCount": 0,
+            #   "attributeCount": 0,
+            #   "relationCount": 5
+            # }
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`_
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
@@ -259,7 +289,19 @@ class MetaThesaurus(object):
         """
         Get the definitions for a concept.
 
-        See: https://documentation.uts.nlm.nih.gov/rest/definitions/index.html
+        .. code-block:: python
+
+            list(api.get_definitions("C0009044"))
+            # [
+            #   {
+            #     "rootSource": "NCI",
+            #     "value": "A traumatic break in one or more of the carpal bones that does not involve a break in the adjacent skin.",
+            #     "classType": "Definition",
+            #     "sourceOriginated": true
+            #   }
+            # ]
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`_
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -274,7 +316,29 @@ class MetaThesaurus(object):
         """
         Get relations for a concept
 
-        See: https://documentation.uts.nlm.nih.gov/rest/relations/index.html
+        .. code-block:: python
+
+            list(api.get_relations("C0009044"))
+            # [
+            #   {
+            #     "ui": "R03033072",
+            #     "suppressible": false,
+            #     "sourceUi": null,
+            #     "obsolete": false,
+            #     "sourceOriginated": false,
+            #     "rootSource": "MTH",
+            #     "relationLabel": "RO",
+            #     "additionalRelationLabel": "",
+            #     "groupId": null,
+            #     "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009353",
+            #     "relatedIdName": "Colles' Fracture",
+            #     "classType": "ConceptRelation",
+            #     "attributeCount": 0
+            #   },
+            #   ...
+            # ]
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`_
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -283,13 +347,99 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self._get_results(uri, max_results=max_results, **params)
 
+    def get_atoms(
+        self, cui: str, max_results: Optional[int] = None, **params
+    ) -> Iterator[Dict]:
+        """
+        Get Atoms for a concept.
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+
+        .. code-block:: python
+
+            list(api.get_atoms(cui="C0009044", language="ENG"))
+            # [
+            #   {
+            #     "classType": "Atom",
+            #     "ui": "A0243916",
+            #     "sourceDescriptor": null,
+            #     "sourceConcept": null,
+            #     "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044",
+            #     "obsolete": "false",
+            #     "suppressible": "false",
+            #     "rootSource": "RCD",
+            #     "termType": "PT",
+            #     "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/S240.",
+            #     "language": "ENG",
+            #     "name": "Closed fracture of carpal bone",
+            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/attributes",
+            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/relations",
+            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/children",
+            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/descendants",
+            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/parents",
+            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/ancestors",
+            #     "contentViewMemberships": [
+            #       {
+            #         "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0243916",
+            #         "name": "MetaMap NLP View",
+            #         "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
+            #       }
+            #     ]
+            #   },
+            #   ...
+            # ]
+
+
+        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
+        :param max_results: maximum number of result to return. None = no max
+        :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+        :return: list of Relation Dicts
+        """
+        uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
+        return self._get_results(uri, max_results=max_results, **params)
+
     def get_ancestors(
         self, aui: str, max_results: Optional[int] = None
     ) -> Iterator[Dict]:
         """
         Get ancestors of an Atom
 
-        See: https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`_
+
+        .. code-block:: python
+
+            list(api.get_ancestors(aui="A0243916"))
+
+            # [
+            #   {
+            #     "classType": "Atom",
+            #     "ui": "A0004658",
+            #     "sourceDescriptor": null,
+            #     "sourceConcept": null,
+            #     "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0016658",
+            #     "obsolete": "false",
+            #     "suppressible": "false",
+            #     "rootSource": "RCD",
+            #     "termType": "PT",
+            #     "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/XA0FK",
+            #     "language": "ENG",
+            #     "name": "Fracture",
+            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/attributes",
+            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/relations",
+            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/children",
+            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/descendants",
+            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/parents",
+            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/ancestors",
+            #     "contentViewMemberships": [
+            #       {
+            #         "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0004658",
+            #         "name": "MetaMap NLP View",
+            #         "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
+            #       }
+            #     ]
+            #   },
+            #   ...
+            # ]
 
         :param aui: Atom Unique Identifier (AUI) for the UMLS Atom
         :param max_results: maximum number of result to return. None = no max
@@ -299,34 +449,31 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/AUI/{aui}/ancestors"
         return self._get_results(uri, max_results=max_results)
 
-    def get_atoms(
-        self, cui: str, max_results: Optional[int] = None, **params
-    ) -> Iterator[Dict]:
-        """
-        Get Atoms for a concept
-
-        See: https://documentation.uts.nlm.nih.gov/rest/atoms/index.html
-
-        :param cui: Concept Unique Identifier (CUI) for the UMLS concept
-        :param max_results: maximum number of result to return. None = no max
-        :return: list of Relation Dicts
-        """
-        uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
-        return self._get_results(uri, max_results=max_results, **params)
-
     ###
     # Search
     ###
 
     def search(
-        self, string: str, max_results: Optional[int] = None, **params
+        self, query: str, max_results: Optional[int] = None, **params
     ) -> Iterator[Dict]:
         """
         Search UMLS!
 
-        See: https://documentation.uts.nlm.nih.gov/rest/search/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`_
 
-        :param string: search string
+        .. code-block:: python
+
+            api.search("cheese", max_results=1)
+            # [
+            #   {
+            #     "ui": "C0007968",
+            #     "rootSource": "MTH",
+            #     "uri": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0007968",
+            #     "name": "Cheese"
+            #   }
+            # ]
+
+        :param query: search string
         :param max_results: maximum number of result to return. None = no max
         :param params: additional get request params
         :return: generator over search results
@@ -336,7 +483,7 @@ class MetaThesaurus(object):
             self._logger.warning(
                 "Overwriting existing 'string' value %s", params["string"]
             )
-        params["string"] = string
+        params["string"] = query
         return self._get_results(uri, max_results=max_results, **params)
 
     ###
@@ -347,7 +494,39 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" concept. e.g. a concept from SNOMED, LOINC, etc
 
-        See: https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`_
+
+        .. code-block:: python
+
+            api.get_source_concept(source_vocab="snomed", concept_id="75508005")
+            # {
+            #   "classType": "SourceAtomCluster",
+            #   "ui": "75508005",
+            #   "suppressible": false,
+            #   "obsolete": false,
+            #   "rootSource": "SNOMEDCT_US",
+            #   "atomCount": 2,
+            #   "cVMemberCount": 0,
+            #   "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/attributes",
+            #   "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms",
+            #   "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/ancestors",
+            #   "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/parents",
+            #   "children": null,
+            #   "descendants": null,
+            #   "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/relations",
+            #   "definitions": null,
+            #   "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=75508005&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi",
+            #   "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms/preferred",
+            #   "subsetMemberships": [
+            #     {
+            #       "memberUri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000/member/75508005",
+            #       "uri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000",
+            #       "name": "CTV3 simple map"
+            #     }
+            #   ],
+            #   "contentViewMemberships": [],
+            #   "name": "Dissecting"
+            # }
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -367,7 +546,31 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" relations
 
-        See: https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`_
+
+        .. code-block::
+
+             api.get_source_relations(source_vocab="MSH", concept_id="D002415",
+                                        includeRelationLabels="RN,CHD", language="ENG")
+            # [
+            #   {
+            #     "ui": "R71237095",
+            #     "suppressible": false,
+            #     "sourceUi": null,
+            #     "obsolete": false,
+            #     "sourceOriginated": false,
+            #     "rootSource": "MSH",
+            #     "groupId": null,
+            #     "attributeCount": 0,
+            #     "classType": "AtomClusterRelation",
+            #     "relatedFromId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002415",
+            #     "relatedFromIdName": "Cats",
+            #     "relationLabel": "CHD",
+            #     "additionalRelationLabel": "",
+            #     "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991",
+            #     "relatedIdName": "Felis"
+            #   }
+            # ]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -388,7 +591,35 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" parents
 
-        See: https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`_
+
+        .. code-block:: python
+
+             list(api.get_source_parents(source_vocab="MSH", concept_id="D002415"))
+            # [
+            #   {
+            #     "classType": "SourceAtomCluster",
+            #     "ui": "D045991",
+            #     "suppressible": false,
+            #     "obsolete": false,
+            #     "rootSource": "MSH",
+            #     "atomCount": 1,
+            #     "cVMemberCount": 0,
+            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/attributes",
+            #     "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms",
+            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/ancestors",
+            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/parents",
+            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/children",
+            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/descendants",
+            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/relations",
+            #     "definitions": null,
+            #     "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D045991&sabs=MSH&searchType=exact&inputType=sourceUi",
+            #     "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms/preferred",
+            #     "subsetMemberships": [],
+            #     "contentViewMemberships": [],
+            #     "name": "Felis"
+            #   }
+            # ]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -408,7 +639,32 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" ancestors
 
-        See: https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`_
+
+        .. code-block:: python
+
+            list(api.get_source_ancestors(**kwargs))
+            # [{'ancestors': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/ancestors',
+            #   'atomCount': 1,
+            #   'atoms': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms',
+            #   'attributes': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/attributes',
+            #   'cVMemberCount': 0,
+            #   'children': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/children',
+            #   'classType': 'SourceAtomCluster',
+            #   'concepts': 'https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D002335&sabs=MSH&searchType=exact&inputType=sourceUi',
+            #   'contentViewMemberships': [],
+            #   'defaultPreferredAtom': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms/preferred',
+            #   'definitions': None,
+            #   'descendants': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/descendants',
+            #   'name': 'Carnivora',
+            #   'obsolete': False,
+            #   'parents': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/parents',
+            #   'relations': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/relations',
+            #   'rootSource': 'MSH',
+            #   'subsetMemberships': [],
+            #   'suppressible': False,
+            #   'ui': 'D002335'},
+            #  ...]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
