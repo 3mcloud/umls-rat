@@ -107,7 +107,7 @@ def _do_cui_search(
         sabs=source_vocab,
     )
     search_params.update(kwargs)
-    results = list(api.search(string=concept_id, **search_params))
+    results = list(api.search(query=concept_id, **search_params))
 
     cuis = [_["ui"] for _ in results]
 
