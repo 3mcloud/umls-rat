@@ -353,12 +353,14 @@ def find_defined_concepts(
             defined_concepts = itertools.chain.from_iterable(
                 find_broader(cui) for cui in cuis_from_code
             )
-            if defined_concepts:
-                # since we searched multiple CUIs, ensure that they are returned in
-                # order of closest to farthest. Also, need to ensure uniqueness.
-                unique = {c["ui"]: c for c in defined_concepts}
+            # since we searched multiple CUIs, ensure that they are returned in
+            # order of closest to farthest. Also, need to ensure uniqueness.
+            unique_defined_concepts = {c["ui"]: c for c in defined_concepts}
+
+            if unique_defined_concepts:
                 return sorted(
-                    unique.values(), key=lambda _: _.get("distanceFromOrigin")
+                    unique_defined_concepts.values(),
+                    key=lambda _: _.get("distanceFromOrigin"),
                 )
             logger.info("No broader concepts with definitions.")
         else:

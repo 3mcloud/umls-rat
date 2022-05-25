@@ -161,6 +161,26 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ["Back", "Bona fide anatomical line"],
             "The back or upper side of an animal.",
         ),
+        (
+            # Cancer Society (snomed/9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e)
+            dict(
+                source_vocab="snomed",
+                source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
+                source_desc="Cancer Society",
+            ),
+            ["American Cancer Society"],
+            "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
+        ),
+        (
+            # Cancer Society (snomed/138875005)
+            dict(
+                source_vocab="snomed",
+                source_ui="138875005",
+                source_desc="Cancer Society",
+            ),
+            ["American Cancer Society"],
+            "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
+        ),
     ),
 )
 def test_find_defined_concepts(
