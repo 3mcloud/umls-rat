@@ -1,3 +1,5 @@
+.. highlight:: markdown
+
 .. _Examples/Definitions:
 
 Definitions Dump
@@ -15,7 +17,6 @@ Get definitions for this out-dated "back" concept: `450807008`
 
 ::
 
-    ...
     Back structure, including back of neck
     ======================================
     1. subdivision of body proper, each instance of which has as its
@@ -32,7 +33,6 @@ Now get one in Spanish
 
 ::
 
-    ...
     Body Regions
     ============
     1. Áreas anatómicas del cuerpo.
@@ -46,7 +46,6 @@ Look for a concept using the description only
 
 ::
 
-    ...
     Rehabilitation therapy
     ======================
     1. Recuperación de las funciones humanas, al mayor grado posible, en

@@ -6,7 +6,6 @@ import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup.definitions import find_defined_concepts, definitions_to_md
-from umlsrat.vocabularies.vocab_tools import available_languages, available_vocabs
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -25,7 +24,6 @@ def main():
         help="The code can be found in this vocabulary",
         type=str,
         default="SNOMEDCT_US",
-        choices=available_vocabs(),
     )
     source_group.add_argument(
         "--source-desc",
@@ -45,7 +43,6 @@ def main():
         help="Target language for definitions.",
         type=str,
         default="ENG",
-        choices=available_languages(),
     )
 
     parser.add_argument(

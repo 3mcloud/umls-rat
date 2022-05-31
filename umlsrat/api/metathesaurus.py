@@ -1,13 +1,14 @@
 import argparse
+import functools
 import json
 import logging
+import operator
 from typing import Any, Dict, Iterator, List, Optional
 
 from requests import HTTPError
 
 from umlsrat import const
 from umlsrat.api.session import api_session, uncached_session
-from umlsrat.vocabularies.vocab_tools import validate_vocab_abbrev
 
 _NONE = "NONE"
 
@@ -274,7 +275,7 @@ class MetaThesaurus(object):
             #   "relationCount": 5
             # }
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
@@ -301,7 +302,7 @@ class MetaThesaurus(object):
             #   }
             # ]
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -338,7 +339,7 @@ class MetaThesaurus(object):
             #   ...
             # ]
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -353,7 +354,7 @@ class MetaThesaurus(object):
         """
         Get Atoms for a concept.
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
 
         .. code-block:: python
 
@@ -392,7 +393,7 @@ class MetaThesaurus(object):
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+        :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
         :return: list of Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
@@ -404,7 +405,7 @@ class MetaThesaurus(object):
         """
         Get ancestors of an Atom
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`__
 
         .. code-block:: python
 
@@ -459,7 +460,7 @@ class MetaThesaurus(object):
         """
         Search UMLS!
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`__
 
         .. code-block:: python
 
@@ -494,7 +495,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" concept. e.g. a concept from SNOMED, LOINC, etc
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`__
 
         .. code-block:: python
 
@@ -532,7 +533,7 @@ class MetaThesaurus(object):
         :param concept_id: concept ID
         :return: concept Dict or None
         """
-        source_vocab = validate_vocab_abbrev(source_vocab)
+        source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}"
         return self._get_single_result(uri)
@@ -546,7 +547,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" relations
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`__
 
         .. code-block::
 
@@ -576,7 +577,7 @@ class MetaThesaurus(object):
         :param concept_id: concept ID
         :return: generator over concept Dicts
         """
-        source_vocab = validate_vocab_abbrev(source_vocab)
+        source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/relations"
 
@@ -591,7 +592,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" parents
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`__
 
         .. code-block:: python
 
@@ -625,7 +626,7 @@ class MetaThesaurus(object):
         :param concept_id: concept ID
         :return: generator over concept Dicts
         """
-        source_vocab = validate_vocab_abbrev(source_vocab)
+        source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/parents"
 
@@ -639,7 +640,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" ancestors
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
         .. code-block:: python
 
@@ -670,8 +671,277 @@ class MetaThesaurus(object):
         :param concept_id: concept ID
         :return: generator over concept Dicts
         """
-        source_vocab = validate_vocab_abbrev(source_vocab)
+        source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/ancestors"
 
         return self._get_results(uri)
+
+    ##
+    # Source vocabulary metadata and lookup.
+    ##
+    @property
+    def _source_metadata(self) -> Iterator[Dict]:
+        """
+        Get metadata for UMLS sources.
+
+        .. code-block: python
+
+            list(api.source_metadata)
+
+            # [
+            #   {
+            #     "classType": "RootSource",
+            #     "abbreviation": "AIR",
+            #     "expandedForm": "AI/RHEUM, 1993",
+            #     "family": "AIR",
+            #     "language": {
+            #       "classType": "Language",
+            #       "abbreviation": "ENG",
+            #       "expandedForm": "English"
+            #     },
+            #     "restrictionLevel": 0,
+            #     "acquisitionContact": null,
+            #     "contentContact": {
+            #       "classType": "ContactInformation",
+            #       "handle": null,
+            #       "name": "May Cheh",
+            #       "title": null,
+            #       "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
+            #       "address1": "Building 38A, Room 9E902",
+            #       "address2": "8600 Rockville Pike",
+            #       "city": "Bethesda",
+            #       "stateOrProvince": "MD",
+            #       "country": null,
+            #       "zipCode": "20894",
+            #       "telephone": null,
+            #       "fax": null,
+            #       "email": "cheh@nlm.nih.gov",
+            #       "url": null,
+            #       "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
+            #     },
+            #     "licenseContact": {
+            #       "classType": "ContactInformation",
+            #       "handle": null,
+            #       "name": "May Cheh",
+            #       "title": null,
+            #       "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
+            #       "address1": "Building 38A, Room 9E902",
+            #       "address2": "8600 Rockville Pike",
+            #       "city": "Bethesda",
+            #       "stateOrProvince": "MD",
+            #       "country": null,
+            #       "zipCode": "20894",
+            #       "telephone": null,
+            #       "fax": null,
+            #       "email": "cheh@nlm.nih.gov",
+            #       "url": null,
+            #       "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
+            #     },
+            #     "contextType": "FULL-NOSIB-MULTIPLE",
+            #     "shortName": "AI/RHEUM",
+            #     "hierarchicalName": null,
+            #     "preferredName": "AI/RHEUM, 1993",
+            #     "synonymousNames": null
+            #   },
+            # ...
+            # ]
+
+        :return: list of metadata about sources
+        """
+        url = f"{self._rest_uri}/metadata/{self.version}/sources"
+        return self._get_paginated(url)
+
+    @functools.cached_property
+    def source_metadata_index(self) -> Dict[str, Dict]:
+        """
+        Get source metadata indexed by abbreviation.
+
+        .. code-block: python
+
+            api.source_metadata_index.get("LNC")
+            # {
+            #   "classType": "RootSource",
+            #   "abbreviation": "LNC",
+            #   "expandedForm": "LOINC, 271",
+            #   "family": "LNC",
+            #   "language": {
+            #     "classType": "Language",
+            #     "abbreviation": "ENG",
+            #     "expandedForm": "English"
+            #   },
+            #   "restrictionLevel": 0,
+            #   "acquisitionContact": null,
+            #   "contentContact": {
+            #     "classType": "ContactInformation",
+            #     "handle": null,
+            #     "name": "LOINC c/o Regenstrief Institute",
+            #     "title": null,
+            #     "organization": "The Regenstrief Institute, Inc",
+            #     "address1": "1101 West 10th Street",
+            #     "address2": null,
+            #     "city": "Indianapolis",
+            #     "stateOrProvince": "IN",
+            #     "country": "United States",
+            #     "zipCode": "46202",
+            #     "telephone": "(317) 274-9000",
+            #     "fax": null,
+            #     "email": "loinc@loinc.org",
+            #     "url": "https://loinc.org/",
+            #     "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
+            #   },
+            #   "licenseContact": {
+            #     "classType": "ContactInformation",
+            #     "handle": null,
+            #     "name": "LOINC c/o Regenstrief Institute",
+            #     "title": null,
+            #     "organization": "The Regenstrief Institute, Inc",
+            #     "address1": "1101 West 10th Street",
+            #     "address2": null,
+            #     "city": "Indianapolis",
+            #     "stateOrProvince": "IN",
+            #     "country": "United States",
+            #     "zipCode": "46202",
+            #     "telephone": "(317) 274-9000",
+            #     "fax": null,
+            #     "email": "loinc@loinc.org",
+            #     "url": "https://loinc.org/",
+            #     "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
+            #   },
+            #   "contextType": "FULL-NOSIB-MULTIPLE",
+            #   "shortName": "LOINC",
+            #   "hierarchicalName": null,
+            #   "preferredName": "LOINC, 271",
+            #   "synonymousNames": [
+            #     "Logical Observation Identifier Names and Codes"
+            #   ]
+            # }
+
+        :return: source metadata indexed by abbreviation
+        """
+        index = {}
+        for datum in self._source_metadata:
+            abbr = datum["abbreviation"]
+            assert abbr not in index
+            index[abbr] = datum
+        return index
+
+    def find_source_info(self, name: str, fuzzy: bool = False) -> Optional[Dict]:
+        """
+        Find metadata for a source vocabulary.
+
+        :param name: the abbreviation or name of the vocab
+        :param fuzzy: do a fuzzy match on non abbreviation fields (i.e. "shortName")
+        :return:
+        """
+        data = self.source_metadata_index.get(name)
+        if data:
+            return data
+
+        abbr_upper = name.upper()
+        data = self.source_metadata_index.get(abbr_upper)
+        if data:
+            return data
+
+        abbr_mapped = const._COMMON_VOCAB_NAMES.get(abbr_upper)
+        data = self.source_metadata_index.get(abbr_mapped)
+        if data:
+            return data
+
+        if not fuzzy:
+            return None
+
+        # fuzzy matching
+        candidates = list(self.source_metadata_index.values())
+
+        def match_field(field_name: str, op):
+            results = list()
+            for c in candidates:
+                if c[field_name] and op(c[field_name].upper(), abbr_upper):
+                    results.append(c)
+            if not results:
+                return None
+
+            if len(results) == 1:
+                return results.pop()
+            else:
+                raise ValueError(
+                    f"Ambiguous vocab abbr '{name}' -- fuzzy match returned {len(results)} results.\n"
+                    f"{[_[field_name] for _ in results]}"
+                )
+
+        data = match_field("shortName", operator.eq)
+        if data:
+            return data
+
+        data = match_field("shortName", operator.contains)
+        if data:
+            return data
+
+        # no match
+        return None
+
+    def validate_source_abbrev(self, sab: str) -> str:
+        """
+        Look up the source info for the abbreviation. If it exists, return the properly normalized
+        abbreviation. Otherwise, raise.
+
+        .. code-block: python
+
+            api.validate_source_abbrev("snomed")
+            # "SNOMEDCT_US"
+
+            api.validate_source_abbrev("loinx")
+            # raises ValueError
+
+        :param sab: source abbreviation
+        :return: normalized source abbreviation
+        :raises ValueError: when abbreviation is invalid
+        """
+        info = self.find_source_info(sab)
+        if not info:
+            raise ValueError(f"No such vocabulary abbreviation '{sab}'")
+        else:
+            return info["abbreviation"]
+
+    @functools.lru_cache(maxsize=2)
+    def sources_for_language(self, lab: str) -> List[str]:
+        """
+        Get a list of source abbreviations associated with a given language (abbreviation).
+
+        .. code-block: python
+
+            api.sources_for_language("GER")
+            # ['DMDICD10', 'DMDUMD', 'ICPCGER', 'WHOGER',
+            #  'MDRGER', 'LNC-DE-AT', 'LNC-DE-DE', 'MSHGER']
+
+        :param lab: language abbreviation
+        :return: list of source abbreviations
+        """
+        return [
+            source["abbreviation"]
+            for source in self.source_metadata_index.values()
+            if source["language"]["abbreviation"] == lab
+        ]
+
+    def validate_language_abbrev(self, lab: str) -> str:
+        """
+        Look up the sources for language. If any exist, return the properly normalized language
+        abbreviation. Otherwise, raise.
+
+        .. code-block: python
+
+            api.validate_language_abbrev("fre")
+            # "FRE"
+
+            api.validate_language_abbrev("FRA")
+            # raises ValueError
+
+        :param lab: language abbreviation
+        :return: normalized abbreviation
+        :raises ValueError: if no sources exist for the language
+        """
+        abbr_upper = lab.upper()
+        if self.sources_for_language(abbr_upper):
+            return abbr_upper
+        raise ValueError(f"No sources found for language abbrev '{lab}'")
