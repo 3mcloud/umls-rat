@@ -274,7 +274,7 @@ class MetaThesaurus(object):
             #   "relationCount": 5
             # }
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :return: Concept Dict
@@ -301,7 +301,7 @@ class MetaThesaurus(object):
             #   }
             # ]
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -338,7 +338,7 @@ class MetaThesaurus(object):
             #   ...
             # ]
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -353,7 +353,7 @@ class MetaThesaurus(object):
         """
         Get Atoms for a concept.
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
 
         .. code-block:: python
 
@@ -392,7 +392,7 @@ class MetaThesaurus(object):
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`_
+        :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
         :return: list of Relation Dicts
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
@@ -404,7 +404,7 @@ class MetaThesaurus(object):
         """
         Get ancestors of an Atom
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`__
 
         .. code-block:: python
 
@@ -459,7 +459,7 @@ class MetaThesaurus(object):
         """
         Search UMLS!
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`__
 
         .. code-block:: python
 
@@ -494,7 +494,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" concept. e.g. a concept from SNOMED, LOINC, etc
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`__
 
         .. code-block:: python
 
@@ -546,7 +546,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" relations
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`__
 
         .. code-block::
 
@@ -591,7 +591,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" parents
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`__
 
         .. code-block:: python
 
@@ -639,7 +639,7 @@ class MetaThesaurus(object):
         """
         Get a "Source Asserted" ancestors
 
-        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`_
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
         .. code-block:: python
 

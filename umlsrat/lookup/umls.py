@@ -75,10 +75,11 @@ def term_search(
         for search_type in ("words", "normalizedWords", "approximate"):
             for input_type in ( "sourceConcept", "sourceDescriptor"):
                 # Search for the term with above params.
+                api.search(term, ...)
                 # If found, return.
                 ...
 
-    See: https://documentation.uts.nlm.nih.gov/rest/search/index.html
+    See: :py:func:`umlsrat.api.metathesaurus.MetaThesaurus.search`
 
     :param api: api object
     :param term: the term to search for
