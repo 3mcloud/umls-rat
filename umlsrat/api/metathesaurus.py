@@ -105,7 +105,7 @@ class MetaThesaurus(object):
         group.add_argument(
             "--no-cache", help="Do not use the cache", action="store_true"
         )
-        group.add_argument("--api-key", type=str, help="API key", required=True)
+        group.add_argument("--api-key", type=str, help="API key", default=None)
 
         return parser
 
