@@ -12,7 +12,7 @@ Get definitions for this out-dated "back" concept: `450807008`
 
 .. code-block:: console
 
-    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --api-key=${UMLS_API_KEY}
+    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US
 
 
 ::
@@ -28,7 +28,7 @@ Now get one in Spanish
 
 .. code-block:: console
 
-    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --target-language=SPA --api-key=${UMLS_API_KEY}
+    python definitions-dump.py --source-code=450807008 --source-vocab=SNOMEDCT_US --target-language=SPA
 
 
 ::
@@ -42,7 +42,7 @@ Look for a concept using the description only
 
 .. code-block:: console
 
-    python definitions-dump.py --source-desc="Physical therapy" --target-language=SPA --api-key=${UMLS_API_KEY}
+    python definitions-dump.py --source-desc="Physical therapy" --target-language=SPA
 
 ::
 
