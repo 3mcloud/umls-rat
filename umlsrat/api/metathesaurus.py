@@ -265,34 +265,35 @@ class MetaThesaurus(object):
         """
         Get a UMLS concept by CUI.
 
-        Example
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> MetaThesaurus().get_concept("C0009044")
 
-            api_instance.get_concept("C0009044")
-            # {
-            #   "ui": "C0009044",
-            #   "name": "Closed fracture of carpal bone",
-            #   "dateAdded": "09-30-1990",
-            #   "majorRevisionDate": "03-16-2016",
-            #   "classType": "Concept",
-            #   "suppressible": false,
-            #   "status": "R",
-            #   "semanticTypes": [
-            #     {
-            #       "name": "Injury or Poisoning",
-            #       "uri": "https://uts-ws.nlm.nih.gov/rest/semantic-network/2021AB/TUI/T037"
-            #     }
-            #   ],
-            #   "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms",
-            #   "definitions": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/definitions",
-            #   "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/relations",
-            #   "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms/preferred",
-            #   "atomCount": 71,
-            #   "cvMemberCount": 0,
-            #   "attributeCount": 0,
-            #   "relationCount": 5
-            # }
+        .. code-block:: js
+
+            {
+            "ui": "C0009044",
+            "name": "Closed fracture of carpal bone",
+            "dateAdded": "09-30-1990",
+            "majorRevisionDate": "03-16-2016",
+            "classType": "Concept",
+            "suppressible": false,
+            "status": "R",
+            "semanticTypes": [
+             {
+               "name": "Injury or Poisoning",
+               "uri": "https://uts-ws.nlm.nih.gov/rest/semantic-network/2021AB/TUI/T037"
+             }
+            ],
+            "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms",
+            "definitions": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/definitions",
+            "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/relations",
+            "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044/atoms/preferred",
+            "atomCount": 71,
+            "cvMemberCount": 0,
+            "attributeCount": 0,
+            "relationCount": 5
+            }
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`__
 
@@ -309,17 +310,19 @@ class MetaThesaurus(object):
         """
         Get the definitions for a concept.
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_definitions("C0009044"))
 
-            list(api.get_definitions("C0009044"))
-            # [
-            #   {
-            #     "rootSource": "NCI",
-            #     "value": "A traumatic break in one or more of the carpal bones that does not involve a break in the adjacent skin.",
-            #     "classType": "Definition",
-            #     "sourceOriginated": true
-            #   }
-            # ]
+        .. code-block:: js
+
+             [
+               {
+                 "rootSource": "NCI",
+                 "value": "A traumatic break in one or more of the carpal bones that does not involve a break in the adjacent skin.",
+                 "classType": "Definition",
+                 "sourceOriginated": true
+               }
+             ]
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/definitions/index.html>`__
 
@@ -336,29 +339,31 @@ class MetaThesaurus(object):
         """
         Get relations for a concept
 
-        .. code-block:: python
-
-            list(api.get_relations("C0009044"))
-            # [
-            #   {
-            #     "ui": "R03033072",
-            #     "suppressible": false,
-            #     "sourceUi": null,
-            #     "obsolete": false,
-            #     "sourceOriginated": false,
-            #     "rootSource": "MTH",
-            #     "relationLabel": "RO",
-            #     "additionalRelationLabel": "",
-            #     "groupId": null,
-            #     "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009353",
-            #     "relatedIdName": "Colles' Fracture",
-            #     "classType": "ConceptRelation",
-            #     "attributeCount": 0
-            #   },
-            #   ...
-            # ]
-
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/relations/index.html>`__
+
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_relations("C0009044"))
+
+        .. code-block:: js
+
+            [
+              {
+                "ui": "R03033072",
+                "suppressible": false,
+                "sourceUi": null,
+                "obsolete": false,
+                "sourceOriginated": false,
+                "rootSource": "MTH",
+                "relationLabel": "RO",
+                "additionalRelationLabel": "",
+                "groupId": null,
+                "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009353",
+                "relatedIdName": "Colles' Fracture",
+                "classType": "ConceptRelation",
+                "attributeCount": 0
+              },
+              ...
+            ]
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -375,40 +380,41 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_atoms(cui="C0009044", language="ENG"))
 
-            list(api.get_atoms(cui="C0009044", language="ENG"))
-            # [
-            #   {
-            #     "classType": "Atom",
-            #     "ui": "A0243916",
-            #     "sourceDescriptor": null,
-            #     "sourceConcept": null,
-            #     "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044",
-            #     "obsolete": "false",
-            #     "suppressible": "false",
-            #     "rootSource": "RCD",
-            #     "termType": "PT",
-            #     "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/S240.",
-            #     "language": "ENG",
-            #     "name": "Closed fracture of carpal bone",
-            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/attributes",
-            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/relations",
-            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/children",
-            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/descendants",
-            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/parents",
-            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/ancestors",
-            #     "contentViewMemberships": [
-            #       {
-            #         "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0243916",
-            #         "name": "MetaMap NLP View",
-            #         "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
-            #       }
-            #     ]
-            #   },
-            #   ...
-            # ]
+        .. code-block:: js
 
+            [
+              {
+                "classType": "Atom",
+                "ui": "A0243916",
+                "sourceDescriptor": null,
+                "sourceConcept": null,
+                "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044",
+                "obsolete": "false",
+                "suppressible": "false",
+                "rootSource": "RCD",
+                "termType": "PT",
+                "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/S240.",
+                "language": "ENG",
+                "name": "Closed fracture of carpal bone",
+                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/attributes",
+                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/relations",
+                "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/children",
+                "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/descendants",
+                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/parents",
+                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/ancestors",
+                "contentViewMemberships": [
+                  {
+                    "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0243916",
+                    "name": "MetaMap NLP View",
+                    "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
+                  }
+                ]
+              },
+              ...
+            ]
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
@@ -426,40 +432,41 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`__
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_ancestors(aui="A0243916"))
 
-            list(api.get_ancestors(aui="A0243916"))
+        .. code-block:: js
 
-            # [
-            #   {
-            #     "classType": "Atom",
-            #     "ui": "A0004658",
-            #     "sourceDescriptor": null,
-            #     "sourceConcept": null,
-            #     "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0016658",
-            #     "obsolete": "false",
-            #     "suppressible": "false",
-            #     "rootSource": "RCD",
-            #     "termType": "PT",
-            #     "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/XA0FK",
-            #     "language": "ENG",
-            #     "name": "Fracture",
-            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/attributes",
-            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/relations",
-            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/children",
-            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/descendants",
-            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/parents",
-            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/ancestors",
-            #     "contentViewMemberships": [
-            #       {
-            #         "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0004658",
-            #         "name": "MetaMap NLP View",
-            #         "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
-            #       }
-            #     ]
-            #   },
-            #   ...
-            # ]
+            [
+              {
+                "classType": "Atom",
+                "ui": "A0004658",
+                "sourceDescriptor": null,
+                "sourceConcept": null,
+                "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0016658",
+                "obsolete": "false",
+                "suppressible": "false",
+                "rootSource": "RCD",
+                "termType": "PT",
+                "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/XA0FK",
+                "language": "ENG",
+                "name": "Fracture",
+                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/attributes",
+                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/relations",
+                "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/children",
+                "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/descendants",
+                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/parents",
+                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0004658/ancestors",
+                "contentViewMemberships": [
+                  {
+                    "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0004658",
+                    "name": "MetaMap NLP View",
+                    "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357"
+                  }
+                ]
+              },
+              ...
+            ]
 
         :param aui: Atom Unique Identifier (AUI) for the UMLS Atom
         :param max_results: maximum number of result to return. None = no max
@@ -481,17 +488,19 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/search/index.html>`__
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> MetaThesaurus().search("cheese", max_results=1)
 
-            api.search("cheese", max_results=1)
-            # [
-            #   {
-            #     "ui": "C0007968",
-            #     "rootSource": "MTH",
-            #     "uri": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0007968",
-            #     "name": "Cheese"
-            #   }
-            # ]
+        .. code-block:: js
+
+            [
+              {
+                "ui": "C0007968",
+                "rootSource": "MTH",
+                "uri": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0007968",
+                "name": "Cheese"
+              }
+            ]
 
         :param query: search string
         :param max_results: maximum number of result to return. None = no max
@@ -516,37 +525,39 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`__
 
-        .. code-block:: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> MetaThesaurus().get_source_concept(source_vocab="snomed", concept_id="75508005")
 
-            api.get_source_concept(source_vocab="snomed", concept_id="75508005")
-            # {
-            #   "classType": "SourceAtomCluster",
-            #   "ui": "75508005",
-            #   "suppressible": false,
-            #   "obsolete": false,
-            #   "rootSource": "SNOMEDCT_US",
-            #   "atomCount": 2,
-            #   "cVMemberCount": 0,
-            #   "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/attributes",
-            #   "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms",
-            #   "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/ancestors",
-            #   "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/parents",
-            #   "children": null,
-            #   "descendants": null,
-            #   "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/relations",
-            #   "definitions": null,
-            #   "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=75508005&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi",
-            #   "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms/preferred",
-            #   "subsetMemberships": [
-            #     {
-            #       "memberUri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000/member/75508005",
-            #       "uri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000",
-            #       "name": "CTV3 simple map"
-            #     }
-            #   ],
-            #   "contentViewMemberships": [],
-            #   "name": "Dissecting"
-            # }
+        .. code-block:: js
+
+            {
+              "classType": "SourceAtomCluster",
+              "ui": "75508005",
+              "suppressible": false,
+              "obsolete": false,
+              "rootSource": "SNOMEDCT_US",
+              "atomCount": 2,
+              "cVMemberCount": 0,
+              "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/attributes",
+              "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms",
+              "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/ancestors",
+              "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/parents",
+              "children": null,
+              "descendants": null,
+              "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/relations",
+              "definitions": null,
+              "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=75508005&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi",
+              "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms/preferred",
+              "subsetMemberships": [
+                {
+                  "memberUri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000/member/75508005",
+                  "uri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000",
+                  "name": "CTV3 simple map"
+                }
+              ],
+              "contentViewMemberships": [],
+              "name": "Dissecting"
+            }
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -568,29 +579,36 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`__
 
-        .. code-block::
+        .. code-block:: python
 
-             api.get_source_relations(source_vocab="MSH", concept_id="D002415",
-                                        includeRelationLabels="RN,CHD", language="ENG")
-            # [
-            #   {
-            #     "ui": "R71237095",
-            #     "suppressible": false,
-            #     "sourceUi": null,
-            #     "obsolete": false,
-            #     "sourceOriginated": false,
-            #     "rootSource": "MSH",
-            #     "groupId": null,
-            #     "attributeCount": 0,
-            #     "classType": "AtomClusterRelation",
-            #     "relatedFromId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002415",
-            #     "relatedFromIdName": "Cats",
-            #     "relationLabel": "CHD",
-            #     "additionalRelationLabel": "",
-            #     "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991",
-            #     "relatedIdName": "Felis"
-            #   }
-            # ]
+            from umlsrat.api.metathesaurus import MetaThesaurus
+            list(MetaThesaurus().get_source_relations(source_vocab="MSH",
+                                                      concept_id="D002415",
+                                                      includeRelationLabels="RN,CHD",
+                                                      language="ENG"))
+
+
+        .. code-block:: js
+
+            [
+              {
+                "ui": "R71237095",
+                "suppressible": false,
+                "sourceUi": null,
+                "obsolete": false,
+                "sourceOriginated": false,
+                "rootSource": "MSH",
+                "groupId": null,
+                "attributeCount": 0,
+                "classType": "AtomClusterRelation",
+                "relatedFromId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002415",
+                "relatedFromIdName": "Cats",
+                "relationLabel": "CHD",
+                "additionalRelationLabel": "",
+                "relatedId": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991",
+                "relatedIdName": "Felis"
+              }
+            ]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -613,33 +631,36 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`__
 
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_source_parents(source_vocab="MSH", concept_id="D002415"))
+
+
         .. code-block:: python
 
-             list(api.get_source_parents(source_vocab="MSH", concept_id="D002415"))
-            # [
-            #   {
-            #     "classType": "SourceAtomCluster",
-            #     "ui": "D045991",
-            #     "suppressible": false,
-            #     "obsolete": false,
-            #     "rootSource": "MSH",
-            #     "atomCount": 1,
-            #     "cVMemberCount": 0,
-            #     "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/attributes",
-            #     "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms",
-            #     "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/ancestors",
-            #     "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/parents",
-            #     "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/children",
-            #     "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/descendants",
-            #     "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/relations",
-            #     "definitions": null,
-            #     "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D045991&sabs=MSH&searchType=exact&inputType=sourceUi",
-            #     "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms/preferred",
-            #     "subsetMemberships": [],
-            #     "contentViewMemberships": [],
-            #     "name": "Felis"
-            #   }
-            # ]
+            [
+              {
+                "classType": "SourceAtomCluster",
+                "ui": "D045991",
+                "suppressible": false,
+                "obsolete": false,
+                "rootSource": "MSH",
+                "atomCount": 1,
+                "cVMemberCount": 0,
+                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/attributes",
+                "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms",
+                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/ancestors",
+                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/parents",
+                "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/children",
+                "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/descendants",
+                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/relations",
+                "definitions": null,
+                "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D045991&sabs=MSH&searchType=exact&inputType=sourceUi",
+                "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D045991/atoms/preferred",
+                "subsetMemberships": [],
+                "contentViewMemberships": [],
+                "name": "Felis"
+              }
+            ]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -661,30 +682,32 @@ class MetaThesaurus(object):
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_source_ancestors(**kwargs))
+
         .. code-block:: python
 
-            list(api.get_source_ancestors(**kwargs))
-            # [{'ancestors': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/ancestors',
-            #   'atomCount': 1,
-            #   'atoms': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms',
-            #   'attributes': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/attributes',
-            #   'cVMemberCount': 0,
-            #   'children': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/children',
-            #   'classType': 'SourceAtomCluster',
-            #   'concepts': 'https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D002335&sabs=MSH&searchType=exact&inputType=sourceUi',
-            #   'contentViewMemberships': [],
-            #   'defaultPreferredAtom': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms/preferred',
-            #   'definitions': None,
-            #   'descendants': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/descendants',
-            #   'name': 'Carnivora',
-            #   'obsolete': False,
-            #   'parents': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/parents',
-            #   'relations': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/relations',
-            #   'rootSource': 'MSH',
-            #   'subsetMemberships': [],
-            #   'suppressible': False,
-            #   'ui': 'D002335'},
-            #  ...]
+            [{'ancestors': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/ancestors',
+              'atomCount': 1,
+              'atoms': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms',
+              'attributes': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/attributes',
+              'cVMemberCount': 0,
+              'children': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/children',
+              'classType': 'SourceAtomCluster',
+              'concepts': 'https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=D002335&sabs=MSH&searchType=exact&inputType=sourceUi',
+              'contentViewMemberships': [],
+              'defaultPreferredAtom': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/atoms/preferred',
+              'definitions': None,
+              'descendants': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/descendants',
+              'name': 'Carnivora',
+              'obsolete': False,
+              'parents': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/parents',
+              'relations': 'https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/MSH/D002335/relations',
+              'rootSource': 'MSH',
+              'subsetMemberships': [],
+              'suppressible': False,
+              'ui': 'D002335'},
+             ...]
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
@@ -704,67 +727,68 @@ class MetaThesaurus(object):
         """
         Get metadata for UMLS sources.
 
-        .. code-block: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().source_metadata)
 
-            list(api.source_metadata)
+        .. code-block: js
 
-            # [
-            #   {
-            #     "classType": "RootSource",
-            #     "abbreviation": "AIR",
-            #     "expandedForm": "AI/RHEUM, 1993",
-            #     "family": "AIR",
-            #     "language": {
-            #       "classType": "Language",
-            #       "abbreviation": "ENG",
-            #       "expandedForm": "English"
-            #     },
-            #     "restrictionLevel": 0,
-            #     "acquisitionContact": null,
-            #     "contentContact": {
-            #       "classType": "ContactInformation",
-            #       "handle": null,
-            #       "name": "May Cheh",
-            #       "title": null,
-            #       "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
-            #       "address1": "Building 38A, Room 9E902",
-            #       "address2": "8600 Rockville Pike",
-            #       "city": "Bethesda",
-            #       "stateOrProvince": "MD",
-            #       "country": null,
-            #       "zipCode": "20894",
-            #       "telephone": null,
-            #       "fax": null,
-            #       "email": "cheh@nlm.nih.gov",
-            #       "url": null,
-            #       "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
-            #     },
-            #     "licenseContact": {
-            #       "classType": "ContactInformation",
-            #       "handle": null,
-            #       "name": "May Cheh",
-            #       "title": null,
-            #       "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
-            #       "address1": "Building 38A, Room 9E902",
-            #       "address2": "8600 Rockville Pike",
-            #       "city": "Bethesda",
-            #       "stateOrProvince": "MD",
-            #       "country": null,
-            #       "zipCode": "20894",
-            #       "telephone": null,
-            #       "fax": null,
-            #       "email": "cheh@nlm.nih.gov",
-            #       "url": null,
-            #       "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
-            #     },
-            #     "contextType": "FULL-NOSIB-MULTIPLE",
-            #     "shortName": "AI/RHEUM",
-            #     "hierarchicalName": null,
-            #     "preferredName": "AI/RHEUM, 1993",
-            #     "synonymousNames": null
-            #   },
-            # ...
-            # ]
+            [
+              {
+                "classType": "RootSource",
+                "abbreviation": "AIR",
+                "expandedForm": "AI/RHEUM, 1993",
+                "family": "AIR",
+                "language": {
+                  "classType": "Language",
+                  "abbreviation": "ENG",
+                  "expandedForm": "English"
+                },
+                "restrictionLevel": 0,
+                "acquisitionContact": null,
+                "contentContact": {
+                  "classType": "ContactInformation",
+                  "handle": null,
+                  "name": "May Cheh",
+                  "title": null,
+                  "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
+                  "address1": "Building 38A, Room 9E902",
+                  "address2": "8600 Rockville Pike",
+                  "city": "Bethesda",
+                  "stateOrProvince": "MD",
+                  "country": null,
+                  "zipCode": "20894",
+                  "telephone": null,
+                  "fax": null,
+                  "email": "cheh@nlm.nih.gov",
+                  "url": null,
+                  "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
+                },
+                "licenseContact": {
+                  "classType": "ContactInformation",
+                  "handle": null,
+                  "name": "May Cheh",
+                  "title": null,
+                  "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
+                  "address1": "Building 38A, Room 9E902",
+                  "address2": "8600 Rockville Pike",
+                  "city": "Bethesda",
+                  "stateOrProvince": "MD",
+                  "country": null,
+                  "zipCode": "20894",
+                  "telephone": null,
+                  "fax": null,
+                  "email": "cheh@nlm.nih.gov",
+                  "url": null,
+                  "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
+                },
+                "contextType": "FULL-NOSIB-MULTIPLE",
+                "shortName": "AI/RHEUM",
+                "hierarchicalName": null,
+                "preferredName": "AI/RHEUM, 1993",
+                "synonymousNames": null
+              },
+            ...
+            ]
 
         :return: list of metadata about sources
         """
@@ -776,65 +800,67 @@ class MetaThesaurus(object):
         """
         Get source metadata indexed by abbreviation.
 
-        .. code-block: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> MetaThesaurus().source_metadata_index.get("LNC")
 
-            api.source_metadata_index.get("LNC")
-            # {
-            #   "classType": "RootSource",
-            #   "abbreviation": "LNC",
-            #   "expandedForm": "LOINC, 271",
-            #   "family": "LNC",
-            #   "language": {
-            #     "classType": "Language",
-            #     "abbreviation": "ENG",
-            #     "expandedForm": "English"
-            #   },
-            #   "restrictionLevel": 0,
-            #   "acquisitionContact": null,
-            #   "contentContact": {
-            #     "classType": "ContactInformation",
-            #     "handle": null,
-            #     "name": "LOINC c/o Regenstrief Institute",
-            #     "title": null,
-            #     "organization": "The Regenstrief Institute, Inc",
-            #     "address1": "1101 West 10th Street",
-            #     "address2": null,
-            #     "city": "Indianapolis",
-            #     "stateOrProvince": "IN",
-            #     "country": "United States",
-            #     "zipCode": "46202",
-            #     "telephone": "(317) 274-9000",
-            #     "fax": null,
-            #     "email": "loinc@loinc.org",
-            #     "url": "https://loinc.org/",
-            #     "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
-            #   },
-            #   "licenseContact": {
-            #     "classType": "ContactInformation",
-            #     "handle": null,
-            #     "name": "LOINC c/o Regenstrief Institute",
-            #     "title": null,
-            #     "organization": "The Regenstrief Institute, Inc",
-            #     "address1": "1101 West 10th Street",
-            #     "address2": null,
-            #     "city": "Indianapolis",
-            #     "stateOrProvince": "IN",
-            #     "country": "United States",
-            #     "zipCode": "46202",
-            #     "telephone": "(317) 274-9000",
-            #     "fax": null,
-            #     "email": "loinc@loinc.org",
-            #     "url": "https://loinc.org/",
-            #     "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
-            #   },
-            #   "contextType": "FULL-NOSIB-MULTIPLE",
-            #   "shortName": "LOINC",
-            #   "hierarchicalName": null,
-            #   "preferredName": "LOINC, 271",
-            #   "synonymousNames": [
-            #     "Logical Observation Identifier Names and Codes"
-            #   ]
-            # }
+        .. code-block: js
+
+            {
+              "classType": "RootSource",
+              "abbreviation": "LNC",
+              "expandedForm": "LOINC, 271",
+              "family": "LNC",
+              "language": {
+                "classType": "Language",
+                "abbreviation": "ENG",
+                "expandedForm": "English"
+              },
+              "restrictionLevel": 0,
+              "acquisitionContact": null,
+              "contentContact": {
+                "classType": "ContactInformation",
+                "handle": null,
+                "name": "LOINC c/o Regenstrief Institute",
+                "title": null,
+                "organization": "The Regenstrief Institute, Inc",
+                "address1": "1101 West 10th Street",
+                "address2": null,
+                "city": "Indianapolis",
+                "stateOrProvince": "IN",
+                "country": "United States",
+                "zipCode": "46202",
+                "telephone": "(317) 274-9000",
+                "fax": null,
+                "email": "loinc@loinc.org",
+                "url": "https://loinc.org/",
+                "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
+              },
+              "licenseContact": {
+                "classType": "ContactInformation",
+                "handle": null,
+                "name": "LOINC c/o Regenstrief Institute",
+                "title": null,
+                "organization": "The Regenstrief Institute, Inc",
+                "address1": "1101 West 10th Street",
+                "address2": null,
+                "city": "Indianapolis",
+                "stateOrProvince": "IN",
+                "country": "United States",
+                "zipCode": "46202",
+                "telephone": "(317) 274-9000",
+                "fax": null,
+                "email": "loinc@loinc.org",
+                "url": "https://loinc.org/",
+                "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
+              },
+              "contextType": "FULL-NOSIB-MULTIPLE",
+              "shortName": "LOINC",
+              "hierarchicalName": null,
+              "preferredName": "LOINC, 271",
+              "synonymousNames": [
+                "Logical Observation Identifier Names and Codes"
+              ]
+            }
 
         :return: source metadata indexed by abbreviation
         """
@@ -906,11 +932,12 @@ class MetaThesaurus(object):
         abbreviation. Otherwise, raise.
 
         .. code-block: python
+            from umlsrat.api.metathesaurus import MetaThesaurus
 
-            api.validate_source_abbrev("snomed")
+            MetaThesaurus().validate_source_abbrev("snomed")
             # "SNOMEDCT_US"
 
-            api.validate_source_abbrev("loinx")
+            MetaThesaurus().validate_source_abbrev("loinx")
             # raises ValueError
 
         :param sab: source abbreviation
@@ -928,11 +955,13 @@ class MetaThesaurus(object):
         """
         Get a list of source abbreviations associated with a given language (abbreviation).
 
-        .. code-block: python
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> MetaThesaurus().sources_for_language("GER")
 
-            api.sources_for_language("GER")
-            # ['DMDICD10', 'DMDUMD', 'ICPCGER', 'WHOGER',
-            #  'MDRGER', 'LNC-DE-AT', 'LNC-DE-DE', 'MSHGER']
+        .. code-block: js
+
+            ['DMDICD10', 'DMDUMD', 'ICPCGER', 'WHOGER',
+             'MDRGER', 'LNC-DE-AT', 'LNC-DE-DE', 'MSHGER']
 
         :param lab: language abbreviation
         :return: list of source abbreviations
@@ -949,11 +978,12 @@ class MetaThesaurus(object):
         abbreviation. Otherwise, raise.
 
         .. code-block: python
+            from umlsrat.api.metathesaurus import MetaThesaurus
 
-            api.validate_language_abbrev("fre")
+            MetaThesaurus().validate_language_abbrev("fre")
             # "FRE"
 
-            api.validate_language_abbrev("FRA")
+            MetaThesaurus().validate_language_abbrev("FRA")
             # raises ValueError
 
         :param lab: language abbreviation

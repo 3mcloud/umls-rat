@@ -34,9 +34,11 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx_rtd_theme",
+    "sphinx_copybutton",
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 autodoc_typehints = "both"
+copybutton_prompt_text = ">>> "
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

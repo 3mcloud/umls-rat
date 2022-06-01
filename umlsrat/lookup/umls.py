@@ -68,6 +68,7 @@ def term_search(
     """
     Search for a term in UMLS. Increasing the flexibility of the search with each iteration.
 
+    Pseudo-Python code looks like this:
 
     .. code-block:: python
 
