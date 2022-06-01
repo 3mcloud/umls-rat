@@ -5,12 +5,7 @@ from umlsrat.api.metathesaurus import MetaThesaurus
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--api-key",
-        type=str,
-        help="API key",
-        required=True,
-    )
+    parser.addoption("--api-key", type=str, help="API key", default=None)
     parser.addoption("--no-cache", help="Do not use cache", action="store_true")
     parser.addoption(
         "--umls-version",
@@ -22,34 +17,21 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def _no_cache(request):
-    value = request.config.option.no_cache
-    if value is None:
-        pytest.skip()
-        return None
-
-    return value
+    return request.config.option.no_cache
 
 
 @pytest.fixture(scope="session")
 def _umls_version(request):
-    value = request.config.option.umls_version
-    if value is None:
-        pytest.skip()
-        return None
-
-    return value
+    return request.config.option.umls_version
 
 
 @pytest.fixture(scope="session")
-def api_key(request):
-    api_key = request.config.option.api_key
-    if api_key is None:
-        pytest.skip()
-        return None
-
-    return api_key
+def _api_key(request):
+    return request.config.option.api_key
 
 
 @pytest.fixture(scope="session")
-def api(api_key, _no_cache, _umls_version):
-    return MetaThesaurus(api_key, version=_umls_version, use_cache=not _no_cache)
+def api(_api_key, _no_cache, _umls_version):
+    return MetaThesaurus(
+        api_key=_api_key, version=_umls_version, use_cache=not _no_cache
+    )

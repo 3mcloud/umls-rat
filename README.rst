@@ -13,12 +13,14 @@ Install
 Usage
 =====
 
-Included is one sample entry point ``definitions-dump.py``. See :doc:`/examples` for more information.
+Before you get started, you first need to `get an API key from UMLS <https://uts.nlm.nih.gov/uts/signup-login>`__. This key is passed to the :py:class:`umlsrat.api.metathesaurus.MetaThesaurus` constructor. Perhaps easier, set the ``UMLS_API_KEY`` environment variable which is read when no key is passed. 
+
 
 SSL
 ---
 
 Note that you may need to add an SSL certificate which can be done by setting the ``REQUESTS_CA_BUNDLE`` environment variable. `See here for more info <https://requests.readthedocs.io/en/master/user/advanced/#ssl-cert-verification>`__. 
+
 
 Development
 ===========
