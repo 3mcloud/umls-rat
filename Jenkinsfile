@@ -1,6 +1,6 @@
 pipeline {
     triggers {
-        cron(env.BRANCH_NAME == 'main' ? 'H H * * *' : '')
+        cron(env.BRANCH_NAME == 'main' ? 'H H * * 1' : '')
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '12'))
