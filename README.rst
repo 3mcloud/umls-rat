@@ -11,12 +11,17 @@ Install
     pip install umls-rat
 
 Usage
------
+=====
 
 Included is one sample entry point ``definitions-dump.py``. See :doc:`/examples` for more information.
 
+SSL
+---
+
+Note that you may need to configure an SSL certificate. `See here for more info <https://requests.readthedocs.io/en/master/user/advanced/#ssl-cert-verification>`__. 
+
 Development
------------
+===========
 
 Install requirements. 
 
@@ -45,7 +50,7 @@ The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UML
 
 
 Links
------
+=====
 
 * `Source on Github <https://github.mmm.com/OneNLU/umls-rat>`_.
 * `Latest documentation <https://jenkins.firebird.mmm.com/job/MMODAL/job/NLU-ML-Libraries/job/umls-rat/job/main/Documentation/index.html#>`_.
