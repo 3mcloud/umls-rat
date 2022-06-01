@@ -33,24 +33,24 @@ Install requirements.
 
     pip install -r requirements.txt
 
-Execute unit tests with your API key. 
+Execute unit tests. Set ``UMLS_API_KEY`` or pass in with ``--api-key`` arg.
 
 .. code-block:: console
 
-    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY}
+    PYTHONPATH=. pytest -vs tests
 
 Cached requests are stored in ``~/.cache/umls-rat``. Caching can be disabled when running the tests, with the ``--no-cache`` flag, eg
 
 .. code-block:: console
 
-    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY} --no-cache
+    PYTHONPATH=. pytest -vs tests --no-cache
 
 
 The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UMLS_VERSION`. The version used for testing can be modified at runtime with the ``--umls-version`` arg, eg
 
 .. code-block:: console
 
-    PYTHONPATH=. pytest -vs tests --api-key=${UMLS_API_KEY} --no-cache --umls-version current
+    PYTHONPATH=. pytest -vs tests --no-cache --umls-version current
 
 
 Links
