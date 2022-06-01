@@ -49,6 +49,8 @@ pipeline {
                         sh 'python -m pytest -p no:cacheprovider -v --junitxml unittests.xml tests/'
                         // running again should use cached requests, be super speedy, and also still work
                         sh 'python -m pytest -p no:cacheprovider -v --junitxml unittests-cached.xml tests/'
+                        // make sure this script works
+                        sh 'python definitions-dump.py --source-desc="Wild Animal" --target-language=SPA'
                     }
                 }
             }

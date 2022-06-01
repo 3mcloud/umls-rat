@@ -72,20 +72,24 @@ def main():
         target_lang=target_language,
     )
 
-    logger.info("Definitions:\n\n" + definitions_to_md(definitions))
+    markdown = definitions_to_md(definitions)
+    logger.info("Definitions:\n\n" + markdown)
 
     out_dir = args.out_dir
     out_dir = os.path.join(out_dir, target_language)
 
     if source_code:
-        out_file = f"{source_vocab}-{source_code}.json"
+        of_base = f"{source_vocab}-{source_code}"
     else:
-        out_file = f"{source_desc}.json"
+        of_base = f"{source_desc}"
 
     os.makedirs(out_dir, exist_ok=True)
 
-    with open(os.path.join(out_dir, out_file), "w", encoding="utf-8") as ofp:
+    with open(os.path.join(out_dir, f"{of_base}.json"), "w", encoding="utf-8") as ofp:
         json.dump(definitions, ofp, indent=2)
+
+    with open(os.path.join(out_dir, f"{of_base}.md"), "w", encoding="utf-8") as ofp:
+        print(markdown, file=ofp)
 
 
 if __name__ == "__main__":
