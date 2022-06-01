@@ -18,7 +18,7 @@ Included is one sample entry point ``definitions-dump.py``. See :doc:`/examples`
 SSL
 ---
 
-Note that you may need to configure an SSL certificate. `See here for more info <https://requests.readthedocs.io/en/master/user/advanced/#ssl-cert-verification>`__. 
+Note that you may need to add an SSL certificate which can be done by setting the ``REQUESTS_CA_BUNDLE`` environment variable. `See here for more info <https://requests.readthedocs.io/en/master/user/advanced/#ssl-cert-verification>`__. 
 
 Development
 ===========
