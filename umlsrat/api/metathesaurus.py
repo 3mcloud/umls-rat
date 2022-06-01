@@ -56,7 +56,7 @@ class MetaThesaurus(object):
 
     def __init__(
         self,
-        api_key: Optional[str],
+        api_key: Optional[str] = None,
         version: Optional[str] = None,
         use_cache: Optional[bool] = True,
     ):
