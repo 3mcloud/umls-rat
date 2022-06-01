@@ -87,6 +87,14 @@ class MetaThesaurus(object):
         self._use_cache = use_cache
         self._session = api_session() if use_cache else uncached_session()
 
+        if self._use_cache and self.version == "current":
+            # may want to simply disable caching if version is 'current'
+            self._logger.warning(
+                "Version is 'current' and caching is enabled! "
+                "API contents may change while the cache will not unless "
+                "cleared."
+            )
+
     @staticmethod
     def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         """
