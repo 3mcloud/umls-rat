@@ -3,6 +3,7 @@ import functools
 import json
 import logging
 import operator
+import os
 from typing import Any, Dict, Iterator, List, Optional
 
 from requests import HTTPError
@@ -55,18 +56,28 @@ class MetaThesaurus(object):
 
     def __init__(
         self,
-        api_key: str,
+        api_key: Optional[str],
         version: Optional[str] = None,
         use_cache: Optional[bool] = True,
     ):
         """
         Constructor.
 
-        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`_
+        If ``api_key`` is not passed, the value will be read from the ``UMLS_API_KEY`` environment variable.
+
+        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__
         :param version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
         :param use_cache: use cache for requests (default ``True``)
         """
-        self._api_key = api_key
+        if api_key:
+            self._api_key = api_key
+        else:
+            self._api_key = os.environ.get(const.API_KEY_ENV_VAR)
+            if not self._api_key:
+                raise KeyError(
+                    f"`api_key` not passed and `{const.API_KEY_ENV_VAR}` not set."
+                )
+
         if version:
             self.version = version
         else:
