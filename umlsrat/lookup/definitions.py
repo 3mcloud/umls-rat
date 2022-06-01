@@ -10,7 +10,6 @@ from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text, iterators
 from umlsrat.util.orderedset import FIFO
-from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -91,13 +90,15 @@ def _definitions_bfs(
     if target_vocabs:
         target_vocabs = set(target_vocabs)
         for tv in target_vocabs:
-            info = vocab_tools.get_vocab_info(tv)
+            info = api.find_source_info(tv)
             assert (
-                info.Language == target_lang
+                info.get("language").get("abbreviation") == target_lang
             ), f"Requested vocabulary {tv} is not in the target language {target_lang}"
     else:
-        target_vocabs = set(vocab_tools.vocabs_for_language(target_lang))
-        assert target_vocabs, f"No vocabularies for language code '{target_lang}'"
+        target_vocabs = set(api.sources_for_language(target_lang))
+        assert (
+            target_vocabs
+        ), f"No vocabularies for language abbreviation '{target_lang}'"
 
     # If we want to preserve semantic type, we need to get them for the start CUI
     start_sem_types = None

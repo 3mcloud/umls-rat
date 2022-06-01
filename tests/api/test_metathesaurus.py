@@ -236,6 +236,78 @@ def test_get_source_ancestors(api, kwargs, expected_names):
     assert names == expected_names
 
 
+def test_source_metadata(api):
+    assert sum(1 for _ in api._source_metadata) == 222
+
+
+@pytest.mark.parametrize(
+    ("sab", "exists"),
+    (
+        ("SNOMEDCT_US", True),
+        ("snomed", False),
+        ("LNC", True),
+        ("LOINC", False),
+        ("MM-LOINC", False),
+        ("MSH", True),
+    ),
+)
+def test_source_metadata_index(api, sab, exists):
+    metadata = api.source_metadata_index
+    if exists:
+        assert sab in metadata
+    else:
+        assert sab not in metadata
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_short_name"),
+    (
+        (dict(name="snomed"), "SNOMED CT, US Edition"),
+        (dict(name="SNOMEDCT_US"), "SNOMED CT, US Edition"),
+        (dict(name="LOINC", fuzzy=False), "LOINC"),
+        (dict(name="MESH", fuzzy=True), "MeSH"),
+        # this does not resolve
+        (dict(name="Spanish LOINC", fuzzy=True), None),
+    ),
+)
+def test_find_vocab_info(api, kwargs, expected_short_name):
+    result = api.find_source_info(**kwargs)
+    if not expected_short_name:
+        assert not result
+    else:
+        assert result
+        assert result["shortName"] == expected_short_name
+
+
+@pytest.mark.parametrize(
+    ("abbr", "expected_len", "expected_element"),
+    (
+        ("ENG", 150, "ICD10CM"),
+        ("SPA", 9, "MSHSPA"),
+        ("GER", 8, "MSHGER"),
+        ("CZE", 2, "MSHCZE"),
+        ("POL", 1, "MSHPOL"),
+        ("FRA", 0, None),  # FRA? Nope; FRE.
+        ("FRE", 8, "MSHFRE"),
+    ),
+)
+def test_vocabs_for_language(api, abbr, expected_len, expected_element):
+    result = api.sources_for_language(abbr)
+    assert len(result) == expected_len
+    assert not result or expected_element in result
+
+
+@pytest.mark.parametrize(
+    ("abbr", "expected"), (("ENG", "ENG"), ("eng", "ENG"), ("FRA", None))
+)
+def test_validate_language_abbrev(api, abbr, expected):
+    if expected is not None:
+        assert api.validate_language_abbrev(abbr) == expected
+    else:
+        with pytest.raises(ValueError):
+            api.validate_language_abbrev(abbr)
+
+
 def test_include_flags(api):
     uri = "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=10937761000119101&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi"
     res = list(api._get_results(uri))

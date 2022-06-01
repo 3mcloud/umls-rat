@@ -6,7 +6,6 @@ from typing import Optional, Dict, List, Iterator, Iterable
 from umlsrat.api import cui_order
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import text
-from umlsrat.vocabularies import vocab_tools
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -127,7 +126,7 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
 
     #. Search for this concept using search API
     #. Same search including Obsolete and Suppressible
-    #. Get synonymous (SY-related) concepts and search for those concepts
+    #. Get source-asserted synonymous (SY-related) concepts and search for those concepts
 
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. SNOMED
@@ -136,7 +135,7 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
     """
 
     assert source_ui
-    source_vocab = vocab_tools.validate_vocab_abbrev(source_vocab)
+    source_vocab = api.validate_source_abbrev(source_vocab)
 
     cuis = _do_cui_search(api, source_vocab, source_ui)
     if cuis:
@@ -165,12 +164,6 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
         cuis = _do_cui_search(api, rc_source, rc_ui)
         if cuis:
             return cuis
-
-    # check other relations -- this is questionable
-    # for rc_source, rc_ui in get_source_related("RO"):
-    #     cuis = _do_cui_search(api, rc_source, rc_ui)
-    #     if cuis:
-    #         return cuis
 
     return []
 
@@ -202,7 +195,7 @@ def _get_related_cuis(
             seen.add(next_cui)
 
     if language:
-        add_params["language"] = vocab_tools.validate_language(language)
+        add_params["language"] = api.validate_language_abbrev(language)
 
     # first get direct relations
     for rel in api.get_relations(cui, **add_params):
@@ -257,7 +250,7 @@ def get_related_cuis(
     language: str = None,
 ) -> List[str]:
     """
-    Get CUIs for related concepts.
+    Get CUIs for *all* related concepts.
 
     Concepts must be related via ``allowed_relations``. If no related concepts are
     found, try Obsolete and Suppressible.
