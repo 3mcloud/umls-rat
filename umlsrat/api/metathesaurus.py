@@ -6,6 +6,7 @@ import operator
 import os
 from typing import Any, Dict, Iterator, List, Optional
 
+from ratelimit import limits, sleep_and_retry
 from requests import HTTPError
 
 from umlsrat import const
@@ -121,6 +122,11 @@ class MetaThesaurus(object):
     def _logger(self):
         return logging.getLogger(self.__class__.__name__)
 
+    @sleep_and_retry
+    @limits(calls=20, period=1)
+    def _raw_get(self, url, params):
+        return self._session.get(url=url, params=params)
+
     def _get(
         self, url: str, strict: Optional[bool] = False, **params
     ) -> Optional[Dict]:
@@ -141,7 +147,7 @@ class MetaThesaurus(object):
 
         params["apiKey"] = self._api_key
         try:
-            response = self._session.get(url, params=params)
+            response = self._raw_get(url, params=params)
         except Exception as e:
             self._logger.exception("Failed to get %s", url)
             raise e

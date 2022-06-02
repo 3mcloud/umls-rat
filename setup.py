@@ -33,6 +33,6 @@ setup(
     url="https://github.mmm.com/OneNLU/umls-rat",
     include_package_data=True,
     packages=find_packages(),
-    install_requires=["requests", "requests-cache"],
+    install_requires=["requests", "requests-cache", "ratelimit"],
     python_requires=">=3.7",
 )
