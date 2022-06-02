@@ -65,6 +65,7 @@ pipeline {
             steps {
                 container(name: 'target'){
                     dir('docs') {
+                        sh 'python source-license-info.py'
                         sh 'make clean html'
                     }
                 }
