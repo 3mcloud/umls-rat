@@ -130,11 +130,11 @@ def _definitions_bfs(
     def visit(api: MetaThesaurus, current_cui: str, current_dist: int):
         current_concept = api.get_concept(current_cui)
 
-        defs_url = current_concept["definitions"]
-        if not defs_url:
+        # if this url is not populated, there certainly are no definitions
+        if not current_concept["definitions"]:
             return
 
-        definitions = list(api._get_results(defs_url))
+        definitions = list(api.get_definitions(current_cui))
 
         # filter defs not in target vocab
         if target_vocabs:
