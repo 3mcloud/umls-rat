@@ -32,7 +32,7 @@ def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
     """
     Extract results from response json.
     :param response_json:
-    :return:
+    :return: list of results or None if invalid
     """
     if not response_json:
         return None
@@ -174,7 +174,7 @@ class MetaThesaurus(object):
         :param url:
         :param max_results:
         :param params:
-        :return:
+        :return: generator yielding results
         """
         assert url
         if max_results is not None:
@@ -227,7 +227,7 @@ class MetaThesaurus(object):
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param max_results: maximum number of result to return. None = no max
         :param params: parameters sent with the get request
-        :return: generator yielding Dict results
+        :return: generator yielding results
         """
         return self._get_paginated(
             url=url,
@@ -241,7 +241,7 @@ class MetaThesaurus(object):
 
         :param url: URL under http://uts-ws.nlm.nih.gov/rest
         :param params: parameters sent with the get request
-        :return: a Dict result or None
+        :return: a result or None
         """
         response_json = self._get(url, **params)
         if not response_json:
@@ -298,7 +298,7 @@ class MetaThesaurus(object):
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/concept/index.html>`__
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
-        :return: Concept Dict
+        :return: Concept
         """
         assert cui
         uri = f"{self._start_content_uri}/CUI/{cui}"
@@ -328,7 +328,7 @@ class MetaThesaurus(object):
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :return: generator yielding Definition Dicts
+        :return: generator yielding Definition info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
         return self._get_results(uri, max_results=max_results)
@@ -367,7 +367,7 @@ class MetaThesaurus(object):
 
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
-        :return: generator yielding Relation Dicts
+        :return: generator yielding Relation info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self._get_results(uri, max_results=max_results, **params)
@@ -419,7 +419,7 @@ class MetaThesaurus(object):
         :param cui: Concept Unique Identifier (CUI) for the UMLS concept
         :param max_results: maximum number of result to return. None = no max
         :param params: additional params passed to the GET request See `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
-        :return: list of Relation Dicts
+        :return: list of Relation info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
         return self._get_results(uri, max_results=max_results, **params)
@@ -470,7 +470,7 @@ class MetaThesaurus(object):
 
         :param aui: Atom Unique Identifier (AUI) for the UMLS Atom
         :param max_results: maximum number of result to return. None = no max
-        :return: generator yielding Concept Dicts
+        :return: generator yielding Concepts
         """
         assert aui.startswith("A"), f"Invalid AUI '{aui}'"
         uri = f"{self._start_content_uri}/AUI/{aui}/ancestors"
@@ -505,7 +505,7 @@ class MetaThesaurus(object):
         :param query: search string
         :param max_results: maximum number of result to return. None = no max
         :param params: additional get request params
-        :return: generator over search results
+        :return: generator yielding search results
         """
         uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
         if "string" in params:
@@ -561,7 +561,7 @@ class MetaThesaurus(object):
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
-        :return: concept Dict or None
+        :return: concept or None
         """
         source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
@@ -612,7 +612,7 @@ class MetaThesaurus(object):
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
-        :return: generator over concept Dicts
+        :return: generator yielding concepts
         """
         source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
@@ -664,7 +664,7 @@ class MetaThesaurus(object):
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
-        :return: generator over concept Dicts
+        :return: generator yielding concepts
         """
         source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
@@ -711,7 +711,7 @@ class MetaThesaurus(object):
 
         :param source_vocab: source Vocabulary
         :param concept_id: concept ID
-        :return: generator over concept Dicts
+        :return: generator yielding concepts
         """
         source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
@@ -877,7 +877,7 @@ class MetaThesaurus(object):
 
         :param name: the abbreviation or name of the vocab
         :param fuzzy: do a fuzzy match on non abbreviation fields (i.e. "shortName")
-        :return:
+        :return: source info or None if it cannot be found
         """
         data = self.source_metadata_index.get(name)
         if data:

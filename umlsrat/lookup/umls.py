@@ -85,7 +85,7 @@ def term_search(
     :param term: the term to search for
     :param max_results: maximum number of results (default: 1000)
     :param strict_match: only allow strict matches (default: False)
-    :return: search result Dict
+    :return: search result
     """
     result = _term_search(api, term, max_results)
 
@@ -184,7 +184,7 @@ def _get_related_cuis(
     :param allowed_relations: relations of interest
     :param language: language of relations?
     :param add_params: additional parameters to be passed to the call
-    :return: generator over CUIs
+    :return: generator yielding CUIs
     """
 
     seen = {cui}
