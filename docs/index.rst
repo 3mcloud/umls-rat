@@ -13,6 +13,7 @@ Welcome to UMLS RAT's documentation!
 
    api
    examples
+   source-licenses
    
 
 Indices and tables
