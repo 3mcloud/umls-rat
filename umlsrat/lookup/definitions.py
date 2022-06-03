@@ -200,8 +200,7 @@ def _definitions_bfs(
 def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
-    include_broader: Optional[bool] = True,
-    include_narrower: Optional[bool] = True,
+    broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
     max_distance: Optional[int] = 0,
     target_vocabs: Optional[Iterable[str]] = None,
@@ -221,29 +220,25 @@ def definitions_bfs(
     :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
-    :param include_broader: search broader concepts
-    :param include_narrower: search narrower concepts
+    :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (Default = 0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
     """
-    assert (
-        include_broader or include_narrower
-    ), "`include_broader` or `include_narrower` must be true"
+
+    if not stop_on_found or max_distance:
+        logger.warning(
+            f"stop_on_found = {stop_on_found} and max_distance = {max_distance}; this "
+            f"could result in an unintentionally massive search space. Recommend setting "
+            f"`max_distance=2` and go from there."
+        )
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        broader = (
-            []
-            if not include_broader
-            else umls.get_broader_cuis(api, cui, language=target_lang)
-        )
-        narrower = (
-            []
-            if not include_narrower
-            else umls.get_narrower_cuis(api, cui, language=target_lang)
-        )
-        return broader + narrower
+        if broader:
+            return umls.get_broader_cuis(api, cui, language=target_lang)
+        else:
+            return umls.get_narrower_cuis(api, cui, language=target_lang)
 
     return _definitions_bfs(
         api=api,
@@ -262,8 +257,7 @@ def find_defined_concepts(
     source_vocab: str = None,
     source_ui: str = None,
     source_desc: str = None,
-    include_broader: Optional[bool] = True,
-    include_narrower: Optional[bool] = True,
+    broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_lang: str = "ENG",
@@ -287,10 +281,10 @@ def find_defined_concepts(
     :param source_vocab: source vocab
     :param source_ui: source code
     :param source_desc: source description
-    :param include_broader: search broader concepts
-    :param include_narrower: search narrower concepts
+    :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
+    :param max_distance: stop searching after reaching this distance from the original source
+    concept. (Default = 0 = Infinity)
     :param target_lang: target definitions in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
@@ -319,8 +313,7 @@ def find_defined_concepts(
         data = definitions_bfs(
             api,
             start_cui=start_cui,
-            include_broader=include_broader,
-            include_narrower=include_narrower,
+            broader=broader,
             stop_on_found=stop_on_found,
             max_distance=max_distance,
             target_lang=target_lang,
