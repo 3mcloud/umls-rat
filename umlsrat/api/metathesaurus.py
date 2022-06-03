@@ -21,7 +21,6 @@ class MetaThesaurus(object):
         """
         Constructor.
 
-
         :param umls_version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
         """
 
@@ -71,7 +70,7 @@ class MetaThesaurus(object):
         Construct new object using values from namespace.
 
         :param args: parsed args
-        :return: new session
+        :return: new instance
         """
         return MetaThesaurus(
             session=MetaThesaurusSession.from_namespace(args),
