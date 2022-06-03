@@ -1,7 +1,8 @@
+import json
 import logging
 import os
 from os.path import expanduser
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, List, Iterator
 
 from ratelimit import sleep_and_retry, limits
 from requests import Session, HTTPError, Response
@@ -42,6 +43,27 @@ def _interpret_none(value: Any):
         return [_interpret_none(_) for _ in value]
     else:
         return value
+
+
+def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
+    """
+    Extract results from response json.
+    :param response_json:
+    :return: list of results or None if invalid
+    """
+    if not response_json:
+        return None
+
+    results = response_json["result"]
+
+    if "results" in results:
+        results = results["results"]
+        if len(results) == 1 and not results[0].get("ui", True):
+            return None
+        else:
+            return results
+    else:
+        return results
 
 
 class MetaThesaurusSession(object):
@@ -86,10 +108,10 @@ class MetaThesaurusSession(object):
             return None
 
         response = self.session.get(url, params=params, only_if_cached=True)
-        if response.status_code != 504:
-            return response
-        else:
+        if response.status_code == 504:
             return None
+        else:
+            return response
 
     @sleep_and_retry
     @limits(calls=20, period=1)
@@ -131,3 +153,96 @@ class MetaThesaurusSession(object):
                 raise e
 
         return _interpret_none(response.json())
+
+    def get_results(
+        self,
+        url: str,
+        max_results: Optional[int] = None,
+        **params,
+    ) -> Iterator[Dict]:
+        """
+        Get data from arbitrary URI. Will return an empty list on 400 or 404
+        unless `strict=True` is in kwargs, in which case it will raise.
+
+        :param url: URL under http://uts-ws.nlm.nih.gov/rest
+        :param max_results: maximum number of result to return. None = no max
+        :param params: parameters sent with the get request
+        :return: generator yielding results
+        """
+        assert url
+        if max_results is not None:
+            assert max_results > 0, "max_results must be > 0"
+
+        response_json = self.get(url, **params)
+        if not response_json:
+            return
+
+        if "pageNumber" not in response_json:
+            raise ValueError(
+                "Expected pagination fields in response:\n"
+                "{}".format(json.dumps(response_json, indent=2))
+            )
+
+        if "pageNumber" not in params:
+            params["pageNumber"] = 1
+        else:
+            self._logger.warning(
+                "Starting pagination from page %d", params["pageNumber"]
+            )
+
+        n_yielded = 0
+        while True:
+            results = _default_extract_results(response_json)
+            if not results:
+                return
+
+            for r in results:
+                yield r
+                n_yielded += 1
+                if n_yielded == max_results:
+                    return
+
+            if response_json.get("pageCount", None) == params["pageNumber"]:
+                # no more pages
+                return
+
+            # next page
+            params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
+            response_json = self.get(url, **params)
+
+    # def get_results(
+    #     self, url: str, max_results: Optional[int] = None, **params
+    # ) -> Iterator[Dict]:
+    #     """
+    #     Get data from arbitrary URI. Will return an empty list on 400 or 404
+    #     unless `strict=True` is in kwargs, in which case it will raise.
+    #
+    #     :param url: URL under http://uts-ws.nlm.nih.gov/rest
+    #     :param max_results: maximum number of result to return. None = no max
+    #     :param params: parameters sent with the get request
+    #     :return: generator yielding results
+    #     """
+    #     return self.get_paginated(
+    #         url=url,
+    #         max_results=max_results,
+    #         **params,
+    #     )
+
+    def get_single_result(self, url: str, **params) -> Optional[Dict]:
+        """
+        When you know there will only be one coming back
+
+        :param url: URL under http://uts-ws.nlm.nih.gov/rest
+        :param params: parameters sent with the get request
+        :return: a result or None
+        """
+        response_json = self.get(url, **params)
+        if not response_json:
+            return
+
+        # This does happen, which is strange, but I guess that's okay
+        # assert "pageNumber" not in response_json, \
+        #     "Did not expect any pagination fields in response:\n" \
+        #     "{}".format(json.dumps(response_json, indent=2))
+
+        return response_json["result"]
