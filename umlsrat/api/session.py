@@ -237,24 +237,6 @@ class MetaThesaurusSession(object):
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
             response_json = self.get(url, **params)
 
-    # def get_results(
-    #     self, url: str, max_results: Optional[int] = None, **params
-    # ) -> Iterator[Dict]:
-    #     """
-    #     Get data from arbitrary URI. Will return an empty list on 400 or 404
-    #     unless `strict=True` is in kwargs, in which case it will raise.
-    #
-    #     :param url: URL under http://uts-ws.nlm.nih.gov/rest
-    #     :param max_results: maximum number of result to return. None = no max
-    #     :param params: parameters sent with the get request
-    #     :return: generator yielding results
-    #     """
-    #     return self.get_paginated(
-    #         url=url,
-    #         max_results=max_results,
-    #         **params,
-    #     )
-
     def get_single_result(self, url: str, **params) -> Optional[Dict]:
         """
         When you know there will only be one coming back
@@ -266,10 +248,5 @@ class MetaThesaurusSession(object):
         response_json = self.get(url, **params)
         if not response_json:
             return
-
-        # This does happen, which is strange, but I guess that's okay
-        # assert "pageNumber" not in response_json, \
-        #     "Did not expect any pagination fields in response:\n" \
-        #     "{}".format(json.dumps(response_json, indent=2))
 
         return response_json["result"]
