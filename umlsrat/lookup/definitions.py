@@ -26,7 +26,7 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> Set[str]:
         type_names.add(st["name"])
         st_uri = st.pop("uri", None)
         if st_uri:
-            st["data"] = api._get_single_result(st_uri)
+            st["data"] = api.session.get_single_result(st_uri)
 
     return type_names
 

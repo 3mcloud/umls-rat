@@ -156,7 +156,9 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
             includeRelationLabels=label,
         )
 
-        concepts = [api._get_single_result(rel["relatedId"]) for rel in relations]
+        concepts = [
+            api.session.get_single_result(rel["relatedId"]) for rel in relations
+        ]
 
         return [(_["rootSource"], _["ui"]) for _ in concepts]
 
@@ -201,7 +203,7 @@ def _get_related_cuis(
     # first get direct relations
     for rel in api.get_relations(cui, **add_params):
         if rel["relationLabel"] in allowed_relations:
-            rel_c = api._get_single_result(rel["relatedId"])
+            rel_c = api.session.get_single_result(rel["relatedId"])
             yield from maybe_yield(rel_c["ui"])
 
     # get all atom concepts of this umls concept
@@ -215,7 +217,7 @@ def _get_related_cuis(
         if code_url.endswith("NOCODE"):
             continue
 
-        code = api._get_single_result(code_url)
+        code = api.session.get_single_result(code_url)
         if not code:
             raise ValueError(
                 f"Got null code for {code_url} from\n" f"{json.dumps(atom, indent=2)}"
@@ -231,12 +233,12 @@ def _get_related_cuis(
         )
 
         for rel in relations:
-            related = api._get_single_result(rel["relatedId"])
+            related = api.session.get_single_result(rel["relatedId"])
 
             if related.get("concept"):
-                concepts = (api._get_single_result(related["concept"]),)
+                concepts = (api.session.get_single_result(related["concept"]),)
             elif related.get("concepts"):
-                concepts = api._get_results(related["concepts"])
+                concepts = api.session.get_results(related["concepts"])
             else:
                 raise ValueError(f"Malformed result has no concept(s)\n{related}")
 

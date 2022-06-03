@@ -1,52 +1,11 @@
 import argparse
 import functools
-import json
 import logging
 import operator
-import os
-from typing import Any, Dict, Iterator, List, Optional
-
-from requests import HTTPError
+from typing import Dict, Iterator, List, Optional
 
 from umlsrat import const
-from umlsrat.api.session import api_session, uncached_session
-
-_NONE = "NONE"
-
-
-def _interpret_none(value: Any):
-    if isinstance(value, str):
-        if value == _NONE:
-            return None
-        else:
-            return value
-    elif isinstance(value, Dict):
-        return {key: _interpret_none(value) for key, value in value.items()}
-    elif isinstance(value, List):
-        return [_interpret_none(_) for _ in value]
-    else:
-        return value
-
-
-def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
-    """
-    Extract results from response json.
-    :param response_json:
-    :return: list of results or None if invalid
-    """
-    if not response_json:
-        return None
-
-    results = response_json["result"]
-
-    if "results" in results:
-        results = results["results"]
-        if len(results) == 1 and not results[0].get("ui", True):
-            return None
-        else:
-            return results
-    else:
-        return results
+from umlsrat.api.session import MetaThesaurusSession
 
 
 class MetaThesaurus(object):
@@ -56,38 +15,28 @@ class MetaThesaurus(object):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        version: Optional[str] = None,
-        use_cache: Optional[bool] = True,
+        session: Optional[MetaThesaurusSession] = None,
+        umls_version: Optional[str] = None,
     ):
         """
         Constructor.
 
-        If ``api_key`` is not passed, the value will be read from the ``UMLS_API_KEY`` environment variable.
-
-        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__
-        :param version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
-        :param use_cache: use cache for requests (default ``True``)
+        :param umls_version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
         """
-        if api_key:
-            self._api_key = api_key
-        else:
-            self._api_key = os.environ.get(const.API_KEY_ENV_VAR)
-            if not self._api_key:
-                raise KeyError(
-                    f"`api_key` not passed and `{const.API_KEY_ENV_VAR}` not set."
-                )
 
-        if version:
-            self.version = version
+        if session:
+            self.session = session
         else:
-            self.version = const.DEFAULT_UMLS_VERSION
+            self.session = MetaThesaurusSession()
+
+        if umls_version:
+            self.umls_version = umls_version
+        else:
+            self.umls_version = const.DEFAULT_UMLS_VERSION
 
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
-        self._use_cache = use_cache
-        self._session = api_session() if use_cache else uncached_session()
 
-        if self._use_cache and self.version == "current":
+        if self.session.use_cache and self.umls_version == "current":
             # may want to simply disable caching if version is 'current'
             self._logger.warning(
                 "Version is 'current' and caching is enabled! "
@@ -103,6 +52,8 @@ class MetaThesaurus(object):
         :param parser: parser
         :return: the same parser
         """
+        parser = MetaThesaurusSession.add_args(parser)
+
         group = parser.add_argument_group("MetaThesaurus")
         group.add_argument(
             "--umls-version",
@@ -110,156 +61,32 @@ class MetaThesaurus(object):
             help="UMLS version to use",
             default=const.DEFAULT_UMLS_VERSION,
         )
-        group.add_argument(
-            "--no-cache", help="Do not use the cache", action="store_true"
-        )
-        group.add_argument("--api-key", type=str, help="API key", default=None)
 
         return parser
+
+    @staticmethod
+    def from_namespace(args: argparse.Namespace) -> "MetaThesaurus":
+        """
+        Construct new object using values from namespace.
+
+        :param args: parsed args
+        :return: new instance
+        """
+        return MetaThesaurus(
+            session=MetaThesaurusSession.from_namespace(args),
+            umls_version=args.umls_version,
+        )
 
     @property
     def _logger(self):
         return logging.getLogger(self.__class__.__name__)
-
-    def _get(
-        self, url: str, strict: Optional[bool] = False, **params
-    ) -> Optional[Dict]:
-        """
-        Get data from arbitrary URI. Will return an empty list on 400 or 404
-        unless `strict=True`, in which case it will raise.
-
-        :param url: URL under http://uts-ws.nlm.nih.gov/rest
-        :param params: get parameters *excluding* `ticket`
-        :return: json response
-        """
-        assert url, "Must provide URL"
-
-        if "apiKey" in params:
-            self._logger.warning(
-                f"'apiKey' should not be in params! Will be overwritten..."
-            )
-
-        params["apiKey"] = self._api_key
-        try:
-            response = self._session.get(url, params=params)
-        except Exception as e:
-            self._logger.exception("Failed to get %s", url)
-            raise e
-
-        try:
-            response.raise_for_status()
-        except HTTPError as e:
-            if strict:
-                raise e
-
-            self._logger.debug("Caught HTTPError: %s", e)
-            if e.response.status_code == 400 or e.response.status_code == 404:
-                # we interpret this as "you're looking for something that isn't there"
-                return None
-            else:
-                raise e
-
-        return _interpret_none(response.json())
-
-    def _get_paginated(
-        self,
-        url: str,
-        max_results: Optional[int] = None,
-        **params,
-    ) -> Iterator[Dict]:
-        """
-        Keep iterating through pages of results until there are no more *or* we
-        reach max_results.
-
-        :param url:
-        :param max_results:
-        :param params:
-        :return: generator yielding results
-        """
-        assert url
-        if max_results is not None:
-            assert max_results > 0, "max_results must be > 0"
-
-        response_json = self._get(url, **params)
-        if not response_json:
-            return
-
-        if "pageNumber" not in response_json:
-            raise ValueError(
-                "Expected pagination fields in response:\n"
-                "{}".format(json.dumps(response_json, indent=2))
-            )
-
-        if "pageNumber" not in params:
-            params["pageNumber"] = 1
-        else:
-            self._logger.warning(
-                "Starting pagination from page %d", params["pageNumber"]
-            )
-
-        n_yielded = 0
-        while True:
-            results = _default_extract_results(response_json)
-            if not results:
-                return
-
-            for r in results:
-                yield r
-                n_yielded += 1
-                if n_yielded == max_results:
-                    return
-
-            if response_json.get("pageCount", None) == params["pageNumber"]:
-                # no more pages
-                return
-
-            # next page
-            params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
-            response_json = self._get(url, **params)
-
-    def _get_results(
-        self, url: str, max_results: Optional[int] = None, **params
-    ) -> Iterator[Dict]:
-        """
-        Get data from arbitrary URI. Will return an empty list on 400 or 404
-        unless `strict=True` is in kwargs, in which case it will raise.
-
-        :param url: URL under http://uts-ws.nlm.nih.gov/rest
-        :param max_results: maximum number of result to return. None = no max
-        :param params: parameters sent with the get request
-        :return: generator yielding results
-        """
-        return self._get_paginated(
-            url=url,
-            max_results=max_results,
-            **params,
-        )
-
-    def _get_single_result(self, url: str, **params) -> Optional[Dict]:
-        """
-        When you know there will only be one coming back
-
-        :param url: URL under http://uts-ws.nlm.nih.gov/rest
-        :param params: parameters sent with the get request
-        :return: a result or None
-        """
-        response_json = self._get(url, **params)
-        if not response_json:
-            return
-
-        # This does happen, which is strange, but I guess that's okay
-        # assert "pageNumber" not in response_json, \
-        #     "Did not expect any pagination fields in response:\n" \
-        #     "{}".format(json.dumps(response_json, indent=2))
-
-        return response_json["result"]
 
     #### UMLS ####
 
     @property
     def _start_content_uri(self) -> str:
         """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
-        return f"{self._rest_uri}/content/{self.version}"
+        return f"{self._rest_uri}/content/{self.umls_version}"
 
     def get_concept(self, cui: str) -> Dict:
         """
@@ -302,7 +129,7 @@ class MetaThesaurus(object):
         """
         assert cui
         uri = f"{self._start_content_uri}/CUI/{cui}"
-        return self._get_single_result(uri)
+        return self.session.get_single_result(uri)
 
     def get_definitions(
         self, cui: str, max_results: Optional[int] = None
@@ -331,7 +158,7 @@ class MetaThesaurus(object):
         :return: generator yielding Definition info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/definitions"
-        return self._get_results(uri, max_results=max_results)
+        return self.session.get_results(uri, max_results=max_results)
 
     def get_relations(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -370,7 +197,7 @@ class MetaThesaurus(object):
         :return: generator yielding Relation info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
-        return self._get_results(uri, max_results=max_results, **params)
+        return self.session.get_results(uri, max_results=max_results, **params)
 
     def get_atoms(
         self, cui: str, max_results: Optional[int] = None, **params
@@ -422,7 +249,7 @@ class MetaThesaurus(object):
         :return: list of Relation info objects
         """
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
-        return self._get_results(uri, max_results=max_results, **params)
+        return self.session.get_results(uri, max_results=max_results, **params)
 
     def get_ancestors(
         self, aui: str, max_results: Optional[int] = None
@@ -474,7 +301,7 @@ class MetaThesaurus(object):
         """
         assert aui.startswith("A"), f"Invalid AUI '{aui}'"
         uri = f"{self._start_content_uri}/AUI/{aui}/ancestors"
-        return self._get_results(uri, max_results=max_results)
+        return self.session.get_results(uri, max_results=max_results)
 
     ###
     # Search
@@ -507,13 +334,13 @@ class MetaThesaurus(object):
         :param params: additional get request params
         :return: generator yielding search results
         """
-        uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
+        uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.umls_version}"
         if "string" in params:
             self._logger.warning(
                 "Overwriting existing 'string' value %s", params["string"]
             )
         params["string"] = query
-        return self._get_results(uri, max_results=max_results, **params)
+        return self.session.get_results(uri, max_results=max_results, **params)
 
     ###
     # Source Asserted
@@ -566,7 +393,7 @@ class MetaThesaurus(object):
         source_vocab = self.validate_source_abbrev(source_vocab)
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}"
-        return self._get_single_result(uri)
+        return self.session.get_single_result(uri)
 
     def get_source_relations(
         self,
@@ -618,7 +445,7 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/relations"
 
-        return self._get_results(uri, **params)
+        return self.session.get_results(uri, **params)
 
     def get_source_parents(
         self,
@@ -670,7 +497,7 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/parents"
 
-        return self._get_results(uri)
+        return self.session.get_results(uri)
 
     def get_source_ancestors(
         self,
@@ -683,7 +510,7 @@ class MetaThesaurus(object):
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
         >>> from umlsrat.api.metathesaurus import MetaThesaurus
-        >>> list(MetaThesaurus().get_source_ancestors(**kwargs))
+        >>> list(MetaThesaurus().get_source_ancestors(source_vocab="MSH", concept_id="D002415"))
 
         .. code-block:: python
 
@@ -717,7 +544,7 @@ class MetaThesaurus(object):
         assert concept_id
         uri = f"{self._start_content_uri}/source/{source_vocab}/{concept_id}/ancestors"
 
-        return self._get_results(uri)
+        return self.session.get_results(uri)
 
     ##
     # Source vocabulary metadata and lookup.
@@ -727,73 +554,10 @@ class MetaThesaurus(object):
         """
         Get metadata for UMLS sources.
 
-        >>> from umlsrat.api.metathesaurus import MetaThesaurus
-        >>> list(MetaThesaurus().source_metadata)
-
-        .. code-block: js
-
-            [
-              {
-                "classType": "RootSource",
-                "abbreviation": "AIR",
-                "expandedForm": "AI/RHEUM, 1993",
-                "family": "AIR",
-                "language": {
-                  "classType": "Language",
-                  "abbreviation": "ENG",
-                  "expandedForm": "English"
-                },
-                "restrictionLevel": 0,
-                "acquisitionContact": null,
-                "contentContact": {
-                  "classType": "ContactInformation",
-                  "handle": null,
-                  "name": "May Cheh",
-                  "title": null,
-                  "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
-                  "address1": "Building 38A, Room 9E902",
-                  "address2": "8600 Rockville Pike",
-                  "city": "Bethesda",
-                  "stateOrProvince": "MD",
-                  "country": null,
-                  "zipCode": "20894",
-                  "telephone": null,
-                  "fax": null,
-                  "email": "cheh@nlm.nih.gov",
-                  "url": null,
-                  "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
-                },
-                "licenseContact": {
-                  "classType": "ContactInformation",
-                  "handle": null,
-                  "name": "May Cheh",
-                  "title": null,
-                  "organization": "Lister Hill National Center for Biomedical Communications, National Library of Medicine",
-                  "address1": "Building 38A, Room 9E902",
-                  "address2": "8600 Rockville Pike",
-                  "city": "Bethesda",
-                  "stateOrProvince": "MD",
-                  "country": null,
-                  "zipCode": "20894",
-                  "telephone": null,
-                  "fax": null,
-                  "email": "cheh@nlm.nih.gov",
-                  "url": null,
-                  "value": "|May Cheh||Lister Hill National Center for Biomedical Communications, National Library of Medicine|Building 38A, Room 9E902|8600 Rockville Pike|Bethesda|MD||20894|||cheh@nlm.nih.gov|"
-                },
-                "contextType": "FULL-NOSIB-MULTIPLE",
-                "shortName": "AI/RHEUM",
-                "hierarchicalName": null,
-                "preferredName": "AI/RHEUM, 1993",
-                "synonymousNames": null
-              },
-            ...
-            ]
-
         :return: list of metadata about sources
         """
-        url = f"{self._rest_uri}/metadata/{self.version}/sources"
-        return self._get_paginated(url)
+        url = f"{self._rest_uri}/metadata/{self.umls_version}/sources"
+        return self.session.get_results(url)
 
     @functools.cached_property
     def source_metadata_index(self) -> Dict[str, Dict]:
