@@ -58,145 +58,145 @@ def test_single_mesh_def(api, snomed_code, expected_def):
 @pytest.mark.parametrize(
     ("kwargs", "expected_names", "a_definition"),
     (
-        # (
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="282024004",
-        #         broader=True,
-        #         target_lang="ENG",
-        #     ),
-        #     ["Vertebral column"],
-        #     "The spinal or vertebral column.",
-        # ),
-        # (
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="48348007",
-        #         broader=True,
-        #         target_lang="ENG",
-        #     ),
-        #     ["Respiratory Sounds"],
-        #     "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
-        # ),
-        # (
-        #     dict(
-        #         source_desc="Cancer",
-        #         target_lang="SPA",
-        #         broader=True,
-        #     ),
-        #     ["Neoplasms"],
-        #     "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
-        # ),
-        # (
-        #     dict(
-        #         source_desc="Cancer",
-        #         broader=True,
-        #     ),
-        #     ["Malignant Neoplasms"],
-        #     "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
-        # ),
-        # (
-        #     # Right (qualifier value) (snomed/24028007)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="24028007",
-        #         source_desc="Right (qualifier value)",
-        #         broader=True,
-        #     ),
-        #     ["Right", "Lateral", "Side"],
-        #     "Being or located on or directed toward the side of the body to the east when facing north.",
-        # ),
-        # (
-        #     # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
-        #         source_desc="Protein-calorie malnutrition (disorder)",
-        #         broader=True,
-        #     ),
-        #     ["Protein-Energy Malnutrition"],
-        #     "A nutritional deficit that is caused by inadequate protein or calorie intake.",
-        # ),
-        # (
-        #     # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
-        #         source_desc="Anticoagulant",
-        #         broader=True,
-        #     ),
-        #     ["Anticoagulants"],
-        #     "Agents that prevent BLOOD CLOTTING.",
-        # ),
-        # (
-        #     # Bipolar joint prosthesis (physical object) (snomed/c31fc990-0824-4d8e-962b-86f56b33e580)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
-        #         source_desc="Bipolar joint prosthesis (physical object)",
-        #         broader=True,
-        #     ),
-        #     ["Joint Prosthesis (device)"],
-        #     "Prostheses used to partially or totally replace a human or animal joint.",
-        # ),
-        # (
-        #     # cannot find this one
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
-        #         source_desc="Faint (qualifier value)",
-        #         broader=True,
-        #         target_lang="ENG",
-        #         max_distance=1,
-        #     ),
-        #     [],
-        #     None,
-        # ),
-        # (
-        #     # This is clearly garbage...
-        #     # Bipolar (qualifier value) (snomed/260994008)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="260994008",
-        #         source_desc="Bipolar (qualifier value)",
-        #         broader=True,
-        #     ),
-        #     ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
-        #     "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
-        # ),
-        # (
-        #     # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="312886007",
-        #         source_desc="Entire costovertebral angle of twelfth rib (body structure)",
-        #         broader=True,
-        #     ),
-        #     ["Back", "Bona fide anatomical line"],
-        #     "The back or upper side of an animal.",
-        # ),
-        # (
-        #     # Cancer Society (snomed/9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
-        #         source_desc="Cancer Society",
-        #         broader=True,
-        #     ),
-        #     ["American Cancer Society"],
-        #     "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
-        # ),
-        # (
-        #     # Cancer Society (snomed/138875005)
-        #     dict(
-        #         source_vocab="snomed",
-        #         source_ui="138875005",
-        #         source_desc="Cancer Society",
-        #         broader=True,
-        #     ),
-        #     ["American Cancer Society"],
-        #     "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
-        # ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="282024004",
+                broader=True,
+                target_lang="ENG",
+            ),
+            ["Vertebral column"],
+            "The spinal or vertebral column.",
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="48348007",
+                broader=True,
+                target_lang="ENG",
+            ),
+            ["Respiratory Sounds"],
+            "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
+        ),
+        (
+            dict(
+                source_desc="Cancer",
+                target_lang="SPA",
+                broader=True,
+            ),
+            ["Neoplasms"],
+            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
+        ),
+        (
+            dict(
+                source_desc="Cancer",
+                broader=True,
+            ),
+            ["Malignant Neoplasms"],
+            "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
+        ),
+        (
+            # Right (qualifier value) (snomed/24028007)
+            dict(
+                source_vocab="snomed",
+                source_ui="24028007",
+                source_desc="Right (qualifier value)",
+                broader=True,
+            ),
+            ["Right", "Lateral", "Side"],
+            "Being or located on or directed toward the side of the body to the east when facing north.",
+        ),
+        (
+            # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
+            dict(
+                source_vocab="snomed",
+                source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
+                source_desc="Protein-calorie malnutrition (disorder)",
+                broader=True,
+            ),
+            ["Protein-Energy Malnutrition"],
+            "A nutritional deficit that is caused by inadequate protein or calorie intake.",
+        ),
+        (
+            # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
+            dict(
+                source_vocab="snomed",
+                source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
+                source_desc="Anticoagulant",
+                broader=True,
+            ),
+            ["Anticoagulants"],
+            "Agents that prevent BLOOD CLOTTING.",
+        ),
+        (
+            # Bipolar joint prosthesis (physical object) (snomed/c31fc990-0824-4d8e-962b-86f56b33e580)
+            dict(
+                source_vocab="snomed",
+                source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
+                source_desc="Bipolar joint prosthesis (physical object)",
+                broader=True,
+            ),
+            ["Joint Prosthesis (device)"],
+            "Prostheses used to partially or totally replace a human or animal joint.",
+        ),
+        (
+            # cannot find this one
+            dict(
+                source_vocab="snomed",
+                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
+                source_desc="Faint (qualifier value)",
+                broader=True,
+                target_lang="ENG",
+                max_distance=1,
+            ),
+            [],
+            None,
+        ),
+        (
+            # This is clearly garbage...
+            # Bipolar (qualifier value) (snomed/260994008)
+            dict(
+                source_vocab="snomed",
+                source_ui="260994008",
+                source_desc="Bipolar (qualifier value)",
+                broader=True,
+            ),
+            ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
+            "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
+        ),
+        (
+            # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
+            dict(
+                source_vocab="snomed",
+                source_ui="312886007",
+                source_desc="Entire costovertebral angle of twelfth rib (body structure)",
+                broader=True,
+            ),
+            ["Back", "Bona fide anatomical line"],
+            "The back or upper side of an animal.",
+        ),
+        (
+            # Cancer Society (snomed/9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e)
+            dict(
+                source_vocab="snomed",
+                source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
+                source_desc="Cancer Society",
+                broader=True,
+            ),
+            ["American Cancer Society"],
+            "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
+        ),
+        (
+            # Cancer Society (snomed/138875005)
+            dict(
+                source_vocab="snomed",
+                source_ui="138875005",
+                source_desc="Cancer Society",
+                broader=True,
+            ),
+            ["American Cancer Society"],
+            "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
+        ),
         (
             dict(
                 source_vocab="snomed",
@@ -277,7 +277,24 @@ def test_find_defined_concepts(
         (
             dict(start_cui="C1270222", broader=False, target_lang="ENG"),
             ["Felis catus"],
-            "The domesticated feline mammal, Felis catus, which is kept as a house pet.",
+            "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
+            "over 30 different breeds. The domestic cat is descended primarily from the "
+            "wild cat of Africa and extreme southwestern Asia. Though probably present in "
+            "towns in Palestine as long ago as 7000 years, actual domestication occurred "
+            "in Egypt about 4000 years ago.",
+        ),
+        (
+            dict(
+                start_cui="C1270222",
+                broader=False,
+                stop_on_found=False,
+                max_distance=2,
+                target_lang="ENG",
+            ),
+            ["Felis catus", "Genus Felis"],
+            "Genus in the family FELIDAE comprised of small felines including the "
+            "domestic cat, Felis catus (CATS) and its ancestor the wild cat, Felis "
+            "silvestris.",
         ),
     ),
 )
