@@ -57,7 +57,7 @@ def _definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     get_neighbors: Callable[[MetaThesaurus, str], List[str]],
-    min_concepts: int = 1,
+    stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
@@ -76,14 +76,13 @@ def _definitions_bfs(
     :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
     """
     assert api
     assert start_cui
-    assert min_concepts >= 0
     assert max_distance >= 0
 
     # first get target vocabs based on language
@@ -174,7 +173,7 @@ def _definitions_bfs(
     def post_visit(
         api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
     ) -> Action:
-        if min_concepts and len(defined_concepts) >= min_concepts:
+        if stop_on_found and defined_concepts:
             if not distances or distances.peek() > current_dist:
                 return Action.STOP
             else:
@@ -203,8 +202,8 @@ def definitions_bfs(
     start_cui: str,
     include_broader: Optional[bool] = True,
     include_narrower: Optional[bool] = True,
-    min_concepts: int = 1,
-    max_distance: int = 0,
+    stop_on_found: Optional[bool] = True,
+    max_distance: Optional[int] = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
     preserve_semantic_type: bool = False,
@@ -224,7 +223,7 @@ def definitions_bfs(
     :param start_cui: starting Concept ID
     :param include_broader: search broader concepts
     :param include_narrower: search narrower concepts
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
@@ -250,7 +249,7 @@ def definitions_bfs(
         api=api,
         start_cui=start_cui,
         get_neighbors=get_neighbors,
-        min_concepts=min_concepts,
+        stop_on_found=stop_on_found,
         max_distance=max_distance,
         target_vocabs=target_vocabs,
         target_lang=target_lang,
@@ -265,7 +264,7 @@ def find_defined_concepts(
     source_desc: str = None,
     include_broader: Optional[bool] = True,
     include_narrower: Optional[bool] = True,
-    min_concepts: int = 1,
+    stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_lang: str = "ENG",
     preserve_semantic_type: bool = False,
@@ -290,13 +289,13 @@ def find_defined_concepts(
     :param source_desc: source description
     :param include_broader: search broader concepts
     :param include_narrower: search narrower concepts
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
     :param target_lang: target definitions in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
-    assert min_concepts >= 0
+    assert stop_on_found >= 0
     assert max_distance >= 0
 
     if source_ui:
@@ -307,7 +306,7 @@ def find_defined_concepts(
         ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
-        msg = f"Finding {min_concepts} {target_lang} definition(s) of"
+        msg = f"Finding {stop_on_found} {target_lang} definition(s) of"
         if source_ui:
             msg = f"{msg} {source_vocab}/{source_ui}"
 
@@ -322,7 +321,7 @@ def find_defined_concepts(
             start_cui=start_cui,
             include_broader=include_broader,
             include_narrower=include_narrower,
-            min_concepts=min_concepts,
+            stop_on_found=stop_on_found,
             max_distance=max_distance,
             target_lang=target_lang,
             preserve_semantic_type=preserve_semantic_type,
