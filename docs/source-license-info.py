@@ -71,6 +71,20 @@ LICENSEE is prohibited from translating the vocabulary source into another langu
 }
 
 
+def wrap(text):
+    return "\n".join(textwrap.fill(line, width=70) for line in text.split("\n"))
+
+
+def rlevel_details() -> str:
+    rlevel_text = "\n\n".join(
+        wrap(RESTRICTION_LEVELS[l]) for l in sorted(RESTRICTION_LEVELS.keys())
+    )
+
+    rlevel_text = textwrap.indent(rlevel_text, "      ")
+
+    return "Details\n" "=======\n" "::\n\n" + rlevel_text + "\n"
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -88,23 +102,14 @@ def main():
     api = MetaThesaurus(args.api_key, use_cache=not args.no_cache)
 
     rst_string = (
+        "***************\n"
         "Source Licenses\n"
-        "===============\n"
-        "Information regarding licensing of the sources contained in UMLS.\n"
+        "***************\n"
+        f"Information regarding licensing of the sources contained in UMLS version {api.version}. "
+        f"`Basic UMLS License Agreement <https://uts.nlm.nih.gov/uts/assets/LicenseAgreement.pdf>`_ "
+        f"has been copied under `details`_\n"
         "\n"
     )
-
-    def wrap(text):
-        return "\n".join(textwrap.fill(line, width=70) for line in text.split("\n"))
-
-    rlevel_text = "\n\n".join(
-        wrap(RESTRICTION_LEVELS[l]) for l in sorted(RESTRICTION_LEVELS.keys())
-    )
-
-    rlevel_text = textwrap.indent(rlevel_text, "      ")
-
-    rst_string += "Details\n" "-------\n" "::\n\n"
-    rst_string += rlevel_text + "\n"
 
     def get_rlevel(obj):
         return obj.get("restrictionLevel")
@@ -112,13 +117,14 @@ def main():
     all_source_info = sorted(api.source_metadata_index.values(), key=get_rlevel)
     for rlevel, group in itertools.groupby(all_source_info, key=get_rlevel):
         rst_string += f"\n" f"CATEGORY {rlevel}\n"
-        rst_string += "----------\n\n"
+        rst_string += "==========\n\n"
 
         for info in sorted(group, key=lambda _: _["shortName"]):
             text = f"{info['shortName']} ({info['abbreviation']})"
             rst_string += f"  * {text}\n"
 
-    print(rst_string)
+    rst_string += "\n\n" + rlevel_details()
+    # print(rst_string)
 
     out_file = args.out_file
     with open(out_file, "w", encoding="utf-8") as ofp:
