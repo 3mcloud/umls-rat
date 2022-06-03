@@ -3,30 +3,10 @@ import functools
 import json
 import logging
 import operator
-import os
-from typing import Any, Dict, Iterator, List, Optional
-
-from ratelimit import limits, sleep_and_retry
-from requests import HTTPError
+from typing import Dict, Iterator, List, Optional
 
 from umlsrat import const
-from umlsrat.api.session import api_session, uncached_session
-
-_NONE = "NONE"
-
-
-def _interpret_none(value: Any):
-    if isinstance(value, str):
-        if value == _NONE:
-            return None
-        else:
-            return value
-    elif isinstance(value, Dict):
-        return {key: _interpret_none(value) for key, value in value.items()}
-    elif isinstance(value, List):
-        return [_interpret_none(_) for _ in value]
-    else:
-        return value
+from umlsrat.api.session import MetaThesaurusSession
 
 
 def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
@@ -57,27 +37,16 @@ class MetaThesaurus(object):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        session: MetaThesaurusSession,
         version: Optional[str] = None,
-        use_cache: Optional[bool] = True,
     ):
         """
         Constructor.
 
-        If ``api_key`` is not passed, the value will be read from the ``UMLS_API_KEY`` environment variable.
 
-        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__
         :param version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
-        :param use_cache: use cache for requests (default ``True``)
         """
-        if api_key:
-            self._api_key = api_key
-        else:
-            self._api_key = os.environ.get(const.API_KEY_ENV_VAR)
-            if not self._api_key:
-                raise KeyError(
-                    f"`api_key` not passed and `{const.API_KEY_ENV_VAR}` not set."
-                )
+        self._session = session
 
         if version:
             self.version = version
@@ -85,10 +54,8 @@ class MetaThesaurus(object):
             self.version = const.DEFAULT_UMLS_VERSION
 
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
-        self._use_cache = use_cache
-        self._session = api_session() if use_cache else uncached_session()
 
-        if self._use_cache and self.version == "current":
+        if self._session.use_cache and self.version == "current":
             # may want to simply disable caching if version is 'current'
             self._logger.warning(
                 "Version is 'current' and caching is enabled! "
@@ -122,51 +89,6 @@ class MetaThesaurus(object):
     def _logger(self):
         return logging.getLogger(self.__class__.__name__)
 
-    @sleep_and_retry
-    @limits(calls=20, period=1)
-    def _raw_get(self, url, params):
-        return self._session.get(url=url, params=params)
-
-    def _get(
-        self, url: str, strict: Optional[bool] = False, **params
-    ) -> Optional[Dict]:
-        """
-        Get data from arbitrary URI. Will return an empty list on 400 or 404
-        unless `strict=True`, in which case it will raise.
-
-        :param url: URL under http://uts-ws.nlm.nih.gov/rest
-        :param params: get parameters *excluding* `ticket`
-        :return: json response
-        """
-        assert url, "Must provide URL"
-
-        if "apiKey" in params:
-            self._logger.warning(
-                f"'apiKey' should not be in params! Will be overwritten..."
-            )
-
-        params["apiKey"] = self._api_key
-        try:
-            response = self._raw_get(url, params=params)
-        except Exception as e:
-            self._logger.exception("Failed to get %s", url)
-            raise e
-
-        try:
-            response.raise_for_status()
-        except HTTPError as e:
-            if strict:
-                raise e
-
-            self._logger.debug("Caught HTTPError: %s", e)
-            if e.response.status_code == 400 or e.response.status_code == 404:
-                # we interpret this as "you're looking for something that isn't there"
-                return None
-            else:
-                raise e
-
-        return _interpret_none(response.json())
-
     def _get_paginated(
         self,
         url: str,
@@ -186,7 +108,7 @@ class MetaThesaurus(object):
         if max_results is not None:
             assert max_results > 0, "max_results must be > 0"
 
-        response_json = self._get(url, **params)
+        response_json = self._session.get(url, **params)
         if not response_json:
             return
 
@@ -221,7 +143,7 @@ class MetaThesaurus(object):
 
             # next page
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
-            response_json = self._get(url, **params)
+            response_json = self._session.get(url, **params)
 
     def _get_results(
         self, url: str, max_results: Optional[int] = None, **params
@@ -249,7 +171,7 @@ class MetaThesaurus(object):
         :param params: parameters sent with the get request
         :return: a result or None
         """
-        response_json = self._get(url, **params)
+        response_json = self._session.get(url, **params)
         if not response_json:
             return
 
