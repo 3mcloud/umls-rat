@@ -1,5 +1,6 @@
 pytest==7.1.1
+ratelimit==2.2.1
 requests==2.27.1
-requests-cache==0.9.3
+requests-cache==1.0.0a0
 sphinx-copybutton==0.5.0
 sphinx-rtd-theme==1.0.0

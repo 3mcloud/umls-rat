@@ -2,6 +2,7 @@ import pytest
 
 from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.api.session import MetaThesaurusSession
 
 
 def pytest_addoption(parser):
@@ -31,7 +32,10 @@ def _api_key(request):
 
 
 @pytest.fixture(scope="session")
-def api(_api_key, _no_cache, _umls_version):
-    return MetaThesaurus(
-        api_key=_api_key, version=_umls_version, use_cache=not _no_cache
-    )
+def mt_session(_api_key, _no_cache):
+    return MetaThesaurusSession(api_key=_api_key, use_cache=not _no_cache)
+
+
+@pytest.fixture(scope="session")
+def api(mt_session, _umls_version):
+    return MetaThesaurus(session=mt_session, umls_version=_umls_version)
