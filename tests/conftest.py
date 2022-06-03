@@ -38,4 +38,4 @@ def mt_session(_api_key, _no_cache):
 
 @pytest.fixture(scope="session")
 def api(mt_session, _umls_version):
-    return MetaThesaurus(session=mt_session, version=_umls_version)
+    return MetaThesaurus(session=mt_session, umls_version=_umls_version)

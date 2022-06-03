@@ -54,7 +54,8 @@ def main():
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    api = MetaThesaurus(args.api_key, use_cache=not args.no_cache)
+
+    api = MetaThesaurus.from_namespace(args)
 
     source_code = args.source_code
     source_vocab = args.source_vocab

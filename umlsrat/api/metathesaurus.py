@@ -15,25 +15,29 @@ class MetaThesaurus(object):
 
     def __init__(
         self,
-        session: MetaThesaurusSession,
-        version: Optional[str] = None,
+        session: Optional[MetaThesaurusSession] = None,
+        umls_version: Optional[str] = None,
     ):
         """
         Constructor.
 
 
-        :param version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
+        :param umls_version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
         """
-        self.session = session
 
-        if version:
-            self.version = version
+        if session:
+            self.session = session
         else:
-            self.version = const.DEFAULT_UMLS_VERSION
+            self.session = MetaThesaurusSession()
+
+        if umls_version:
+            self.umls_version = umls_version
+        else:
+            self.umls_version = const.DEFAULT_UMLS_VERSION
 
         self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
 
-        if self.session.use_cache and self.version == "current":
+        if self.session.use_cache and self.umls_version == "current":
             # may want to simply disable caching if version is 'current'
             self._logger.warning(
                 "Version is 'current' and caching is enabled! "
@@ -49,6 +53,8 @@ class MetaThesaurus(object):
         :param parser: parser
         :return: the same parser
         """
+        parser = MetaThesaurusSession.add_args(parser)
+
         group = parser.add_argument_group("MetaThesaurus")
         group.add_argument(
             "--umls-version",
@@ -56,12 +62,21 @@ class MetaThesaurus(object):
             help="UMLS version to use",
             default=const.DEFAULT_UMLS_VERSION,
         )
-        group.add_argument(
-            "--no-cache", help="Do not use the cache", action="store_true"
-        )
-        group.add_argument("--api-key", type=str, help="API key", default=None)
 
         return parser
+
+    @staticmethod
+    def from_namespace(args: argparse.Namespace) -> "MetaThesaurus":
+        """
+        Construct new object using values from namespace.
+
+        :param args: parsed args
+        :return: new session
+        """
+        return MetaThesaurus(
+            session=MetaThesaurusSession.from_namespace(args),
+            umls_version=args.umls_version,
+        )
 
     @property
     def _logger(self):
@@ -72,7 +87,7 @@ class MetaThesaurus(object):
     @property
     def _start_content_uri(self) -> str:
         """http://uts-ws.nlm.nih.gov/rest/content/{self.version}"""
-        return f"{self._rest_uri}/content/{self.version}"
+        return f"{self._rest_uri}/content/{self.umls_version}"
 
     def get_concept(self, cui: str) -> Dict:
         """
@@ -320,7 +335,7 @@ class MetaThesaurus(object):
         :param params: additional get request params
         :return: generator yielding search results
         """
-        uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.version}"
+        uri = f"https://uts-ws.nlm.nih.gov/rest/search/{self.umls_version}"
         if "string" in params:
             self._logger.warning(
                 "Overwriting existing 'string' value %s", params["string"]
@@ -542,7 +557,7 @@ class MetaThesaurus(object):
 
         :return: list of metadata about sources
         """
-        url = f"{self._rest_uri}/metadata/{self.version}/sources"
+        url = f"{self._rest_uri}/metadata/{self.umls_version}/sources"
         return self.session.get_results(url)
 
     @functools.cached_property

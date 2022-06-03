@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os
@@ -97,6 +98,32 @@ class MetaThesaurusSession(object):
             self.session = Session()
 
         _configure_session(self.session)
+
+    @staticmethod
+    def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+        """
+        Add constructor arguments to parser.
+
+        :param parser: parser
+        :return: the same parser
+        """
+        group = parser.add_argument_group("Session")
+        group.add_argument("--api-key", type=str, help="API key", default=None)
+        group.add_argument(
+            "--no-cache", help="Do not use the cache", action="store_true"
+        )
+
+        return parser
+
+    @staticmethod
+    def from_namespace(args: argparse.Namespace) -> "MetaThesaurusSession":
+        """
+        Construct new object using values from namespace.
+
+        :param args: parsed args
+        :return: new session
+        """
+        return MetaThesaurusSession(api_key=args.api_key, use_cache=not args.no_cache)
 
     @property
     def _logger(self):
