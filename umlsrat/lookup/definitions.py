@@ -316,7 +316,7 @@ def find_defined_concepts(
 
         logger.info(msg)
 
-    def find_broader(start_cui: str) -> List[Dict]:
+    def definitions_search(start_cui: str) -> List[Dict]:
         data = definitions_bfs(
             api,
             start_cui=start_cui,
@@ -338,7 +338,7 @@ def find_defined_concepts(
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
 
             defined_concepts = itertools.chain.from_iterable(
-                find_broader(cui) for cui in cuis_from_code
+                definitions_search(cui) for cui in cuis_from_code
             )
             # since we searched multiple CUIs, ensure that they are returned in
             # order of closest to farthest. Also, need to ensure uniqueness.
@@ -375,7 +375,7 @@ def find_defined_concepts(
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")
-                defs = find_broader(cui)
+                defs = definitions_search(cui)
                 if defs:
                     return defs
 
