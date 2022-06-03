@@ -80,7 +80,7 @@ def main():
         "--out-file",
         help="Write RST output to this file.",
         type=str,
-        default="docs/source-licenses.rst",
+        default="source-licenses.rst",
     )
 
     args = parser.parse_args()
@@ -94,9 +94,6 @@ def main():
         "\n"
     )
 
-    def indent(text):
-        return textwrap.indent(text, "      ")
-
     def wrap(text):
         return "\n".join(textwrap.fill(line, width=70) for line in text.split("\n"))
 
@@ -104,7 +101,7 @@ def main():
         wrap(RESTRICTION_LEVELS[l]) for l in sorted(RESTRICTION_LEVELS.keys())
     )
 
-    rlevel_text = indent(rlevel_text)
+    rlevel_text = textwrap.indent(rlevel_text, "      ")
 
     rst_string += "Details\n" "-------\n" "::\n\n"
     rst_string += rlevel_text + "\n"
