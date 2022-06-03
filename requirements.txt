@@ -2,3 +2,4 @@ pytest
 ratelimit
 requests
 requests-cache>=1.0.0a0
+urllib3
