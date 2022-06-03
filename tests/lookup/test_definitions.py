@@ -22,8 +22,8 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
     cuis = umlsrat.lookup.umls.get_cuis_for(api, "SNOMEDCT_US", snomed_code)
     assert cuis
     for cui in cuis:
-        concepts = definitions.broader_definitions_bfs(
-            api, cui, min_concepts=1, target_vocabs=("MSH",)
+        concepts = definitions.definitions_bfs(
+            api, cui, include_narrower=False, min_concepts=1, target_vocabs=("MSH",)
         )
         results = extract_definitions(concepts)
         if results:
@@ -59,12 +59,22 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     ("kwargs", "expected_names", "a_definition"),
     (
         (
-            dict(source_vocab="snomed", source_ui="282024004", target_lang="ENG"),
+            dict(
+                source_vocab="snomed",
+                source_ui="282024004",
+                include_narrower=False,
+                target_lang="ENG",
+            ),
             ["Vertebral column"],
             "The spinal or vertebral column.",
         ),
         (
-            dict(source_vocab="snomed", source_ui="48348007", target_lang="ENG"),
+            dict(
+                source_vocab="snomed",
+                source_ui="48348007",
+                include_narrower=False,
+                target_lang="ENG",
+            ),
             ["Respiratory Sounds"],
             "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
         ),
@@ -79,12 +89,19 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             "Unmodified air as existing in the immediate surroundings.",
         ),
         (
-            dict(source_desc="Cancer", target_lang="SPA"),
+            dict(
+                source_desc="Cancer",
+                target_lang="SPA",
+                include_narrower=False,
+            ),
             ["Neoplasms"],
             "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
         ),
         (
-            dict(source_desc="Cancer"),
+            dict(
+                source_desc="Cancer",
+                include_narrower=False,
+            ),
             ["Malignant Neoplasms"],
             "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
         ),
@@ -94,6 +111,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="24028007",
                 source_desc="Right (qualifier value)",
+                include_narrower=False,
             ),
             ["Right", "Lateral", "Side"],
             "Being or located on or directed toward the side of the body to the east when facing north.",
@@ -104,6 +122,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
                 source_desc="Protein-calorie malnutrition (disorder)",
+                include_narrower=False,
             ),
             ["Protein-Energy Malnutrition"],
             "A nutritional deficit that is caused by inadequate protein or calorie intake.",
@@ -114,6 +133,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
                 source_desc="Anticoagulant",
+                include_narrower=False,
             ),
             ["Anticoagulants"],
             "Agents that prevent BLOOD CLOTTING.",
@@ -124,6 +144,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
+                include_narrower=False,
             ),
             ["Joint Prosthesis (device)"],
             "Prostheses used to partially or totally replace a human or animal joint.",
@@ -134,6 +155,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
                 source_desc="Faint (qualifier value)",
+                include_narrower=False,
                 target_lang="ENG",
                 max_distance=1,
             ),
@@ -147,6 +169,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="260994008",
                 source_desc="Bipolar (qualifier value)",
+                include_narrower=False,
             ),
             ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
             "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
@@ -157,6 +180,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="312886007",
                 source_desc="Entire costovertebral angle of twelfth rib (body structure)",
+                include_narrower=False,
             ),
             ["Back", "Bona fide anatomical line"],
             "The back or upper side of an animal.",
@@ -167,6 +191,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
                 source_desc="Cancer Society",
+                include_narrower=False,
             ),
             ["American Cancer Society"],
             "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
@@ -177,6 +202,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="138875005",
                 source_desc="Cancer Society",
+                include_narrower=False,
             ),
             ["American Cancer Society"],
             "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
@@ -217,8 +243,8 @@ def test_find_defined_concepts(
         ),
     ),
 )
-def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
-    concepts = definitions.broader_definitions_bfs(api, **kwargs)
+def test_definitions_bfs(api, kwargs, expected_names, a_definition):
+    concepts = definitions.definitions_bfs(api, **kwargs)
     names = extract_concept_names(concepts)
     assert names == expected_names
     if a_definition:
@@ -235,6 +261,7 @@ def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
                 source_vocab="snomed",
                 source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
+                include_narrower=False,
                 min_concepts=2,
             ),
             [
@@ -250,6 +277,7 @@ def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
                 source_vocab="snomed",
                 source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
+                include_narrower=False,
                 min_concepts=2,
             ),
             [

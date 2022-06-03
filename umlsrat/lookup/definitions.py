@@ -198,9 +198,11 @@ def _definitions_bfs(
     return defined_concepts
 
 
-def broader_definitions_bfs(
+def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
+    include_broader: Optional[bool] = True,
+    include_narrower: Optional[bool] = True,
     min_concepts: int = 1,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
@@ -220,51 +222,29 @@ def broader_definitions_bfs(
     :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
+    :param include_broader: search broader concepts
+    :param include_narrower: search narrower concepts
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
     """
+    assert (
+        include_broader or include_narrower
+    ), "`include_broader` or `include_narrower` must be true"
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_broader_cuis(api, cui, language=target_lang)
-
-    return _definitions_bfs(
-        api=api,
-        start_cui=start_cui,
-        get_neighbors=get_neighbors,
-        min_concepts=min_concepts,
-        max_distance=max_distance,
-        target_vocabs=target_vocabs,
-        target_lang=target_lang,
-        preserve_semantic_type=preserve_semantic_type,
-    )
-
-
-def _narrower_definitions_bfs(
-    api: MetaThesaurus,
-    start_cui: str,
-    min_concepts: int = 1,
-    max_distance: int = 0,
-    target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: str = "ENG",
-    preserve_semantic_type: bool = False,
-) -> List[Dict]:
-    """
-    Do a breadth-first search over UMLS, hunting for definitions.
-
-    :param preserve_semantic_type:
-    :param target_lang:
-    :param api: MetaThesaurus API
-    :param start_cui: starting Concept ID
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
-    :param target_vocabs: only allow definitions from these vocabularies
-    :return: a list of Concepts with Definitions
-    """
-
-    def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_narrower_cuis(api, cui, language=target_lang)
+        broader = (
+            []
+            if not include_broader
+            else umls.get_broader_cuis(api, cui, language=target_lang)
+        )
+        narrower = (
+            []
+            if not include_narrower
+            else umls.get_narrower_cuis(api, cui, language=target_lang)
+        )
+        return broader + narrower
 
     return _definitions_bfs(
         api=api,
@@ -283,6 +263,8 @@ def find_defined_concepts(
     source_vocab: str = None,
     source_ui: str = None,
     source_desc: str = None,
+    include_broader: Optional[bool] = True,
+    include_narrower: Optional[bool] = True,
     min_concepts: int = 1,
     max_distance: int = 0,
     target_lang: str = "ENG",
@@ -306,6 +288,8 @@ def find_defined_concepts(
     :param source_vocab: source vocab
     :param source_ui: source code
     :param source_desc: source description
+    :param include_broader: search broader concepts
+    :param include_narrower: search narrower concepts
     :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
     :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
     :param target_lang: target definitions in this language
@@ -333,9 +317,11 @@ def find_defined_concepts(
         logger.info(msg)
 
     def find_broader(start_cui: str) -> List[Dict]:
-        data = broader_definitions_bfs(
+        data = definitions_bfs(
             api,
             start_cui=start_cui,
+            include_broader=include_broader,
+            include_narrower=include_narrower,
             min_concepts=min_concepts,
             max_distance=max_distance,
             target_lang=target_lang,
