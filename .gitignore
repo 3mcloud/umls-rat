@@ -1,6 +1,7 @@
 unittests.xml
 definitions/
 .idea/
+docs/source-licenses.rst
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -64,8 +64,11 @@ pipeline {
         stage ('Documentation') {
             steps {
                 container(name: 'target'){
-                    dir('docs') {
-                        sh 'make clean html'
+                    withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
+                                            variable: 'UMLS_API_KEY')]) {
+                        dir('docs') {
+                            sh 'make clean html'
+                        }
                     }
                 }
             }
