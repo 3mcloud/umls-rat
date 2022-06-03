@@ -99,13 +99,13 @@ def main():
 
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    api = MetaThesaurus(args.api_key, use_cache=not args.no_cache)
+    api = MetaThesaurus.from_namespace(args)
 
     rst_string = (
         "***************\n"
         "Source Licenses\n"
         "***************\n"
-        f"Information regarding licensing of the sources contained in UMLS version {api.version}. "
+        f"Information regarding licensing of the sources contained in UMLS version {api.umls_version}. "
         f"`Basic UMLS License Agreement <https://uts.nlm.nih.gov/uts/assets/LicenseAgreement.pdf>`_ "
         f"has been copied under `details`_\n"
         "\n"
