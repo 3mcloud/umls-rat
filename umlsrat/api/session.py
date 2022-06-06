@@ -5,7 +5,7 @@ import os
 from os.path import expanduser
 from typing import Optional, Any, Dict, List, Iterator
 
-from ratelimit import sleep_and_retry, limits
+from ratelimit import limits
 from requests import Session, HTTPError, Response
 from requests.adapters import HTTPAdapter
 from requests_cache import CachedSession
@@ -15,7 +15,7 @@ from umlsrat import const
 
 
 def _set_retries(session):
-    retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
+    retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
     session.mount("https://", HTTPAdapter(max_retries=retries))
     return session
 
@@ -97,7 +97,7 @@ class MetaThesaurusSession(object):
         else:
             self.session = Session()
 
-        _configure_session(self.session)
+        self.session = _configure_session(self.session)
 
     @staticmethod
     def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -140,7 +140,6 @@ class MetaThesaurusSession(object):
         else:
             return response
 
-    @sleep_and_retry
     @limits(calls=20, period=1)
     def _get_http(self, url, params):
         """
