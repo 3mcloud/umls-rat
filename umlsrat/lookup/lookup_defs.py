@@ -441,7 +441,7 @@ def find_builder(api: MetaThesaurus, parsed_args: argparse.Namespace):
         )
         assert operator.xor(is_cui_search, is_source_search), (
             "Expected either 'start_cui' or some source asserted info such as "
-            "'source_vocab', 'source_ui' 'source_desc'"
+            "'source_vocab', 'source_ui' 'source_desc' -- not both."
         )
 
         if is_cui_search:
