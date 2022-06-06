@@ -69,7 +69,7 @@ def main():
         source_vocab=source_vocab,
         source_ui=source_code,
         source_desc=source_desc,
-        min_concepts=min_concepts,
+        stop_on_found=min_concepts,
         target_lang=target_language,
     )
 

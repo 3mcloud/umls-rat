@@ -1,4 +1,4 @@
-from typing import Callable, Tuple, Dict, Set
+from typing import Callable, Tuple, Dict, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.util import text
@@ -24,17 +24,17 @@ def sem_type_name_sim(
     return sort_fn
 
 
-def cui_name_sim(api: MetaThesaurus, source_cui: str) -> Callable[[str], float]:
+def cui_name_sim(api: MetaThesaurus, source_cui: str) -> Callable[[str], Any]:
     source = api.get_concept(source_cui).get("name")
     return desc_name_sim(api, source)
 
 
-def desc_name_sim(api: MetaThesaurus, desc: str) -> Callable[[str], float]:
+def desc_name_sim(api: MetaThesaurus, desc: str) -> Callable[[str], Any]:
     hammingish = text.hammingish_partial(desc)
 
-    def sort_fn(cui: str) -> float:
+    def sort_fn(cui: str):
         target = api.get_concept(cui).get("name")
-        return hammingish(target)
+        return hammingish(target), target
 
     return sort_fn
 

@@ -1,14 +1,17 @@
+import argparse
 import collections
 import itertools
 import logging
+import operator
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict, Callable, Set
+from typing import Optional, Iterable, List, Dict, Callable, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text, iterators
+from umlsrat.util.args_util import str2bool
 from umlsrat.util.orderedset import FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -57,7 +60,7 @@ def _definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
     get_neighbors: Callable[[MetaThesaurus, str], List[str]],
-    min_concepts: int = 1,
+    stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
     target_lang: str = "ENG",
@@ -76,14 +79,13 @@ def _definitions_bfs(
     :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
+    :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
     """
     assert api
     assert start_cui
-    assert min_concepts >= 0
     assert max_distance >= 0
 
     # first get target vocabs based on language
@@ -174,7 +176,7 @@ def _definitions_bfs(
     def post_visit(
         api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
     ) -> Action:
-        if min_concepts and len(defined_concepts) >= min_concepts:
+        if stop_on_found and defined_concepts:
             if not distances or distances.peek() > current_dist:
                 return Action.STOP
             else:
@@ -198,14 +200,15 @@ def _definitions_bfs(
     return defined_concepts
 
 
-def broader_definitions_bfs(
+def definitions_bfs(
     api: MetaThesaurus,
     start_cui: str,
-    min_concepts: int = 1,
-    max_distance: int = 0,
+    broader: Optional[bool] = True,
+    stop_on_found: Optional[bool] = True,
+    max_distance: Optional[int] = 0,
     target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: str = "ENG",
-    preserve_semantic_type: bool = False,
+    target_lang: Optional[str] = "ENG",
+    preserve_semantic_type: Optional[bool] = False,
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS for concepts with associated definitions.
@@ -220,57 +223,31 @@ def broader_definitions_bfs(
     :param target_lang: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param broader: search broader concepts. If false, search narrower.
+    :param stop_on_found: stop searching after processing first level containing defined concepts
+    :param max_distance: maximum allowed distance from `start_cui` (Default = 0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :return: a list of Concepts with Definitions
     """
 
+    if not stop_on_found or max_distance:
+        logger.warning(
+            f"stop_on_found = {stop_on_found} and max_distance = {max_distance}; this "
+            f"could result in an unintentionally massive search space. Recommend setting "
+            f"`max_distance=2` and go from there."
+        )
+
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_broader_cuis(api, cui, language=target_lang)
+        if broader:
+            return umls.get_broader_cuis(api, cui, language=target_lang)
+        else:
+            return umls.get_narrower_cuis(api, cui, language=target_lang)
 
     return _definitions_bfs(
         api=api,
         start_cui=start_cui,
         get_neighbors=get_neighbors,
-        min_concepts=min_concepts,
-        max_distance=max_distance,
-        target_vocabs=target_vocabs,
-        target_lang=target_lang,
-        preserve_semantic_type=preserve_semantic_type,
-    )
-
-
-def _narrower_definitions_bfs(
-    api: MetaThesaurus,
-    start_cui: str,
-    min_concepts: int = 1,
-    max_distance: int = 0,
-    target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: str = "ENG",
-    preserve_semantic_type: bool = False,
-) -> List[Dict]:
-    """
-    Do a breadth-first search over UMLS, hunting for definitions.
-
-    :param preserve_semantic_type:
-    :param target_lang:
-    :param api: MetaThesaurus API
-    :param start_cui: starting Concept ID
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
-    :param target_vocabs: only allow definitions from these vocabularies
-    :return: a list of Concepts with Definitions
-    """
-
-    def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
-        return umls.get_narrower_cuis(api, cui, language=target_lang)
-
-    return _definitions_bfs(
-        api=api,
-        start_cui=start_cui,
-        get_neighbors=get_neighbors,
-        min_concepts=min_concepts,
+        stop_on_found=stop_on_found,
         max_distance=max_distance,
         target_vocabs=target_vocabs,
         target_lang=target_lang,
@@ -283,7 +260,8 @@ def find_defined_concepts(
     source_vocab: str = None,
     source_ui: str = None,
     source_desc: str = None,
-    min_concepts: int = 1,
+    broader: Optional[bool] = True,
+    stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_lang: str = "ENG",
     preserve_semantic_type: bool = False,
@@ -306,13 +284,15 @@ def find_defined_concepts(
     :param source_vocab: source vocab
     :param source_ui: source code
     :param source_desc: source description
-    :param min_concepts: stop searching after finding this many defined concepts (0 = Infinity)
-    :param max_distance: stop searching after reaching this distance from the original source concept (0 = Infinity)
+    :param broader: search broader concepts. If false, search narrower.
+    :param stop_on_found: stop searching after processing first level containing defined concepts
+    :param max_distance: stop searching after reaching this distance from the original source
+    concept. (Default = 0 = Infinity)
     :param target_lang: target definitions in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
-    assert min_concepts >= 0
+    assert stop_on_found >= 0
     assert max_distance >= 0
 
     if source_ui:
@@ -323,7 +303,7 @@ def find_defined_concepts(
         ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
-        msg = f"Finding {min_concepts} {target_lang} definition(s) of"
+        msg = f"Finding {stop_on_found} {target_lang} definition(s) of"
         if source_ui:
             msg = f"{msg} {source_vocab}/{source_ui}"
 
@@ -332,11 +312,12 @@ def find_defined_concepts(
 
         logger.info(msg)
 
-    def find_broader(start_cui: str) -> List[Dict]:
-        data = broader_definitions_bfs(
+    def definitions_search(start_cui: str) -> List[Dict]:
+        data = definitions_bfs(
             api,
             start_cui=start_cui,
-            min_concepts=min_concepts,
+            broader=broader,
+            stop_on_found=stop_on_found,
             max_distance=max_distance,
             target_lang=target_lang,
             preserve_semantic_type=preserve_semantic_type,
@@ -352,7 +333,7 @@ def find_defined_concepts(
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
 
             defined_concepts = itertools.chain.from_iterable(
-                find_broader(cui) for cui in cuis_from_code
+                definitions_search(cui) for cui in cuis_from_code
             )
             # since we searched multiple CUIs, ensure that they are returned in
             # order of closest to farthest. Also, need to ensure uniqueness.
@@ -389,11 +370,73 @@ def find_defined_concepts(
                 cui = concept["ui"]
                 name = concept["name"]
                 logger.info(f"Searching concept '{name}' {cui}")
-                defs = find_broader(cui)
+                defs = definitions_search(cui)
                 if defs:
                     return defs
 
     return []
+
+
+def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    df_group = parser.add_argument_group("Definitions Finder")
+
+    # cui_search = df_group.add_argument_group("CUI Search")
+    df_group.add_argument("--start-cui", help="", type=str, default=None)
+
+    # sa_search = df_group.add_argument_group("Source Asserted Search")
+    df_group.add_argument("--source-vocab", help="", type=str, default=None)
+    df_group.add_argument("--source-ui", help="", type=str, default=None)
+    df_group.add_argument("--source-desc", help="", type=str, default=None)
+
+    df_group.add_argument(
+        "--search-broader", help="", type=str2bool, default=True, dest="broader"
+    )
+    df_group.add_argument("--stop-on-found", help="", type=str2bool, default=True)
+
+    df_group.add_argument("--max-distance", help="", type=int, default=0)
+    df_group.add_argument("--target-lang", help="", type=str, default="ENG")
+
+    df_group.add_argument(
+        "--preserve-semantic-type", help="", type=str2bool, default=False
+    )
+
+    return parser
+
+
+_EXPECTED_KWARG_NAMES = vars(add_args(argparse.ArgumentParser()).parse_args([])).keys()
+
+
+def find_factory(api: MetaThesaurus, parsed_args: argparse.Namespace):
+    vargs = vars(parsed_args)
+    # white list
+    base_kwargs = {k: vargs[k] for k in _EXPECTED_KWARG_NAMES}
+    # drop None
+    base_kwargs = {k: v for k, v in base_kwargs.items() if v is not None}
+
+    def find_fun(**kwargs: Any) -> List[Dict]:
+        # override base kwargs
+        merged_kwargs = base_kwargs.copy()
+        merged_kwargs.update(kwargs)
+
+        is_cui_search = "start_cui" in merged_kwargs
+        is_source_search = (
+            "source_vocab" in merged_kwargs
+            or "source_ui" in merged_kwargs
+            or "source_desc" in merged_kwargs
+        )
+        assert operator.xor(is_cui_search, is_source_search), (
+            "Expected either 'start_cui' or some source asserted info such as "
+            "'source_vocab', 'source_ui' 'source_desc'"
+        )
+
+        if is_cui_search:
+            return definitions_bfs(api=api, **merged_kwargs)
+        elif is_source_search:
+            return find_defined_concepts(api=api, **merged_kwargs)
+        else:
+            raise AssertionError("Unreachable code")
+
+    return find_fun
 
 
 def _entry_to_string(name: str, definitions: List[Dict]) -> str:

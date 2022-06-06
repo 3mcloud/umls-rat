@@ -219,9 +219,11 @@ def _get_related_cuis(
 
         code = api.session.get_single_result(code_url)
         if not code:
-            raise ValueError(
-                f"Got null code for {code_url} from\n" f"{json.dumps(atom, indent=2)}"
+            logger.warning(
+                f"Got null code for {code_url} from\n{json.dumps(atom, indent=2)}"
             )
+            # dead end
+            continue
 
         relations = list(
             api.get_source_relations(
@@ -233,10 +235,14 @@ def _get_related_cuis(
         )
 
         for rel in relations:
+            if "relatedId" not in rel:
+                # dead end
+                continue
+
             related = api.session.get_single_result(rel["relatedId"])
 
             if related.get("concept"):
-                concepts = (api.session.get_single_result(related["concept"]),)
+                concepts = [api.session.get_single_result(related["concept"])]
             elif related.get("concepts"):
                 concepts = api.session.get_results(related["concepts"])
             else:

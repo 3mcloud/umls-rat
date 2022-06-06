@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, List, Optional
 
 import pytest
@@ -22,8 +23,8 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
     cuis = umlsrat.lookup.umls.get_cuis_for(api, "SNOMEDCT_US", snomed_code)
     assert cuis
     for cui in cuis:
-        concepts = definitions.broader_definitions_bfs(
-            api, cui, min_concepts=1, target_vocabs=("MSH",)
+        concepts = definitions.definitions_bfs(
+            api, cui, stop_on_found=True, target_vocabs=("MSH",)
         )
         results = extract_definitions(concepts)
         if results:
@@ -37,7 +38,10 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
             "450807008",
             "The central part of the body to which the neck and limbs are attached.",
         ),
-        ("10937761000119101", "Injuries to the wrist or the wrist joint."),
+        (
+            "10937761000119101",
+            "Fractures in which the break in bone is not accompanied by an external wound.",
+        ),
     ],
 )
 def test_single_mesh_def(api, snomed_code, expected_def):
@@ -59,32 +63,39 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     ("kwargs", "expected_names", "a_definition"),
     (
         (
-            dict(source_vocab="snomed", source_ui="282024004", target_lang="ENG"),
+            dict(
+                source_vocab="snomed",
+                source_ui="282024004",
+                broader=True,
+                target_lang="ENG",
+            ),
             ["Vertebral column"],
             "The spinal or vertebral column.",
         ),
         (
-            dict(source_vocab="snomed", source_ui="48348007", target_lang="ENG"),
+            dict(
+                source_vocab="snomed",
+                source_ui="48348007",
+                broader=True,
+                target_lang="ENG",
+            ),
             ["Respiratory Sounds"],
             "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
         ),
         (
             dict(
-                source_vocab="snomed",
-                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
-                source_desc="Room air (substance)",
-                min_concepts=2,
+                source_desc="Cancer",
+                target_lang="SPA",
+                broader=True,
             ),
-            ["Room Air", "Air (substance)"],
-            "Unmodified air as existing in the immediate surroundings.",
-        ),
-        (
-            dict(source_desc="Cancer", target_lang="SPA"),
             ["Neoplasms"],
             "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
         ),
         (
-            dict(source_desc="Cancer"),
+            dict(
+                source_desc="Cancer",
+                broader=True,
+            ),
             ["Malignant Neoplasms"],
             "Uncontrolled growth of abnormal cells with potential for metastatic spread.",
         ),
@@ -94,6 +105,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="24028007",
                 source_desc="Right (qualifier value)",
+                broader=True,
             ),
             ["Right", "Lateral", "Side"],
             "Being or located on or directed toward the side of the body to the east when facing north.",
@@ -104,6 +116,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
                 source_desc="Protein-calorie malnutrition (disorder)",
+                broader=True,
             ),
             ["Protein-Energy Malnutrition"],
             "A nutritional deficit that is caused by inadequate protein or calorie intake.",
@@ -114,6 +127,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
                 source_desc="Anticoagulant",
+                broader=True,
             ),
             ["Anticoagulants"],
             "Agents that prevent BLOOD CLOTTING.",
@@ -124,6 +138,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
+                broader=True,
             ),
             ["Joint Prosthesis (device)"],
             "Prostheses used to partially or totally replace a human or animal joint.",
@@ -134,6 +149,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
                 source_desc="Faint (qualifier value)",
+                broader=True,
                 target_lang="ENG",
                 max_distance=1,
             ),
@@ -147,8 +163,9 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="260994008",
                 source_desc="Bipolar (qualifier value)",
+                broader=True,
             ),
-            ["Vocabulary, Controlled", "Thesaurus", "Subject Headings"],
+            ["Subject Headings", "Thesaurus", "Vocabulary, Controlled"],
             "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
         ),
         (
@@ -157,6 +174,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="312886007",
                 source_desc="Entire costovertebral angle of twelfth rib (body structure)",
+                broader=True,
             ),
             ["Back", "Bona fide anatomical line"],
             "The back or upper side of an animal.",
@@ -167,6 +185,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
                 source_desc="Cancer Society",
+                broader=True,
             ),
             ["American Cancer Society"],
             "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
@@ -177,9 +196,49 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="138875005",
                 source_desc="Cancer Society",
+                broader=True,
             ),
             ["American Cancer Society"],
             "A voluntary organization concerned with the prevention and treatment of cancer through education and research.",
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                source_desc="Room air (substance)",
+                broader=True,
+                stop_on_found=False,
+                max_distance=3,
+            ),
+            [
+                "Room Air",
+                "Air (substance)",
+                "Atmosphere, planetary",
+                "Gases",
+                "Inorganic Chemicals",
+                "Substance",
+                "atmosphere/weather",
+                "Environment",
+                "Meteorological Concepts",
+                "Weather",
+                "Physical State",
+                "fluid - substance",
+                "Chemicals",
+                "Drug or Chemical by Structure",
+            ],
+            "The gaseous envelope surrounding a planet or similar body.",
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                source_desc="Room air (substance)",
+                broader=False,
+                stop_on_found=False,
+                max_distance=10,
+            ),
+            ["Room Air"],
+            "Unmodified air as existing in the immediate surroundings.",
         ),
     ),
 )
@@ -200,7 +259,11 @@ def test_find_defined_concepts(
     (
         (
             # no english definitions for "faint"
-            dict(start_cui="C4554554", target_lang="ENG"),
+            dict(
+                start_cui="C4554554",
+                broader=True,
+                target_lang="ENG",
+            ),
             [],
             None,
         ),
@@ -211,14 +274,36 @@ def test_find_defined_concepts(
             None,
         ),
         (
-            dict(start_cui="C5397118", target_lang="ENG"),
+            dict(start_cui="C5397118", broader=True, target_lang="ENG"),
             ["Oxygen Therapy Care", "Therapeutic procedure"],
             "Administration of oxygen and monitoring of its effectiveness",
         ),
+        (
+            dict(start_cui="C1270222", broader=False, target_lang="ENG"),
+            ["Felis catus"],
+            "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
+            "over 30 different breeds. The domestic cat is descended primarily from the "
+            "wild cat of Africa and extreme southwestern Asia. Though probably present in "
+            "towns in Palestine as long ago as 7000 years, actual domestication occurred "
+            "in Egypt about 4000 years ago.",
+        ),
+        (
+            dict(
+                start_cui="C1270222",
+                broader=False,
+                stop_on_found=False,
+                max_distance=2,
+                target_lang="ENG",
+            ),
+            ["Felis catus", "Genus Felis"],
+            "Genus in the family FELIDAE comprised of small felines including the "
+            "domestic cat, Felis catus (CATS) and its ancestor the wild cat, Felis "
+            "silvestris.",
+        ),
     ),
 )
-def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
-    concepts = definitions.broader_definitions_bfs(api, **kwargs)
+def test_definitions_bfs(api, kwargs, expected_names, a_definition):
+    concepts = definitions.definitions_bfs(api, **kwargs)
     names = extract_concept_names(concepts)
     assert names == expected_names
     if a_definition:
@@ -235,7 +320,9 @@ def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
                 source_vocab="snomed",
                 source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
-                min_concepts=2,
+                broader=True,
+                stop_on_found=False,
+                max_distance=1,
             ),
             [
                 "Unmodified air as existing in the immediate surroundings.",
@@ -250,58 +337,22 @@ def test_broader_definitions_bfs(api, kwargs, expected_names, a_definition):
                 source_vocab="snomed",
                 source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
-                min_concepts=2,
+                broader=True,
+                stop_on_found=False,
+                max_distance=1,
             ),
             [
                 "Prostheses used to partially or totally replace a human or animal joint.",
-                "artificial substitute, constructed of either synthetic or biological "
-                "material, which is used to partially or totally replace or repair injured or "
-                "diseased joints.",
-                "Implantable prostheses designed for total or partial replacement of a joint. "
-                "These prostheses typically consist of two or more articulated components; "
-                "they are usually made of metal (e.g., cobalt-chromium alloys), hard plastics "
-                "(e.g., polyethylene), or a combination of materials. Many joint prostheses "
-                "include a component that resembles a ball and another that includes a "
-                "socket. Some joint prostheses components may be used alone as a partial "
-                "prosthesis; a total prosthesis usually includes all the components to permit "
-                "complete replacement of the joint. Joint prostheses are implanted to replace "
-                "articulations such as the knee, hip, ankle, shoulder, and elbow; they are "
-                "used mainly in patients who suffer from osteoarthritis or rheumatoid "
-                "arthritis, as well as after trauma.",
-                "artificial substitute, constructed of either synthetic or biological "
-                "material, which is used to partially or totally replace or repair injured or "
-                "diseased muscles, cartilage, connective tissue, etc; for bones use BONE "
-                "PROSTHESIS.",
+                "artificial substitute, constructed of either synthetic or biological material, which is used to partially or totally replace or repair injured or diseased joints.",
+                "Implantable prostheses designed for total or partial replacement of a joint. These prostheses typically consist of two or more articulated components; they are usually made of metal (e.g., cobalt-chromium alloys), hard plastics (e.g., polyethylene), or a combination of materials. Many joint prostheses include a component that resembles a ball and another that includes a socket. Some joint prostheses components may be used alone as a partial prosthesis; a total prosthesis usually includes all the components to permit complete replacement of the joint. Joint prostheses are implanted to replace articulations such as the knee, hip, ankle, shoulder, and elbow; they are used mainly in patients who suffer from osteoarthritis or rheumatoid arthritis, as well as after trauma.",
                 "artificial substitute for a missing body part or function",
-                "Artificial substitutes for body parts, and materials inserted into tissue "
-                "for functional, cosmetic, or therapeutic purposes. Prostheses can be "
-                "functional, as in the case of artificial arms and legs, or cosmetic, as in "
-                "the case of an artificial eye. Implants, all surgically inserted or grafted "
-                "into the body, tend to be used therapeutically. IMPLANTS, EXPERIMENTAL is "
-                "available for those used experimentally.",
-                "Nonexpendable items used in the performance of orthopedic surgery and "
-                "related therapy. They are differentiated from ORTHOTIC DEVICES, apparatus "
-                "used to prevent or correct deformities in patients.",
+                "artificial substitute, constructed of either synthetic or biological material, which is used to partially or totally replace or repair injured or diseased muscles, cartilage, connective tissue, etc; for bones use BONE PROSTHESIS.",
+                "Nonexpendable items used in the performance of orthopedic surgery and related therapy. They are differentiated from ORTHOTIC DEVICES, apparatus used to prevent or correct deformities in patients.",
+                "Artificial substitutes for body parts, and materials inserted into tissue for functional, cosmetic, or therapeutic purposes. Prostheses can be functional, as in the case of artificial arms and legs, or cosmetic, as in the case of an artificial eye. Implants, all surgically inserted or grafted into the body, tend to be used therapeutically. IMPLANTS, EXPERIMENTAL is available for those used experimentally.",
                 "A device, such as an artificial leg, that replaces a part of the body.",
-                "artificial substitute for a missing body part or function; used for "
-                "functional or cosmetic reasons, or both.",
-                "A device which is an artificial substitute for a missing body part or "
-                "function; used for functional or cosmetic reasons, or both.",
-                "Functional, reconstructive, and/or cosmetic artificial or, less frequently, "
-                "biological passive replacements for missing, disabled, or abnormal tissues, "
-                "organs, or other body parts. These devices may be externally attached to the "
-                "body (e.g., nose, earlobe, upper limb, denture) or totally or partially "
-                "implanted (e.g., joint prosthesis, ossicles). Prostheses intended for "
-                "insertion into tubular body structures (e.g., biliary duct, ureter) to "
-                "provide support and/or to maintain patency are usually called stents or "
-                "endoprostheses; implantable prosthetic devices intended mainly for passive "
-                "replacement of body parts (e.g., tooth root, ureter) are usually known as "
-                "implants. Dedicated prostheses are available in many different sizes, "
-                "shapes, and materials. They are used mainly in orthopedic (e.g., limbs, "
-                "joints), cardiac (e.g., valves, heart ventricles), and other surgical "
-                "procedures; to improve a patient's capabilities (e.g., dentures, eye "
-                "lenses); and for reconstructive and/or cosmetic purposes (e.g., facial and "
-                "body muscle enhancements).",
+                "artificial substitute for a missing body part or function; used for functional or cosmetic reasons, or both.",
+                "A device which is an artificial substitute for a missing body part or function; used for functional or cosmetic reasons, or both.",
+                "Functional, reconstructive, and/or cosmetic artificial or, less frequently, biological passive replacements for missing, disabled, or abnormal tissues, organs, or other body parts. These devices may be externally attached to the body (e.g., nose, earlobe, upper limb, denture) or totally or partially implanted (e.g., joint prosthesis, ossicles). Prostheses intended for insertion into tubular body structures (e.g., biliary duct, ureter) to provide support and/or to maintain patency are usually called stents or endoprostheses; implantable prosthetic devices intended mainly for passive replacement of body parts (e.g., tooth root, ureter) are usually known as implants. Dedicated prostheses are available in many different sizes, shapes, and materials. They are used mainly in orthopedic (e.g., limbs, joints), cardiac (e.g., valves, heart ventricles), and other surgical procedures; to improve a patient's capabilities (e.g., dentures, eye lenses); and for reconstructive and/or cosmetic purposes (e.g., facial and body muscle enhancements).",
             ],
         ),
     ),
@@ -347,3 +398,43 @@ primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
 years, actual domestication occurred in Egypt about 4000 years ago."""
     )
+
+
+@pytest.fixture()
+def arg_parser():
+    return definitions.add_args(argparse.ArgumentParser())
+
+
+@pytest.mark.parametrize(
+    ("cli_args", "kwargs", "expected"),
+    (
+        (
+            ["--source-vocab=snomed", "--source-ui=67362008"],
+            dict(),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            [],
+            dict(source_vocab="snomed", source_ui="67362008"),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            ["--start-cui=C0003486"],
+            dict(),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            [],
+            dict(
+                start_cui="C0003486",
+            ),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+    ),
+)
+def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
+    args = arg_parser.parse_args(cli_args)
+    find_fn = definitions.find_factory(api, args)
+    result = find_fn(**kwargs)
+    defs = extract_definitions(result)
+    assert expected in defs
