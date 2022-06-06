@@ -4,7 +4,6 @@ import itertools
 import logging
 import operator
 import os.path
-import textwrap
 from typing import Optional, Iterable, List, Dict, Callable, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
@@ -452,30 +451,6 @@ def find_builder(api: MetaThesaurus, parsed_args: argparse.Namespace):
             raise AssertionError("Unreachable code")
 
     return find_fun
-
-
-def _entry_to_string(name: str, definitions: List[Dict]) -> str:
-    value = ""
-    value += f"{name}\n"
-    value += "=" * len(name)
-    value += "\n"
-    enum_defs = (
-        textwrap.fill(f"{x + 1}. {datum['value']}")
-        for x, datum in enumerate(definitions)
-    )
-    value += "\n".join(enum_defs)
-    return value
-
-
-def definitions_to_md(concepts: List[Dict]) -> str:
-    """
-    Write list of defined concepts as MarkDown.
-
-    :param concepts: list of concept Dicts
-    :return: MarkDown string
-    """
-    entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
-    return "\n\n".join(entries)
 
 
 def definitions_itr(concepts: List[Dict]) -> Iterable[str]:

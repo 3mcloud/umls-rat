@@ -4,6 +4,7 @@ from typing import List, Optional
 import pytest
 
 from umlsrat.lookup import lookup_defs, lookup_umls
+from umlsrat.util.iterators import definitions_to_md
 from utilities import extract_definitions, extract_concept_names
 
 
@@ -372,7 +373,7 @@ def test_pretty_print(api):
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = lookup_defs.definitions_to_md(data)
+    pp = definitions_to_md(data)
     assert (
         pp
         == """Felis catus
@@ -420,7 +421,7 @@ def arg_parser():
         ),
     ),
 )
-def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
+def test_find_builder(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
     find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)

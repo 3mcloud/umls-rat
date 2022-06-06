@@ -1,8 +1,33 @@
+import textwrap
 from itertools import cycle, islice
 from typing import Iterable, List, Dict
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import lookup_umls
+
+
+def _entry_to_string(name: str, definitions: List[Dict]) -> str:
+    value = ""
+    value += f"{name}\n"
+    value += "=" * len(name)
+    value += "\n"
+    enum_defs = (
+        textwrap.fill(f"{x + 1}. {datum['value']}")
+        for x, datum in enumerate(definitions)
+    )
+    value += "\n".join(enum_defs)
+    return value
+
+
+def definitions_to_md(concepts: List[Dict]) -> str:
+    """
+    Write list of defined concepts as MarkDown.
+
+    :param concepts: list of concept Dicts
+    :return: MarkDown string
+    """
+    entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
+    return "\n\n".join(entries)
 
 
 def map_cuis_to_names(api: MetaThesaurus, cuis: Iterable[str]) -> List[str]:
