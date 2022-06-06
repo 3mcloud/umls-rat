@@ -1,21 +1,10 @@
 import argparse
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import pytest
 
 from umlsrat.lookup import lookup_defs, lookup_umls
-
-
-def extract_concept_names(concepts: List[Dict]) -> List[str]:
-    return [_["name"] for _ in concepts]
-
-
-def extract_definitions(concepts: List[Dict]) -> List[str]:
-    defs = []
-    for concept in concepts:
-        for d in concept["definitions"]:
-            defs.append(d)
-    return [d["value"] for d in defs]
+from utilities import extract_definitions, extract_concept_names
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
