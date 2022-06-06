@@ -6,7 +6,7 @@ import sys
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import lookup_defs
-from umlsrat.lookup.lookup_defs import definitions_to_md
+from umlsrat.util.iterators import definitions_to_md
 
 logger = logging.getLogger(os.path.basename(__file__))
 
