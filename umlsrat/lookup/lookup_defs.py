@@ -8,7 +8,7 @@ import textwrap
 from typing import Optional, Iterable, List, Dict, Callable, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import graph_fn, umls
+from umlsrat.lookup import graph_fn, lookup_umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text, iterators
 from umlsrat.util.args_util import str2bool
@@ -239,9 +239,9 @@ def definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
         if broader:
-            return umls.get_broader_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_broader_cuis(api, cui, language=target_lang)
         else:
-            return umls.get_narrower_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_narrower_cuis(api, cui, language=target_lang)
 
     return _definitions_bfs(
         api=api,
@@ -286,7 +286,7 @@ def find_defined_concepts(
     :param source_desc: source description
     :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: stop searching after reaching this distance from the original source
+    :param max_distance: stop searching after reaching this distance from the original source \
     concept. (Default = 0 = Infinity)
     :param target_lang: target definitions in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
@@ -326,7 +326,7 @@ def find_defined_concepts(
         return data
 
     if source_ui:
-        cuis_from_code = umls.get_cuis_for(
+        cuis_from_code = lookup_umls.get_cuis_for(
             api, source_vocab=source_vocab, source_ui=source_ui
         )
         if cuis_from_code:
@@ -355,7 +355,7 @@ def find_defined_concepts(
         # the provided code is an MModal addition (not in original vocab).
         cleaned = text.clean_desc(source_desc)
         max_search_results = 5  # only check the top 5 results
-        search_result = umls.term_search(
+        search_result = lookup_umls.term_search(
             api,
             term=cleaned,
             max_results=max_search_results,
@@ -378,6 +378,12 @@ def find_defined_concepts(
 
 
 def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    """
+    Add arguments for search functions. Expected to be used with :meth:`find_builder`
+
+    :param parser: the parser
+    :return: same parser
+    """
     df_group = parser.add_argument_group("Definitions Finder")
 
     # cui_search = df_group.add_argument_group("CUI Search")
@@ -406,7 +412,16 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 _EXPECTED_KWARG_NAMES = vars(add_args(argparse.ArgumentParser()).parse_args([])).keys()
 
 
-def find_factory(api: MetaThesaurus, parsed_args: argparse.Namespace):
+def find_builder(api: MetaThesaurus, parsed_args: argparse.Namespace):
+    """
+    Build a method to find defined concepts. Calls either :meth:`definitions_bfs` or
+    :meth:`find_defined_concepts` depending on the args. Additional arguments are passed as keyword
+    arguments. Such arguments override those passed with `parsed_args`
+
+    :param api: api object
+    :param parsed_args: parsed args. see :meth:`add_args`
+    :return: function to find defined concepts
+    """
     vargs = vars(parsed_args)
     # white list
     base_kwargs = {k: vargs[k] for k in _EXPECTED_KWARG_NAMES}
@@ -426,7 +441,7 @@ def find_factory(api: MetaThesaurus, parsed_args: argparse.Namespace):
         )
         assert operator.xor(is_cui_search, is_source_search), (
             "Expected either 'start_cui' or some source asserted info such as "
-            "'source_vocab', 'source_ui' 'source_desc'"
+            "'source_vocab', 'source_ui' 'source_desc' -- not both."
         )
 
         if is_cui_search:

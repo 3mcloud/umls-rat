@@ -3,9 +3,8 @@ import logging
 import os.path
 from typing import Optional, Dict, List, Iterator, Iterable
 
-from umlsrat.api import cui_order
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.util import text
+from umlsrat.util import text, cui_order
 
 logger = logging.getLogger(os.path.basename(__file__))
 

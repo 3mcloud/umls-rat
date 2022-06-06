@@ -3,8 +3,7 @@ from typing import Dict, List, Optional
 
 import pytest
 
-import umlsrat.lookup.umls
-from umlsrat.lookup import definitions
+from umlsrat.lookup import lookup_defs, lookup_umls
 
 
 def extract_concept_names(concepts: List[Dict]) -> List[str]:
@@ -20,10 +19,10 @@ def extract_definitions(concepts: List[Dict]) -> List[str]:
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
-    cuis = umlsrat.lookup.umls.get_cuis_for(api, "SNOMEDCT_US", snomed_code)
+    cuis = lookup_umls.get_cuis_for(api, "SNOMEDCT_US", snomed_code)
     assert cuis
     for cui in cuis:
-        concepts = definitions.definitions_bfs(
+        concepts = lookup_defs.definitions_bfs(
             api, cui, stop_on_found=True, target_vocabs=("MSH",)
         )
         results = extract_definitions(concepts)
@@ -245,7 +244,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
 def test_find_defined_concepts(
     api, kwargs, expected_names: List[str], a_definition: str
 ):
-    concepts = definitions.find_defined_concepts(api, **kwargs)
+    concepts = lookup_defs.find_defined_concepts(api, **kwargs)
     names = extract_concept_names(concepts)
     assert names == expected_names
     if a_definition:
@@ -303,7 +302,7 @@ def test_find_defined_concepts(
     ),
 )
 def test_definitions_bfs(api, kwargs, expected_names, a_definition):
-    concepts = definitions.definitions_bfs(api, **kwargs)
+    concepts = lookup_defs.definitions_bfs(api, **kwargs)
     names = extract_concept_names(concepts)
     assert names == expected_names
     if a_definition:
@@ -358,14 +357,14 @@ def test_definitions_bfs(api, kwargs, expected_names, a_definition):
     ),
 )
 def test_definitions_itr(api, kwargs, expected):
-    concepts = definitions.find_defined_concepts(api, **kwargs)
-    defs = list(definitions.definitions_itr(concepts))
+    concepts = lookup_defs.find_defined_concepts(api, **kwargs)
+    defs = list(lookup_defs.definitions_itr(concepts))
     assert defs == expected
 
 
 def test_max_distance(api):
     def do_find(d):
-        return definitions.find_defined_concepts(
+        return lookup_defs.find_defined_concepts(
             api,
             "snomed",
             "182166001",
@@ -380,11 +379,11 @@ def test_max_distance(api):
 
 
 def test_pretty_print(api):
-    data = definitions.find_defined_concepts(
+    data = lookup_defs.find_defined_concepts(
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = definitions.definitions_to_md(data)
+    pp = lookup_defs.definitions_to_md(data)
     assert (
         pp
         == """Felis catus
@@ -402,7 +401,7 @@ years, actual domestication occurred in Egypt about 4000 years ago."""
 
 @pytest.fixture()
 def arg_parser():
-    return definitions.add_args(argparse.ArgumentParser())
+    return lookup_defs.add_args(argparse.ArgumentParser())
 
 
 @pytest.mark.parametrize(
@@ -434,7 +433,7 @@ def arg_parser():
 )
 def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
-    find_fn = definitions.find_factory(api, args)
+    find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)
     defs = extract_definitions(result)
     assert expected in defs
