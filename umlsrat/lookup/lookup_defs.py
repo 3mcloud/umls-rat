@@ -8,7 +8,7 @@ import textwrap
 from typing import Optional, Iterable, List, Dict, Callable, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.lookup import graph_fn, umls
+from umlsrat.lookup import graph_fn, lookup_umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text, iterators
 from umlsrat.util.args_util import str2bool
@@ -239,9 +239,9 @@ def definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
         if broader:
-            return umls.get_broader_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_broader_cuis(api, cui, language=target_lang)
         else:
-            return umls.get_narrower_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_narrower_cuis(api, cui, language=target_lang)
 
     return _definitions_bfs(
         api=api,
@@ -326,7 +326,7 @@ def find_defined_concepts(
         return data
 
     if source_ui:
-        cuis_from_code = umls.get_cuis_for(
+        cuis_from_code = lookup_umls.get_cuis_for(
             api, source_vocab=source_vocab, source_ui=source_ui
         )
         if cuis_from_code:
@@ -355,7 +355,7 @@ def find_defined_concepts(
         # the provided code is an MModal addition (not in original vocab).
         cleaned = text.clean_desc(source_desc)
         max_search_results = 5  # only check the top 5 results
-        search_result = umls.term_search(
+        search_result = lookup_umls.term_search(
             api,
             term=cleaned,
             max_results=max_search_results,

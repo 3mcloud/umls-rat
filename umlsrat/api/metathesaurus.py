@@ -5,7 +5,7 @@ import operator
 from typing import Dict, Iterator, List, Optional
 
 from umlsrat import const
-from umlsrat.api.session import MetaThesaurusSession
+from umlsrat.api.rat_session import MetaThesaurusSession
 
 
 class MetaThesaurus(object):

@@ -2,7 +2,7 @@ import pytest
 
 from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
-from umlsrat.api.session import MetaThesaurusSession
+from umlsrat.api.rat_session import MetaThesaurusSession
 
 
 def pytest_addoption(parser):
