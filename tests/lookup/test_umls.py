@@ -37,7 +37,7 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
     (
         (dict(cui="C0559890"), ["C0574025", "C0559887"]),
         (dict(cui="C3472551"), ["C0460009"]),
-        (dict(cui="C3887398"), ["C3886880", "C4281104", "C0009044"]),
+        (dict(cui="C3887398"), ["C3886880", "C0009044", "C4281104"]),
         # (dict(cui="C1956346"), []),
         (
             dict(cui="C0009044"),
@@ -45,7 +45,7 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
         ),
         (
             dict(cui="C0450415"),
-            ["C0205093", "C0332191", "C0205089", "C1180190", "C0441987"],
+            ["C0205093", "C0332191", "C1180190", "C0441987", "C0205089"],
         ),
         # (
         # Descriptors

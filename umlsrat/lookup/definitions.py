@@ -1,14 +1,17 @@
+import argparse
 import collections
 import itertools
 import logging
+import operator
 import os.path
 import textwrap
-from typing import Optional, Iterable, List, Dict, Callable, Set
+from typing import Optional, Iterable, List, Dict, Callable, Set, Any
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import graph_fn, umls
 from umlsrat.lookup.graph_fn import Action
 from umlsrat.util import orderedset, text, iterators
+from umlsrat.util.args_util import str2bool
 from umlsrat.util.orderedset import FIFO
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -372,6 +375,70 @@ def find_defined_concepts(
                     return defs
 
     return []
+
+
+def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    df_group = parser.add_argument_group("Definitions Finder")
+
+    # cui_search = df_group.add_argument_group("CUI Search")
+    df_group.add_argument("--start-cui", help="", type=str, default=None)
+
+    # sa_search = df_group.add_argument_group("Source Asserted Search")
+    df_group.add_argument("--source-vocab", help="", type=str, default=None)
+    df_group.add_argument("--source-ui", help="", type=str, default=None)
+    df_group.add_argument("--source-desc", help="", type=str, default=None)
+
+    df_group.add_argument(
+        "--search-broader", help="", type=str2bool, default=True, dest="broader"
+    )
+    df_group.add_argument("--stop-on-found", help="", type=str2bool, default=True)
+
+    df_group.add_argument("--max-distance", help="", type=int, default=0)
+    df_group.add_argument("--target-lang", help="", type=str, default="ENG")
+
+    df_group.add_argument(
+        "--preserve-semantic-type", help="", type=str2bool, default=False
+    )
+
+    return parser
+
+
+_EXPECTED_KWARG_NAMES = vars(add_args(argparse.ArgumentParser()).parse_args([])).keys()
+
+
+def find_factory(
+    api: MetaThesaurus, parsed_args: argparse.Namespace
+) -> Callable[[Any], List[Dict]]:
+    vargs = vars(parsed_args)
+    # white list
+    base_kwargs = {k: vargs[k] for k in _EXPECTED_KWARG_NAMES}
+    # drop None
+    base_kwargs = {k: v for k, v in base_kwargs.items() if v is not None}
+
+    def find_fun(**kwargs):
+        # override base kwargs
+        merged_kwargs = base_kwargs.copy()
+        merged_kwargs.update(kwargs)
+
+        is_cui_search = "start_cui" in merged_kwargs
+        is_source_search = (
+            "source_vocab" in merged_kwargs
+            or "source_ui" in merged_kwargs
+            or "source_desc" in merged_kwargs
+        )
+        assert operator.xor(is_cui_search, is_source_search), (
+            "Expected either 'start_cui' or some source asserted info such as "
+            "'source_vocab', 'source_ui' 'source_desc'"
+        )
+
+        if is_cui_search:
+            return definitions_bfs(api=api, **merged_kwargs)
+        elif is_source_search:
+            return find_defined_concepts(api=api, **merged_kwargs)
+        else:
+            raise AssertionError("Unreachable code")
+
+    return find_fun
 
 
 def _entry_to_string(name: str, definitions: List[Dict]) -> str:
