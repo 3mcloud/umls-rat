@@ -1,3 +1,4 @@
+import argparse
 from typing import Dict, List, Optional
 
 import pytest
@@ -397,3 +398,43 @@ primarily from the wild cat of Africa and extreme southwestern Asia.
 Though probably present in towns in Palestine as long ago as 7000
 years, actual domestication occurred in Egypt about 4000 years ago."""
     )
+
+
+@pytest.fixture()
+def arg_parser():
+    return definitions.add_args(argparse.ArgumentParser())
+
+
+@pytest.mark.parametrize(
+    ("cli_args", "kwargs", "expected"),
+    (
+        (
+            ["--source-vocab=snomed", "--source-ui=67362008"],
+            dict(),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            [],
+            dict(source_vocab="snomed", source_ui="67362008"),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            ["--start-cui=C0003486"],
+            dict(),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+        (
+            [],
+            dict(
+                start_cui="C0003486",
+            ),
+            "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
+        ),
+    ),
+)
+def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
+    args = arg_parser.parse_args(cli_args)
+    find_fn = definitions.find_factory(api, args)
+    result = find_fn(**kwargs)
+    defs = extract_definitions(result)
+    assert expected in defs

@@ -207,8 +207,8 @@ def definitions_bfs(
     stop_on_found: Optional[bool] = True,
     max_distance: Optional[int] = 0,
     target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: str = "ENG",
-    preserve_semantic_type: bool = False,
+    target_lang: Optional[str] = "ENG",
+    preserve_semantic_type: Optional[bool] = False,
 ) -> List[Dict]:
     """
     Do a breadth-first search over UMLS for concepts with associated definitions.
@@ -406,16 +406,14 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 _EXPECTED_KWARG_NAMES = vars(add_args(argparse.ArgumentParser()).parse_args([])).keys()
 
 
-def find_factory(
-    api: MetaThesaurus, parsed_args: argparse.Namespace
-) -> Callable[[Any], List[Dict]]:
+def find_factory(api: MetaThesaurus, parsed_args: argparse.Namespace):
     vargs = vars(parsed_args)
     # white list
     base_kwargs = {k: vargs[k] for k in _EXPECTED_KWARG_NAMES}
     # drop None
     base_kwargs = {k: v for k, v in base_kwargs.items() if v is not None}
 
-    def find_fun(**kwargs):
+    def find_fun(**kwargs: Any) -> List[Dict]:
         # override base kwargs
         merged_kwargs = base_kwargs.copy()
         merged_kwargs.update(kwargs)
