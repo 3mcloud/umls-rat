@@ -433,7 +433,7 @@ def arg_parser():
 )
 def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
-    find_fn = lookup_defs.find_factory(api, args)
+    find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)
     defs = extract_definitions(result)
     assert expected in defs

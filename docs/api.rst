@@ -11,6 +11,7 @@ This object provides access to the basic functions of the UMLS REST API.
    :recursive:
 
    umlsrat.api.metathesaurus.MetaThesaurus
+   umlsrat.api.metathesaurus.MetaThesaurus.add_args
 
 .. rubric:: UMLS Concepts
 
@@ -57,8 +58,10 @@ Functions for finding defined concepts.
 .. autosummary::
    :nosignatures:
 
-   umlsrat.lookup.definitions.find_defined_concepts
-   umlsrat.lookup.definitions.broader_definitions_bfs
+   umlsrat.lookup.lookup_defs.definitions_bfs
+   umlsrat.lookup.lookup_defs.find_defined_concepts
+   umlsrat.lookup.lookup_defs.add_args
+   umlsrat.lookup.lookup_defs.find_builder
    
 .. rubric:: UMLS
 
@@ -68,11 +71,11 @@ Functions which find UMLS concepts and CUIs
    :nosignatures:
    :recursive:
    
-   umlsrat.lookup.umls.get_cuis_for
-   umlsrat.lookup.umls.get_related_cuis
-   umlsrat.lookup.umls.get_broader_cuis
-   umlsrat.lookup.umls.get_narrower_cuis
-   umlsrat.lookup.umls.term_search
+   umlsrat.lookup.lookup_umls.get_cuis_for
+   umlsrat.lookup.lookup_umls.get_related_cuis
+   umlsrat.lookup.lookup_umls.get_broader_cuis
+   umlsrat.lookup.lookup_umls.get_narrower_cuis
+   umlsrat.lookup.lookup_umls.term_search
    
 
 
@@ -89,10 +92,10 @@ All method signatures are found here.
 
 .. rubric:: Definitions
 
-.. automodule:: umlsrat.lookup.definitions
+.. automodule:: umlsrat.lookup.lookup_defs
     :members: 
 
 .. rubric:: UMLS
 
-.. automodule:: umlsrat.lookup.umls
+.. automodule:: umlsrat.lookup.lookup_umls
     :members: 

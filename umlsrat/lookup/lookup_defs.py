@@ -286,7 +286,7 @@ def find_defined_concepts(
     :param source_desc: source description
     :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: stop searching after reaching this distance from the original source
+    :param max_distance: stop searching after reaching this distance from the original source \
     concept. (Default = 0 = Infinity)
     :param target_lang: target definitions in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
@@ -378,6 +378,12 @@ def find_defined_concepts(
 
 
 def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    """
+    Add arguments for search functions. Expected to be used with :meth:`find_builder`
+
+    :param parser: the parser
+    :return: same parser
+    """
     df_group = parser.add_argument_group("Definitions Finder")
 
     # cui_search = df_group.add_argument_group("CUI Search")
@@ -406,7 +412,16 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 _EXPECTED_KWARG_NAMES = vars(add_args(argparse.ArgumentParser()).parse_args([])).keys()
 
 
-def find_factory(api: MetaThesaurus, parsed_args: argparse.Namespace):
+def find_builder(api: MetaThesaurus, parsed_args: argparse.Namespace):
+    """
+    Build a method to find defined concepts. Calls either :meth:`definitions_bfs` or
+    :meth:`find_defined_concepts` depending on the args. Additional arguments are passed as keyword
+    arguments. Such arguments override those passed with `parsed_args`
+
+    :param api: api object
+    :param parsed_args: parsed args. see :meth:`add_args`
+    :return: function to find defined concepts
+    """
     vargs = vars(parsed_args)
     # white list
     base_kwargs = {k: vargs[k] for k in _EXPECTED_KWARG_NAMES}

@@ -29,7 +29,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     api = MetaThesaurus.from_namespace(args)
-    find_fn = lookup_defs.find_factory(api, args)
+    find_fn = lookup_defs.find_builder(api, args)
 
     definitions = find_fn()
 
