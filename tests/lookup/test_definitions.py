@@ -1,21 +1,11 @@
 import argparse
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import pytest
 
 from umlsrat.lookup import lookup_defs, lookup_umls
-
-
-def extract_concept_names(concepts: List[Dict]) -> List[str]:
-    return [_["name"] for _ in concepts]
-
-
-def extract_definitions(concepts: List[Dict]) -> List[str]:
-    defs = []
-    for concept in concepts:
-        for d in concept["definitions"]:
-            defs.append(d)
-    return [d["value"] for d in defs]
+from umlsrat.util.iterators import definitions_to_md
+from utilities import extract_definitions, extract_concept_names
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
@@ -383,7 +373,7 @@ def test_pretty_print(api):
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = lookup_defs.definitions_to_md(data)
+    pp = definitions_to_md(data)
     assert (
         pp
         == """Felis catus
@@ -431,7 +421,7 @@ def arg_parser():
         ),
     ),
 )
-def test_find_factory(api, arg_parser, cli_args, kwargs, expected):
+def test_find_builder(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
     find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)

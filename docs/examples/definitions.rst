@@ -5,8 +5,7 @@
 Definitions Dump
 ================
 
-At this time, this repository is mostly used to find definitions for concepts in SNOMED, etc where
-definitions are not provided. The script `definitions-dump.py` provides example usage. 
+The script `definitions-dump.py` will do a search for concepts with definitions, starting from the one specified at the CLI. The full data for those concepts is written to a ``JSON`` file under ``definitions/`` as well as *just* the definitions written as MarkDown.
 
 Get definitions for this out-dated "back" concept: `450807008`
 

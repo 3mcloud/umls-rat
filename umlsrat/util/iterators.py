@@ -1,17 +1,49 @@
+import textwrap
 from itertools import cycle, islice
-from typing import Iterable, Iterator
+from typing import Iterable, List, Dict
+
+from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup import lookup_umls
 
 
-def yield_unique(gen: Iterator, seen: Iterable = None):
-    if seen:
-        seen = set(seen)
-    else:
-        seen = set()
+def _entry_to_string(name: str, definitions: List[Dict]) -> str:
+    value = ""
+    value += f"{name}\n"
+    value += "=" * len(name)
+    value += "\n"
+    enum_defs = (
+        textwrap.fill(f"{x + 1}. {datum['value']}")
+        for x, datum in enumerate(definitions)
+    )
+    value += "\n".join(enum_defs)
+    return value
 
-    for e in gen:
-        if e not in seen:
-            yield e
-        seen.add(e)
+
+def definitions_to_md(concepts: List[Dict]) -> str:
+    """
+    Write list of defined concepts as MarkDown.
+
+    :param concepts: list of concept Dicts
+    :return: MarkDown string
+    """
+    entries = (_entry_to_string(c["name"], c["definitions"]) for c in concepts)
+    return "\n\n".join(entries)
+
+
+def map_cuis_to_names(api: MetaThesaurus, cuis: Iterable[str]) -> List[str]:
+    return [lookup_umls.get_concept_name(api, cui) for cui in cuis]
+
+
+def extract_concept_names(concepts: List[Dict]) -> List[str]:
+    return [_["name"] for _ in concepts]
+
+
+def extract_definitions(concepts: List[Dict]) -> List[str]:
+    defs = []
+    for concept in concepts:
+        for d in concept["definitions"]:
+            defs.append(d)
+    return [d["value"] for d in defs]
 
 
 def roundrobin(*iterables):
