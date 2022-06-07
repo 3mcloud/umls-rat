@@ -1,7 +1,5 @@
 .. highlight:: markdown
 
-.. _Examples/Definitions:
-
 Definitions Dump
 ================
 

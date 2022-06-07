@@ -1,10 +1,11 @@
+********
 Examples
-========
+********
 
 Remember to follow instructions regarding the :ref:`API Key` before running examples. 
 
-Core API
---------
+:ref:`Core <API MetaThesaurus>`
+===============================
 
 .. code-block:: python
 
@@ -14,8 +15,8 @@ Core API
 
 
 
-Find UMLS CUI
--------------
+:ref:`Lookup CUI <API Lookup UMLS>`
+====================================
 
 Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI. 
 
@@ -34,8 +35,11 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
 
    assert cheese_cuis == fromage_cuis
 
-Find Definitions
-----------------
+
+:ref:`Lookup Definitions <API Lookup Definitions>`
+==================================================
+
+Find defined concepts based on description only. 
 
 .. code-block:: python
 
@@ -84,10 +88,8 @@ Find Definitions
       print("_" * 40)
 
 
-
-
 Scripts
--------
+=======
 
 .. toctree::
    :maxdepth: 2
