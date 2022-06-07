@@ -37,7 +37,7 @@ def main():
     logger.info("Definitions:\n\n" + markdown)
 
     out_dir = args.out_dir
-    out_dir = os.path.join(out_dir, args.target_lang)
+    out_dir = os.path.join(out_dir, args.language)
 
     if args.source_ui:
         of_base = f"{args.source_ui}-{args.source_ui}"

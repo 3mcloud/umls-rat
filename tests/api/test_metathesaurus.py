@@ -32,9 +32,16 @@ def test_get_definitions(api, cui, definitions):
     assert defs == definitions
 
 
-@pytest.mark.parametrize(("cui", "rel_count"), (("C0009044", 5),))
-def test_get_relations(api, cui, rel_count):
-    data = list(api.get_relations(cui))
+@pytest.mark.parametrize(
+    ("kwargs", "rel_count"),
+    (
+        (dict(cui="C0009044"), 5),
+        (dict(cui="C0009044", language="ENG"), 5),
+        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 293),
+    ),
+)
+def test_get_relations(api, kwargs, rel_count):
+    data = list(api.get_relations(**kwargs))
     assert len(data) == rel_count
 
 

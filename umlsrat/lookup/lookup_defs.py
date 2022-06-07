@@ -62,7 +62,7 @@ def _definitions_bfs(
     stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
     target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: str = "ENG",
+    language: str = "ENG",
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
@@ -75,7 +75,7 @@ def _definitions_bfs(
 
     :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
     :param get_neighbors: fn to get neighbors of a CUI (e.g. get_broader or get_narrower)
-    :param target_lang: target language
+    :param language: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param stop_on_found: stop searching after processing first level containing defined concepts
@@ -93,13 +93,11 @@ def _definitions_bfs(
         for tv in target_vocabs:
             info = api.find_source_info(tv)
             assert (
-                info.get("language").get("abbreviation") == target_lang
-            ), f"Requested vocabulary {tv} is not in the target language {target_lang}"
+                info.get("language").get("abbreviation") == language
+            ), f"Requested vocabulary {tv} is not in the target language {language}"
     else:
-        target_vocabs = set(api.sources_for_language(target_lang))
-        assert (
-            target_vocabs
-        ), f"No vocabularies for language abbreviation '{target_lang}'"
+        target_vocabs = set(api.sources_for_language(language))
+        assert target_vocabs, f"No vocabularies for language abbreviation '{language}'"
 
     # If we want to preserve semantic type, we need to get them for the start CUI
     start_sem_types = None
@@ -206,7 +204,7 @@ def definitions_bfs(
     stop_on_found: Optional[bool] = True,
     max_distance: Optional[int] = 0,
     target_vocabs: Optional[Iterable[str]] = None,
-    target_lang: Optional[str] = "ENG",
+    language: Optional[str] = "ENG",
     preserve_semantic_type: Optional[bool] = False,
 ) -> List[Dict]:
     """
@@ -224,7 +222,7 @@ def definitions_bfs(
     :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: maximum allowed distance from `start_cui` (Default = 0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
-    :param target_lang: only consider concepts in this language
+    :param language: only consider concepts in this language
     :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
     :return: a list of Concepts with Definitions
     """
@@ -238,9 +236,9 @@ def definitions_bfs(
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
         if broader:
-            return lookup_umls.get_broader_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_broader_cuis(api, cui, language=language)
         else:
-            return lookup_umls.get_narrower_cuis(api, cui, language=target_lang)
+            return lookup_umls.get_narrower_cuis(api, cui, language=language)
 
     return _definitions_bfs(
         api=api,
@@ -249,7 +247,7 @@ def definitions_bfs(
         stop_on_found=stop_on_found,
         max_distance=max_distance,
         target_vocabs=target_vocabs,
-        target_lang=target_lang,
+        language=language,
         preserve_semantic_type=preserve_semantic_type,
     )
 
@@ -262,7 +260,7 @@ def find_defined_concepts(
     broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
     max_distance: int = 0,
-    target_lang: str = "ENG",
+    language: str = "ENG",
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
     """
@@ -287,7 +285,7 @@ def find_defined_concepts(
     :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: stop searching after reaching this distance from the original source \
     concept. (Default = 0 = Infinity)
-    :param target_lang: only consider concepts in this language
+    :param language: only consider concepts in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
@@ -302,7 +300,7 @@ def find_defined_concepts(
         ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
-        msg = f"Finding {stop_on_found} {target_lang} definition(s) of"
+        msg = f"Finding {stop_on_found} {language} definition(s) of"
         if source_ui:
             msg = f"{msg} {source_vocab}/{source_ui}"
 
@@ -318,7 +316,7 @@ def find_defined_concepts(
             broader=broader,
             stop_on_found=stop_on_found,
             max_distance=max_distance,
-            target_lang=target_lang,
+            language=language,
             preserve_semantic_type=preserve_semantic_type,
         )
 
@@ -420,7 +418,7 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         default=0,
     )
     df_group.add_argument(
-        "--target-lang",
+        "--language",
         help="only consider concepts in this language",
         type=str,
         default="ENG",

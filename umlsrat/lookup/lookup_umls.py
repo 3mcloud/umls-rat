@@ -183,8 +183,8 @@ def _get_related_cuis(
     :param api: meta thesaurus
     :param cui: starting concept CUI
     :param allowed_relations: relations of interest
-    :param language: language of relations?
-    :param add_params: additional parameters to be passed to the call
+    :param language: target language
+    :param add_params: additional parameters passed to internal calls
     :return: generator yielding CUIs
     """
 
@@ -268,7 +268,7 @@ def get_related_cuis(
     :param api: meta thesaurus
     :param cui: starting concept CUI
     :param allowed_relations: relations of interest
-    :param language: language of relations?
+    :param language: target language
 
     :return: list of CUIs
     """
@@ -303,7 +303,7 @@ def get_broader_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
-    :param language: language of relations?
+    :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(
@@ -319,7 +319,7 @@ def get_narrower_cuis(api: MetaThesaurus, cui: str, language: str = None) -> Lis
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
-    :param language: language of relations?
+    :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(
