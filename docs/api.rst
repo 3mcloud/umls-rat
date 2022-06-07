@@ -67,8 +67,8 @@ Functions for finding defined concepts.
 
    umlsrat.lookup.lookup_defs.definitions_bfs
    umlsrat.lookup.lookup_defs.find_defined_concepts
-   umlsrat.lookup.lookup_defs.add_args
    umlsrat.lookup.lookup_defs.find_builder
+   umlsrat.lookup.lookup_defs.add_args
 
 .. _API Lookup UMLS:
 

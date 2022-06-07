@@ -65,7 +65,7 @@ def term_search(
     strict_match: Optional[bool] = False,
 ) -> Dict:
     """
-    Search for a term in UMLS. Increasing the flexibility of the search with each iteration.
+    Search for a term in UMLS. Increase the flexibility of the search with each iteration.
 
     Pseudo-Python code looks like this:
 
