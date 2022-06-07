@@ -3,7 +3,8 @@ Examples
 
 Remember to follow instructions regarding the :ref:`API Key` before running examples. 
 
-.. rubric:: Core API
+Core API
+--------
 
 .. code-block:: python
 
@@ -13,7 +14,8 @@ Remember to follow instructions regarding the :ref:`API Key` before running exam
 
 
 
-.. rubric:: Find UMLS CUI
+Find UMLS CUI
+-------------
 
 Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI. 
 
@@ -32,7 +34,8 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
 
    assert cheese_cuis == fromage_cuis
 
-.. rubric:: Find Definitions
+Find Definitions
+----------------
 
 .. code-block:: python
 
@@ -83,9 +86,10 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
 
 
 
-.. rubric:: Scripts
+Scripts
+-------
 
 .. toctree::
    :maxdepth: 2
 
-   examples/definitions
+   script_examples/definitions
