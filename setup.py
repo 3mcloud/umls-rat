@@ -5,20 +5,6 @@ from setuptools import setup, find_packages
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-# todo: pull git commit
-# rk: not sure how useful the git commit would be in the version
-
-# import subprocess
-#
-#
-# def get_commit_hash():
-#     cmd = ['git', 'show', '--pretty="%h"']
-#     try:
-#         return subprocess.check_output(cmd).decode('utf8').strip()
-#     except Exception as e:
-#         return ''
-
-
 version = os.environ.get("PYPI_VERSION", "0.0.0.dev0+local")
 
 setup(
