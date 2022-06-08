@@ -7,13 +7,67 @@ spec:
   serviceAccountName: jenkins-sa-pr
   containers:
   -
-    image: "sphinxdoc/sphinx-latexpdf:4.1.2"
+    image: "python:3.7"
     imagePullPolicy: "IfNotPresent"
-    name: "target"
+    name: "37-tester"
     resources:
       limits: {}
       requests:
-        memory: 8G
+        memory: 4G
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 0
+    command:
+      - /bin/cat
+    tty: true
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: "/home/jenkins/agent"
+        readOnly: false
+  -
+    image: "python:3.8"
+    imagePullPolicy: "IfNotPresent"
+    name: "38-tester"
+    resources:
+      limits: {}
+      requests:
+        memory: 4G
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 0
+    command:
+      - /bin/cat
+    tty: true
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: "/home/jenkins/agent"
+        readOnly: false
+  -
+    image: "python:3.9"
+    imagePullPolicy: "IfNotPresent"
+    name: "39-tester"
+    resources:
+      limits: {}
+      requests:
+        memory: 4G
+    securityContext:
+      runAsGroup: 0
+      runAsUser: 0
+    command:
+      - /bin/cat
+    tty: true
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: "/home/jenkins/agent"
+        readOnly: false
+  -
+    image: "python:3.10"
+    imagePullPolicy: "IfNotPresent"
+    name: "310-tester"
+    resources:
+      limits: {}
+      requests:
+        memory: 4G
     securityContext:
       runAsGroup: 0
       runAsUser: 0
@@ -31,7 +85,7 @@ spec:
     resources:
       limits: {}
       requests:
-        memory: 2G
+        memory: 500M
     volumeMounts:
       - mountPath: "/home/jenkins/agent"
         name: "workspace-volume"
