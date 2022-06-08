@@ -163,7 +163,7 @@ pipeline {
 
         stage ('Documentation') {
             steps {
-                container(name: '38-tester'){
+                container(name: '39-tester'){
                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                             variable: 'UMLS_API_KEY')]) {
                         sh 'pip install -r jenkins/doc-requirements.txt'
@@ -222,7 +222,7 @@ pipeline {
                 }
                 stage('Build'){
                     steps{
-                        container('38-tester') {
+                        container('39-tester') {
                             sh 'python3 -m pip install build'
                             sh "PYPI_VERSION=${PYPI_VERSION} python3 -m build"
                         }
