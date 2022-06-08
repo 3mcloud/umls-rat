@@ -199,7 +199,7 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}/relations"
         return self.session.get_results(uri, max_results=max_results, **params)
 
-    def get_atoms(
+    def get_atoms_for_cui(
         self, cui: str, max_results: Optional[int] = None, **params
     ) -> Iterator[Dict]:
         """
@@ -208,7 +208,7 @@ class MetaThesaurus(object):
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
 
         >>> from umlsrat.api.metathesaurus import MetaThesaurus
-        >>> list(MetaThesaurus().get_atoms(cui="C0009044", language="ENG"))
+        >>> list(MetaThesaurus().get_atoms_for_cui(cui="C0009044", language="ENG"))
 
         .. code-block:: js
 
@@ -251,7 +251,26 @@ class MetaThesaurus(object):
         uri = f"{self._start_content_uri}/CUI/{cui}/atoms"
         return self.session.get_results(uri, max_results=max_results, **params)
 
-    def get_ancestors(
+    def get_atom(self, aui: str) -> Optional[Dict]:
+        """
+        Get Atoms for a concept.
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/index.html>`__
+
+        >>> from umlsrat.api.metathesaurus import MetaThesaurus
+        >>> list(MetaThesaurus().get_atom(aui="A0243916"))
+
+        .. code-block:: js
+
+            {"TODO": "stuff"}
+
+        :param aui: Atom Unique Identifier (AUI)
+        :return: atom information
+        """
+        url = f"{self._start_content_uri}/AUI/{aui}"
+        return self.session.get_single_result(url)
+
+    def get_atom_ancestors(
         self, aui: str, max_results: Optional[int] = None
     ) -> Iterator[Dict]:
         """
@@ -260,7 +279,7 @@ class MetaThesaurus(object):
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/atoms/ancestors-and-descendants/index.html>`__
 
         >>> from umlsrat.api.metathesaurus import MetaThesaurus
-        >>> list(MetaThesaurus().get_ancestors(aui="A0243916"))
+        >>> list(MetaThesaurus().get_atom_ancestors(aui="A0243916"))
 
         .. code-block:: js
 
@@ -754,6 +773,7 @@ class MetaThesaurus(object):
         :return: normalized abbreviation
         :raises ValueError: if no sources exist for the language
         """
+        assert lab, "must supply language abbreviation"
         abbr_upper = lab.upper()
         if self.sources_for_language(abbr_upper):
             return abbr_upper

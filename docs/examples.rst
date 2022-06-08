@@ -1,9 +1,11 @@
+********
 Examples
-========
+********
 
 Remember to follow instructions regarding the :ref:`API Key` before running examples. 
 
-.. rubric:: Core API
+:ref:`Core <API MetaThesaurus>`
+===============================
 
 .. code-block:: python
 
@@ -13,7 +15,8 @@ Remember to follow instructions regarding the :ref:`API Key` before running exam
 
 
 
-.. rubric:: Find UMLS CUI
+:ref:`Lookup CUI <API Lookup UMLS>`
+====================================
 
 Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI. 
 
@@ -32,7 +35,11 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
 
    assert cheese_cuis == fromage_cuis
 
-.. rubric:: Find Definitions
+
+:ref:`Lookup Definitions <API Lookup Definitions>`
+==================================================
+
+Find defined concepts based on description only. 
 
 .. code-block:: python
 
@@ -81,11 +88,10 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
       print("_" * 40)
 
 
-
-
-.. rubric:: Scripts
+Scripts
+=======
 
 .. toctree::
    :maxdepth: 2
 
-   examples/definitions
+   script_examples/definitions

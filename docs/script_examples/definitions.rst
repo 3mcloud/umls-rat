@@ -1,7 +1,5 @@
 .. highlight:: markdown
 
-.. _Examples/Definitions:
-
 Definitions Dump
 ================
 
@@ -27,7 +25,7 @@ Now get one in Spanish
 
 .. code-block:: console
 
-    python definitions-dump.py --source-ui=450807008 --source-vocab=SNOMEDCT_US --target-lang=SPA
+    python definitions-dump.py --source-ui=450807008 --source-vocab=SNOMEDCT_US --language=SPA
 
 
 ::
@@ -41,7 +39,7 @@ Look for a concept using the description only
 
 .. code-block:: console
 
-    python definitions-dump.py --source-desc="Physical therapy" --target-lang=SPA
+    python definitions-dump.py --source-desc="Physical therapy" --language=SPA
 
 ::
 

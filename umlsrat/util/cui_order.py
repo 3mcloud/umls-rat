@@ -33,7 +33,8 @@ def desc_name_sim(api: MetaThesaurus, desc: str) -> Callable[[str], Any]:
     hammingish = text.hammingish_partial(desc)
 
     def sort_fn(cui: str):
-        target = api.get_concept(cui).get("name")
+        concept = api.get_concept(cui)
+        target = concept.get("name")
         return hammingish(target), target
 
     return sort_fn

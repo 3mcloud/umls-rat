@@ -65,7 +65,7 @@ def term_search(
     strict_match: Optional[bool] = False,
 ) -> Dict:
     """
-    Search for a term in UMLS. Increasing the flexibility of the search with each iteration.
+    Search for a term in UMLS. Increase the flexibility of the search with each iteration.
 
     Pseudo-Python code looks like this:
 
@@ -170,6 +170,18 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
     return []
 
 
+def _concepts_for_obj(api: MetaThesaurus, obj: Dict) -> List[Dict]:
+    if obj.get("classType") == "Concept":
+        return [obj]
+
+    if "concept" in obj:
+        return [api.session.get_single_result(obj["concept"])]
+    elif "concepts" in obj:
+        return api.session.get_results(obj["concepts"])
+    else:
+        raise ValueError(f"No concepts for atom:\n{obj}")
+
+
 def _get_related_cuis(
     api: MetaThesaurus,
     cui: str,
@@ -183,30 +195,46 @@ def _get_related_cuis(
     :param api: meta thesaurus
     :param cui: starting concept CUI
     :param allowed_relations: relations of interest
-    :param language: language of relations?
-    :param add_params: additional parameters to be passed to the call
+    :param language: target language
+    :param add_params: additional parameters passed to internal calls
     :return: generator yielding CUIs
     """
 
     seen = {cui}
 
-    def maybe_yield(next_cui: str):
-        if next_cui:
-            if next_cui not in seen:
-                yield next_cui
+    def maybe_yield_concept_ui(next_concept: Dict):
+        if not next_concept:
+            return
+
+        next_cui = next_concept["ui"]
+        if not next_cui:
+            return
+
+        if next_cui not in seen:
+            yield next_cui
             seen.add(next_cui)
 
     if language:
-        add_params["language"] = api.validate_language_abbrev(language)
+        language = api.validate_language_abbrev(language)
+        lang_sabs_str = ",".join(api.sources_for_language(language))
+    else:
+        language, lang_sabs_str = None, None
+
+    allowed_relation_str = ",".join(sorted(allowed_relations))
 
     # first get direct relations
-    for rel in api.get_relations(cui, **add_params):
-        if rel["relationLabel"] in allowed_relations:
-            rel_c = api.session.get_single_result(rel["relatedId"])
-            yield from maybe_yield(rel_c["ui"])
+    for rel in api.get_relations(
+        cui,
+        sabs=lang_sabs_str,
+        includeRelationLabels=allowed_relation_str,
+        **add_params,
+    ):
+        atom = api.session.get_single_result(rel["relatedId"])
+        for concept in _concepts_for_obj(api, atom):
+            yield from maybe_yield_concept_ui(concept)
 
     # get all atom concepts of this umls concept
-    atoms = api.get_atoms(cui, **add_params)
+    atoms = api.get_atoms_for_cui(cui, language=language, **add_params)
 
     for atom in atoms:
         code_url = atom["code"]
@@ -228,7 +256,7 @@ def _get_related_cuis(
             api.get_source_relations(
                 source_vocab=code["rootSource"],
                 concept_id=code["ui"],
-                includeRelationLabels=",".join(allowed_relations),
+                includeRelationLabels=allowed_relation_str,
                 **add_params,
             )
         )
@@ -240,15 +268,8 @@ def _get_related_cuis(
 
             related = api.session.get_single_result(rel["relatedId"])
 
-            if related.get("concept"):
-                concepts = [api.session.get_single_result(related["concept"])]
-            elif related.get("concepts"):
-                concepts = api.session.get_results(related["concepts"])
-            else:
-                raise ValueError(f"Malformed result has no concept(s)\n{related}")
-
-            for related_concept in concepts:
-                yield from maybe_yield(related_concept["ui"])
+            for related_concept in _concepts_for_obj(api, related):
+                yield from maybe_yield_concept_ui(related_concept)
 
 
 def get_related_cuis(
@@ -268,7 +289,7 @@ def get_related_cuis(
     :param api: meta thesaurus
     :param cui: starting concept CUI
     :param allowed_relations: relations of interest
-    :param language: language of relations?
+    :param language: target language
 
     :return: list of CUIs
     """
@@ -303,7 +324,7 @@ def get_broader_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
-    :param language: language of relations?
+    :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(
@@ -319,7 +340,7 @@ def get_narrower_cuis(api: MetaThesaurus, cui: str, language: str = None) -> Lis
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
-    :param language: language of relations?
+    :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(

@@ -32,9 +32,16 @@ def test_get_definitions(api, cui, definitions):
     assert defs == definitions
 
 
-@pytest.mark.parametrize(("cui", "rel_count"), (("C0009044", 5),))
-def test_get_relations(api, cui, rel_count):
-    data = list(api.get_relations(cui))
+@pytest.mark.parametrize(
+    ("kwargs", "rel_count"),
+    (
+        (dict(cui="C0009044"), 230),
+        (dict(cui="C0009044", sabs=["MTH"]), 5),
+        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 293),
+    ),
+)
+def test_get_relations(api, kwargs, rel_count):
+    data = list(api.get_relations(**kwargs))
     assert len(data) == rel_count
 
 
@@ -46,7 +53,7 @@ def test_get_relations(api, cui, rel_count):
     ),
 )
 def test_get_atoms(api, kwargs, atom_count):
-    data = list(api.get_atoms(**kwargs))
+    data = list(api.get_atoms_for_cui(**kwargs))
     assert data
     assert len(data) == atom_count
 
@@ -64,7 +71,7 @@ def test_get_atoms(api, kwargs, atom_count):
     ),
 )
 def test_get_ancestors(api, kwargs, ancestor_count):
-    data = list(api.get_ancestors(**kwargs))
+    data = list(api.get_atom_ancestors(**kwargs))
     assert data
     assert len(data) == ancestor_count
 

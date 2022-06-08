@@ -56,7 +56,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="282024004",
                 broader=True,
-                target_lang="ENG",
+                language="ENG",
             ),
             ["Vertebral column"],
             "The spinal or vertebral column.",
@@ -66,19 +66,10 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_vocab="snomed",
                 source_ui="48348007",
                 broader=True,
-                target_lang="ENG",
+                language="ENG",
             ),
             ["Respiratory Sounds"],
             "Noises, normal and abnormal, heard on auscultation over any part of the RESPIRATORY TRACT.",
-        ),
-        (
-            dict(
-                source_desc="Cancer",
-                target_lang="SPA",
-                broader=True,
-            ),
-            ["Neoplasms"],
-            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
         ),
         (
             dict(
@@ -139,7 +130,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
                 source_desc="Faint (qualifier value)",
                 broader=True,
-                target_lang="ENG",
+                language="ENG",
                 max_distance=1,
             ),
             [],
@@ -229,6 +220,15 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ["Room Air"],
             "Unmodified air as existing in the immediate surroundings.",
         ),
+        (
+            dict(
+                source_desc="Cancer",
+                language="SPA",
+                broader=True,
+            ),
+            ["Neoplasms"],
+            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
+        ),
     ),
 )
 def test_find_defined_concepts(
@@ -251,7 +251,7 @@ def test_find_defined_concepts(
             dict(
                 start_cui="C4554554",
                 broader=True,
-                target_lang="ENG",
+                language="ENG",
             ),
             [],
             None,
@@ -263,12 +263,12 @@ def test_find_defined_concepts(
             None,
         ),
         (
-            dict(start_cui="C5397118", broader=True, target_lang="ENG"),
+            dict(start_cui="C5397118", broader=True, language="ENG"),
             ["Oxygen Therapy Care", "Therapeutic procedure"],
             "Administration of oxygen and monitoring of its effectiveness",
         ),
         (
-            dict(start_cui="C1270222", broader=False, target_lang="ENG"),
+            dict(start_cui="C1270222", broader=False, language="ENG"),
             ["Felis catus"],
             "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
             "over 30 different breeds. The domestic cat is descended primarily from the "
@@ -282,7 +282,7 @@ def test_find_defined_concepts(
                 broader=False,
                 stop_on_found=False,
                 max_distance=2,
-                target_lang="ENG",
+                language="ENG",
             ),
             ["Felis catus", "Genus Felis"],
             "Genus in the family FELIDAE comprised of small felines including the "

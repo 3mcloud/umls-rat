@@ -1,8 +1,11 @@
+********
 API Docs
-========
+********
+
+.. _API MetaThesaurus:
 
 MetaThesaurus
--------------
+=============
 
 This object provides access to the basic functions of the UMLS REST API. 
 
@@ -44,14 +47,18 @@ This object provides access to the basic functions of the UMLS REST API.
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_parents
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_ancestors
 
+.. _API Lookup:
 
 Lookup
-------
+======
 
 This is a collection of utilty functions for searching ontologies for desired concepts. 
 
 
-.. rubric:: Definitions
+.. _API Lookup Definitions:
+
+Definitions
+-----------
 
 Functions for finding defined concepts. 
 
@@ -60,10 +67,13 @@ Functions for finding defined concepts.
 
    umlsrat.lookup.lookup_defs.definitions_bfs
    umlsrat.lookup.lookup_defs.find_defined_concepts
-   umlsrat.lookup.lookup_defs.add_args
    umlsrat.lookup.lookup_defs.find_builder
-   
-.. rubric:: UMLS
+   umlsrat.lookup.lookup_defs.add_args
+
+.. _API Lookup UMLS:
+
+UMLS
+----
 
 Functions which find UMLS concepts and CUIs
 
@@ -78,10 +88,8 @@ Functions which find UMLS concepts and CUIs
    umlsrat.lookup.lookup_umls.term_search
    
 
-
-
 Signatures
-----------
+==========
 
 All method signatures are found here.
 
