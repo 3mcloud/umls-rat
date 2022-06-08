@@ -237,11 +237,17 @@ def _get_related_cuis(
     atoms = api.get_atoms_for_cui(cui, language=language, **add_params)
 
     for atom in atoms:
+        if atom.get("rootSource") == "MTH":
+            # these appear to be place-holder atoms
+            continue
+
         code_url = atom["code"]
         if not code_url:
             raise ValueError("'code' is not available")
 
         if code_url.endswith("NOCODE"):
+            # this is strange
+            logger.debug("NOCODE associated with atom:\n%s", json.dumps(atom, indent=2))
             continue
 
         code = api.session.get_single_result(code_url)
