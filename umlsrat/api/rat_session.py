@@ -156,6 +156,9 @@ class MetaThesaurusSession(object):
                 f"'apiKey' should not be in params! Will be overwritten..."
             )
 
+        # copy and drop None values
+        params = {k: v for k, v in params.items() if v is not None}
+        # add apiKey
         params["apiKey"] = self._api_key
         try:
             response = self._get_cached(url, params=params)

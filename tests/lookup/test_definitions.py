@@ -74,15 +74,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_desc="Cancer",
-                language="SPA",
-                broader=True,
-            ),
-            ["Neoplasms"],
-            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
-        ),
-        (
-            dict(
-                source_desc="Cancer",
                 broader=True,
             ),
             ["Malignant Neoplasms"],
@@ -228,6 +219,15 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             ),
             ["Room Air"],
             "Unmodified air as existing in the immediate surroundings.",
+        ),
+        (
+            dict(
+                source_desc="Cancer",
+                language="SPA",
+                broader=True,
+            ),
+            ["Neoplasms"],
+            "Crecimiento anormal y nuevo de tejido. Las neoplasias malignas muestran un mayor grado de anaplasia y tienen la propiedad de invasión y metástasis, comparados con las neoplasias benignas.",
         ),
     ),
 )
