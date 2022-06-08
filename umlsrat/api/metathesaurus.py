@@ -604,7 +604,8 @@ class MetaThesaurus(object):
         url = f"{self._rest_uri}/metadata/{self.umls_version}/sources"
         return self.session.get_results(url)
 
-    @functools.cached_property
+    @property
+    @functools.lru_cache()
     def source_metadata_index(self) -> Dict[str, Dict]:
         """
         Get source metadata indexed by abbreviation.
