@@ -46,25 +46,21 @@ def _interpret_none(value: Any):
         return value
 
 
-def _default_extract_results(response_json: Dict) -> Optional[List[Dict]]:
+def _default_extract_results(response_json: Dict) -> List[Dict]:
     """
     Extract results from response json.
     :param response_json:
     :return: list of results or None if invalid
     """
     if not response_json:
-        return None
+        return []
 
-    results = response_json["result"]
+    result = response_json["result"]
 
-    if "results" in results:
-        results = results["results"]
-        if len(results) == 1 and not results[0].get("ui", True):
-            return None
-        else:
-            return results
+    if "results" in result:
+        return result["results"]
     else:
-        return results
+        return result
 
 
 class MetaThesaurusSession(object):
@@ -148,7 +144,17 @@ class MetaThesaurusSession(object):
         response = self.session.get(url=url, params=params)
         return response
 
-    def get(self, url: str, strict: Optional[bool] = False, **params) -> Optional[Dict]:
+    def get_json(
+        self, url: str, strict: Optional[bool] = False, **params
+    ) -> Optional[Dict]:
+        """
+        Get JSON response and interpret None values.
+
+        :param url: target URL
+        :param strict: if True raise for status even when expected
+        :param params: params to the get call. params with None value are dropped.
+        :return: the JSON response
+        """
         assert url, "Must provide URL"
 
         if "apiKey" in params:
@@ -202,7 +208,7 @@ class MetaThesaurusSession(object):
         if max_results is not None:
             assert max_results > 0, "max_results must be > 0"
 
-        response_json = self.get(url, **params)
+        response_json = self.get_json(url, **params)
         if not response_json:
             return
 
@@ -237,7 +243,7 @@ class MetaThesaurusSession(object):
 
             # next page
             params = dict(pageNumber=params.pop("pageNumber") + 1, **params)
-            response_json = self.get(url, **params)
+            response_json = self.get_json(url, **params)
 
     def get_single_result(self, url: str, **params) -> Optional[Dict]:
         """
@@ -247,7 +253,7 @@ class MetaThesaurusSession(object):
         :param params: parameters sent with the get request
         :return: a result or None
         """
-        response_json = self.get(url, **params)
+        response_json = self.get_json(url, **params)
         if not response_json:
             return
 
