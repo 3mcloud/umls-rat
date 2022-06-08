@@ -52,10 +52,50 @@ def test_get_relations(api, kwargs, rel_count):
         (dict(cui="C0009044", language="ENG"), 13),
     ),
 )
-def test_get_atoms(api, kwargs, atom_count):
+def test_get_atoms_for_cui(api, kwargs, atom_count):
     data = list(api.get_atoms_for_cui(**kwargs))
     assert data
     assert len(data) == atom_count
+
+
+@pytest.mark.parametrize(
+    ("aui", "expected"),
+    (
+        (
+            "A0243916",
+            {
+                "classType": "Atom",
+                "ui": "A0243916",
+                "sourceDescriptor": None,
+                "sourceConcept": None,
+                "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044",
+                "obsolete": "false",
+                "suppressible": "false",
+                "rootSource": "RCD",
+                "termType": "PT",
+                "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/S240.",
+                "language": "ENG",
+                "name": "Closed fracture of carpal bone",
+                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/attributes",
+                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/relations",
+                "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/children",
+                "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/descendants",
+                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/parents",
+                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/ancestors",
+                "contentViewMemberships": [
+                    {
+                        "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0243916",
+                        "name": "MetaMap NLP View",
+                        "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357",
+                    }
+                ],
+            },
+        ),
+    ),
+)
+def test_get_atom(api, aui, expected):
+    atom = api.get_atom(aui=aui)
+    assert atom == expected
 
 
 @pytest.mark.parametrize(
