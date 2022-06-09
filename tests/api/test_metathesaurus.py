@@ -35,9 +35,9 @@ def test_get_definitions(api, cui, definitions):
 @pytest.mark.parametrize(
     ("kwargs", "rel_count"),
     (
-        (dict(cui="C0009044"), 230),
-        (dict(cui="C0009044", sabs=["MTH"]), 5),
-        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 293),
+        (dict(cui="C0009044"), 227),
+        (dict(cui="C0009044", sabs=["MTH"]), 6),
+        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 294),
     ),
 )
 def test_get_relations(api, kwargs, rel_count):
@@ -49,7 +49,7 @@ def test_get_relations(api, kwargs, rel_count):
     ("kwargs", "atom_count"),
     (
         (dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), 5),
-        (dict(cui="C0009044", language="ENG"), 13),
+        (dict(cui="C0009044", language="ENG"), 14),
     ),
 )
 def test_get_atoms_for_cui(api, kwargs, atom_count):
@@ -59,43 +59,13 @@ def test_get_atoms_for_cui(api, kwargs, atom_count):
 
 
 @pytest.mark.parametrize(
-    ("aui", "expected"),
-    (
-        (
-            "A0243916",
-            {
-                "classType": "Atom",
-                "ui": "A0243916",
-                "sourceDescriptor": None,
-                "sourceConcept": None,
-                "concept": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0009044",
-                "obsolete": "false",
-                "suppressible": "false",
-                "rootSource": "RCD",
-                "termType": "PT",
-                "code": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/RCD/S240.",
-                "language": "ENG",
-                "name": "Closed fracture of carpal bone",
-                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/attributes",
-                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/relations",
-                "children": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/children",
-                "descendants": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/descendants",
-                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/parents",
-                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/AUI/A0243916/ancestors",
-                "contentViewMemberships": [
-                    {
-                        "memberUri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357/member/A0243916",
-                        "name": "MetaMap NLP View",
-                        "uri": "https://uts-ws.nlm.nih.gov/rest/content-views/2021AB/CUI/C1700357",
-                    }
-                ],
-            },
-        ),
-    ),
+    ("aui",),
+    (("A0243916",),),
 )
-def test_get_atom(api, aui, expected):
+def test_get_atom(api, aui):
     atom = api.get_atom(aui=aui)
-    assert atom == expected
+    assert atom["classType"] == "Atom"
+    assert atom["ui"] == aui
 
 
 @pytest.mark.parametrize(
@@ -140,107 +110,33 @@ def test_get_source_relations(
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected"),
+    ("kwargs", "expected_cuis"),
     (
-        (
-            dict(query="cheese", max_results=1),
-            [
-                {
-                    "ui": "C0007968",
-                    "rootSource": "MTH",
-                    "uri": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C0007968",
-                    "name": "Cheese",
-                }
-            ],
-        ),
-        (
-            dict(query="broken back bone"),
-            [
-                {
-                    "ui": "C5405410",
-                    "rootSource": "CPT",
-                    "uri": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/CUI/C5405410",
-                    "name": "Closed treatment of broken forearm (ulna)bone at the elbow area on the inside or back part of the arm with manipulation",
-                }
-            ],
-        ),
+        (dict(query="cheese", max_results=1), ["C0007968"]),
+        (dict(query="broken back bone"), ["C5405410"]),
     ),
 )
-def test_search(api, kwargs, expected):
+def test_search(api, kwargs, expected_cuis):
     data = list(api.search(**kwargs))
-    assert data == expected
+    assert [_["ui"] for _ in data] == expected_cuis
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected"),
+    ("kwargs", "expected_ui"),
     (
         (
             dict(source_vocab="snomed", concept_id="75508005"),
-            {
-                "classType": "SourceAtomCluster",
-                "ui": "75508005",
-                "suppressible": False,
-                "obsolete": False,
-                "rootSource": "SNOMEDCT_US",
-                "atomCount": 2,
-                "cVMemberCount": 0,
-                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/attributes",
-                "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms",
-                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/ancestors",
-                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/parents",
-                "children": None,
-                "descendants": None,
-                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/relations",
-                "definitions": None,
-                "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=75508005&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi",
-                "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/75508005/atoms/preferred",
-                "subsetMemberships": [
-                    {
-                        "memberUri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000/member/75508005",
-                        "uri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000",
-                        "name": "CTV3 simple map",
-                    }
-                ],
-                "contentViewMemberships": [],
-                "name": "Dissecting",
-            },
+            "75508005",
         ),
         (
             dict(source_vocab="snomed", concept_id="5960008"),
-            {
-                "ancestors": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/ancestors",
-                "atomCount": 3,
-                "atoms": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/atoms",
-                "attributes": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/attributes",
-                "cVMemberCount": 0,
-                "children": None,
-                "classType": "SourceAtomCluster",
-                "concepts": "https://uts-ws.nlm.nih.gov/rest/search/2021AB?string=5960008&sabs=SNOMEDCT_US&searchType=exact&inputType=sourceUi",
-                "contentViewMemberships": [],
-                "defaultPreferredAtom": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/atoms/preferred",
-                "definitions": None,
-                "descendants": None,
-                "name": "Depressed structure",
-                "obsolete": False,
-                "parents": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/parents",
-                "relations": "https://uts-ws.nlm.nih.gov/rest/content/2021AB/source/SNOMEDCT_US/5960008/relations",
-                "rootSource": "SNOMEDCT_US",
-                "subsetMemberships": [
-                    {
-                        "memberUri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000/member/5960008",
-                        "name": "CTV3 simple map",
-                        "uri": "https://uts-ws.nlm.nih.gov/rest/subsets/2021AB/source/SNOMEDCT_US/900000000000497000",
-                    }
-                ],
-                "suppressible": False,
-                "ui": "5960008",
-            },
+            "5960008",
         ),
     ),
 )
-def test_get_source_concept(api, kwargs, expected):
+def test_get_source_concept(api, kwargs, expected_ui):
     data = api.get_source_concept(**kwargs)
-    assert data == expected
+    assert data["ui"] == expected_ui
 
 
 @pytest.mark.parametrize(
@@ -284,7 +180,7 @@ def test_get_source_ancestors(api, kwargs, expected_names):
 
 
 def test_source_metadata(api):
-    assert sum(1 for _ in api._source_metadata) == 222
+    assert sum(1 for _ in api._source_metadata) == 224
 
 
 @pytest.mark.parametrize(
@@ -330,10 +226,10 @@ def test_find_vocab_info(api, kwargs, expected_short_name):
     ("abbr", "expected_len", "expected_element"),
     (
         ("ENG", 150, "ICD10CM"),
-        ("SPA", 9, "MSHSPA"),
+        ("SPA", 10, "MSHSPA"),
         ("GER", 8, "MSHGER"),
         ("CZE", 2, "MSHCZE"),
-        ("POL", 1, "MSHPOL"),
+        ("POL", 2, "MSHPOL"),
         ("FRA", 0, None),  # FRA? Nope; FRE.
         ("FRE", 8, "MSHFRE"),
     ),
