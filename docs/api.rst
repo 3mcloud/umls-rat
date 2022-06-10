@@ -25,8 +25,8 @@ This object provides access to the basic functions of the UMLS REST API.
    umlsrat.api.metathesaurus.MetaThesaurus.get_concept
    umlsrat.api.metathesaurus.MetaThesaurus.get_definitions
    umlsrat.api.metathesaurus.MetaThesaurus.get_relations
-   umlsrat.api.metathesaurus.MetaThesaurus.get_ancestors
-   umlsrat.api.metathesaurus.MetaThesaurus.get_atoms
+   umlsrat.api.metathesaurus.MetaThesaurus.get_atoms_for_cui
+   umlsrat.api.metathesaurus.MetaThesaurus.get_atom
 
 .. rubric:: Search
 

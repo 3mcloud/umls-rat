@@ -167,7 +167,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                             variable: 'UMLS_API_KEY')]) {
                         sh 'pip install -r jenkins/doc-requirements.txt'
-                        sh 'make -C docs clean html'
+                        sh 'docs/make-docs.sh'
                     }
                 }
             }
