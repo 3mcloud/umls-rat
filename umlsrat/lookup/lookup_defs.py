@@ -300,7 +300,7 @@ def find_defined_concepts(
         ), "Must provide either source code and vocab or descriptor (source_desc)"
 
     if logger.isEnabledFor(logging.INFO):
-        msg = f"Finding {stop_on_found} {language} definition(s) of"
+        msg = f"Finding {language} definition(s) of"
         if source_ui:
             msg = f"{msg} {source_vocab}/{source_ui}"
 
