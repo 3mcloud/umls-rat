@@ -122,7 +122,7 @@ def test_search(api, kwargs, expected_cuis):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "name"),
+    ("kwargs", "expected_name"),
     (
         (
             dict(source_vocab="snomed", concept_id="75508005"),
@@ -138,10 +138,10 @@ def test_search(api, kwargs, expected_cuis):
         ),
     ),
 )
-def test_get_source_concept(api, kwargs, name):
+def test_get_source_concept(api, kwargs, expected_name):
     data = api.get_source_concept(**kwargs)
     assert data["ui"] == kwargs["concept_id"]
-    assert data["name"] == name
+    assert data["name"] == expected_name
 
 
 @pytest.mark.parametrize(
