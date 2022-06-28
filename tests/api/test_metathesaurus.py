@@ -87,30 +87,27 @@ def test_get_ancestors(api, kwargs, ancestor_count):
 
 
 @pytest.mark.parametrize(
-    ["kwargs", "expected_len"],
+    ["kwargs", "relation_count"],
     [
         (
             dict(
-                source_vocab="MSH", concept_id="D002415", includeRelationLabels="RN,CHD"
+                source_vocab="MSH",
+                concept_id="D002415",
+                includeRelationLabels="RN,CHD",
+                language="ENG",
             ),
             1,
         ),
-        (dict(source_vocab="RCD", concept_id="S24.."), 1),
+        (dict(source_vocab="RCD", concept_id="S24..", language="ENG"), 1),
     ],
 )
-def test_get_source_relations(api, kwargs, expected_len):
-    relations = list(
-        api.get_source_relations(
-            **kwargs,
-            language="ENG",
-        )
-    )
+def test_get_source_relations(api, kwargs, relation_count):
+    relations = list(api.get_source_relations(**kwargs))
     # all resulting relation labels should appear in the "includeRelationLabels"
     for rel in relations:
         assert rel["relationLabel"] in kwargs["includeRelationLabels"]
 
-    # assert expected length
-    assert len(relations) == expected_len
+    assert len(relations) == relation_count
 
 
 @pytest.mark.parametrize(
