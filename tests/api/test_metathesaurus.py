@@ -122,21 +122,26 @@ def test_search(api, kwargs, expected_cuis):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_ui"),
+    ("kwargs", "name"),
     (
         (
             dict(source_vocab="snomed", concept_id="75508005"),
-            "75508005",
+            "Dissecting",
         ),
         (
             dict(source_vocab="snomed", concept_id="5960008"),
-            "5960008",
+            "Depressed structure",
+        ),
+        (
+            dict(source_vocab="RCD", concept_id="S24.."),
+            "Fracture of carpal bone",
         ),
     ),
 )
-def test_get_source_concept(api, kwargs, expected_ui):
+def test_get_source_concept(api, kwargs, name):
     data = api.get_source_concept(**kwargs)
-    assert data["ui"] == expected_ui
+    assert data["ui"] == kwargs["concept_id"]
+    assert data["name"] == name
 
 
 @pytest.mark.parametrize(
