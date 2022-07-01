@@ -87,26 +87,28 @@ def test_get_ancestors(api, kwargs, ancestor_count):
 
 
 @pytest.mark.parametrize(
-    ["source_vocab", "concept_id", "allowable_labels", "expected_len"],
-    [("MSH", "D002415", {"RN", "CHD"}, 1)],
+    ["kwargs", "relation_count"],
+    [
+        (
+            dict(
+                source_vocab="MSH",
+                concept_id="D002415",
+                includeRelationLabels="RN,CHD",
+                language="ENG",
+            ),
+            1,
+        ),
+        (dict(source_vocab="RCD", concept_id="S24..", language="ENG"), 13),
+    ],
 )
-def test_get_source_relations(
-    api, source_vocab, concept_id, allowable_labels, expected_len
-):
-    relations = list(
-        api.get_source_relations(
-            source_vocab=source_vocab,
-            concept_id=concept_id,
-            includeRelationLabels=",".join(allowable_labels),
-            language="ENG",
-        )
-    )
+def test_get_source_relations(api, kwargs, relation_count):
+    relations = list(api.get_source_relations(**kwargs))
     # all resulting relation labels should appear in the "includeRelationLabels"
-    for rel in relations:
-        assert rel["relationLabel"] in allowable_labels
+    if "includeRelationLabels" in kwargs:
+        for rel in relations:
+            assert rel["relationLabel"] in kwargs["includeRelationLabels"]
 
-    # assert expected length
-    assert len(relations) == expected_len
+    assert len(relations) == relation_count
 
 
 @pytest.mark.parametrize(
@@ -122,21 +124,26 @@ def test_search(api, kwargs, expected_cuis):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_ui"),
+    ("kwargs", "expected_name"),
     (
         (
             dict(source_vocab="snomed", concept_id="75508005"),
-            "75508005",
+            "Dissecting",
         ),
         (
             dict(source_vocab="snomed", concept_id="5960008"),
-            "5960008",
+            "Depressed structure",
+        ),
+        (
+            dict(source_vocab="RCD", concept_id="S24.."),
+            "Fracture of carpal bone",
         ),
     ),
 )
-def test_get_source_concept(api, kwargs, expected_ui):
+def test_get_source_concept(api, kwargs, expected_name):
     data = api.get_source_concept(**kwargs)
-    assert data["ui"] == expected_ui
+    assert data["ui"] == kwargs["concept_id"]
+    assert data["name"] == expected_name
 
 
 @pytest.mark.parametrize(

@@ -46,7 +46,7 @@ def _interpret_none(value: Any):
         return value
 
 
-def _default_extract_results(response_json: Dict) -> List[Dict]:
+def _extract_results(response_json: Dict) -> List[Dict]:
     """
     Extract results from response json.
     :param response_json:
@@ -227,7 +227,7 @@ class MetaThesaurusSession(object):
 
         n_yielded = 0
         while True:
-            results = _default_extract_results(response_json)
+            results = _extract_results(response_json)
             if not results:
                 return
 
