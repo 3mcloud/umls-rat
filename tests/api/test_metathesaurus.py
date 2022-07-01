@@ -98,14 +98,15 @@ def test_get_ancestors(api, kwargs, ancestor_count):
             ),
             1,
         ),
-        (dict(source_vocab="RCD", concept_id="S24..", language="ENG"), 1),
+        (dict(source_vocab="RCD", concept_id="S24..", language="ENG"), 13),
     ],
 )
 def test_get_source_relations(api, kwargs, relation_count):
     relations = list(api.get_source_relations(**kwargs))
     # all resulting relation labels should appear in the "includeRelationLabels"
-    for rel in relations:
-        assert rel["relationLabel"] in kwargs["includeRelationLabels"]
+    if "includeRelationLabels" in kwargs:
+        for rel in relations:
+            assert rel["relationLabel"] in kwargs["includeRelationLabels"]
 
     assert len(relations) == relation_count
 
