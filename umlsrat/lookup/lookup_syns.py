@@ -19,8 +19,8 @@ def find_synonyms(
     """
     source_vocab = api.validate_source_abbrev(source_vocab)
 
-    concept = api.get_source_concept(source_vocab, source_ui)
-    if not concept:
+    base_concept = api.get_source_concept(source_vocab, source_ui)
+    if not base_concept:
         raise ValueError(f"Source concept not found {source_vocab}/{source_ui}")
 
     language = api.validate_language_abbrev(language)
@@ -30,7 +30,9 @@ def find_synonyms(
     syn_names = UniqueFIFO(keyfn=str.upper)
 
     if source_vocab in lang_sabs:
-        syn_names.push(concept.get("name"))
+        # The name of the base concept always comes first -- provided that it is a vocab associated
+        # with the desired language.
+        syn_names.push(base_concept.get("name"))
 
     for cui in lookup_umls.get_cuis_for(api, source_vocab, source_ui):
         for rel in api.get_relations(
