@@ -9,7 +9,7 @@ def find_synonyms(
     api: MetaThesaurus, source_vocab: str, source_ui: str, language: str = "ENG"
 ) -> List[str]:
     """
-    Find synonymous concept names.
+    Find unique, synonymous concept names. Uniqueness is determined by case-insensitive exact string match.
 
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. ICD10CM
@@ -43,7 +43,15 @@ def find_synonyms(
                 continue
 
             if "atoms" in rel_atom:
-                for a in api.session.get_results(rel_atom.get("atoms")):
+                # add the name of the cluster
+                syn_names.push(rel_atom.get("name"))
+
+                # get the atoms in the cluster
+                sub_atoms_url = rel_atom.get("atoms")
+                sub_atoms = api.session.get_results(sub_atoms_url)
+                # sort by UI for consistent order which apparently isn't maintained by the call?
+                # sub_atoms = sorted(sub_atoms, key=lambda _:_.get("ui"))
+                for a in sub_atoms:
                     syn_names.push(a.get("name"))
             else:
                 syn_names.push(rel_atom.get("name"))
