@@ -32,6 +32,19 @@ def find_synonyms(
           "Infection of amputation stump of left lower limb (disorder)"
         ]
 
+    With normalization.
+
+    >>> find_synonyms(MetaThesaurus(), "ICD10CM", "T87.44", normalize=True)
+
+    .. code-block:: js
+
+        [
+          "infection of amputation stump left lower extremity",
+          "infection of amputation stump of left lower extremity",
+          "infection of amputation stump of left lower limb",
+          "infection of amputation stump of left leg"
+        ]
+
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. ICD10CM
     :param source_ui: concept ID in the source vocab
