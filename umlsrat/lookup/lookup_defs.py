@@ -350,7 +350,7 @@ def find_defined_concepts(
         # if we have a source description, try to use it to find a CUI
         # Use strict matching if we were provided with a source code initially. This will happen if
         # the provided code is an MModal addition (not in original vocab).
-        cleaned = text.clean_desc(source_desc)
+        cleaned = text.remove_trailing_parens(source_desc)
         max_search_results = 5  # only check the top 5 results
         search_result = lookup_umls.term_search(
             api,
