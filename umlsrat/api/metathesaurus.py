@@ -456,8 +456,7 @@ class MetaThesaurus(object):
             from umlsrat.api.metathesaurus import MetaThesaurus
             list(MetaThesaurus().get_source_relations(source_vocab="MSH",
                                                       concept_id="D002415",
-                                                      includeRelationLabels="RN,CHD",
-                                                      language="ENG"))
+                                                      includeRelationLabels="RN,CHD",))
 
 
         .. code-block:: js
