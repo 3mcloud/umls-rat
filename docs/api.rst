@@ -80,7 +80,7 @@ Find descriptions for a concept; i.e. find all possible names for a given concep
 .. autosummary::
    :nosignatures:
 
-   umlsrat.lookup.lookup_syns.find_synonyms
+   umlsrat.lookup.lookup_desc.find_synonyms
 
 .. _API Lookup UMLS:
 
@@ -117,7 +117,7 @@ All method signatures are found here.
 
 .. rubric:: Descriptions
 
-.. automodule:: umlsrat.lookup.lookup_syns
+.. automodule:: umlsrat.lookup.lookup_desc
     :members: 
 
 .. rubric:: UMLS

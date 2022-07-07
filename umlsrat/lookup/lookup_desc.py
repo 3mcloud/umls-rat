@@ -17,6 +17,21 @@ def find_synonyms(
     Find unique, synonymous concept names. Uniqueness is determined by case-insensitive exact
     string match or by the normalized form if ``normalize=True``.
 
+    >>> from umlsrat.api.metathesaurus import MetaThesaurus
+    >>> from umlsrat.lookup.lookup_desc import find_synonyms
+    >>> find_synonyms(MetaThesaurus(), "ICD10CM", "T87.44")
+
+    .. code-block:: js
+
+        [
+          "Infection of amputation stump, left lower extremity",
+          "infection of amputation stump of left lower extremity",
+          "infection of amputation stump of left lower extremity (diagnosis)",
+          "Infection of amputation stump of left lower limb",
+          "Infection of amputation stump of left leg",
+          "Infection of amputation stump of left lower limb (disorder)"
+        ]
+
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. ICD10CM
     :param source_ui: concept ID in the source vocab
