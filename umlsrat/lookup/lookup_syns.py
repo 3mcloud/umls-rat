@@ -39,7 +39,13 @@ def find_synonyms(
             cui=cui, includeRelationLabels="SY", sabs=lang_sabs_str
         ):
             rel_atom = api.session.get_single_result(rel.get("relatedId"))
-            if rel_atom.get("rootSource") in lang_sabs:
+            if rel_atom.get("rootSource") not in lang_sabs:
+                continue
+
+            if "atoms" in rel_atom:
+                for a in api.session.get_results(rel_atom.get("atoms")):
+                    syn_names.push(a.get("name"))
+            else:
                 syn_names.push(rel_atom.get("name"))
 
     return syn_names.items

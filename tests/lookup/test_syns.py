@@ -8,7 +8,15 @@ from umlsrat.lookup.lookup_syns import find_synonyms
     (
         (
             dict(source_vocab="CPT", source_ui="44950"),
-            ["Appendectomy", "Appendectomies", "Appendicectomy"],
+            [
+                "Appendectomy",
+                "Appendectomies",
+                "Appendicectomy",
+                "appendectomy (treatment)",
+                "removal of appendix",
+                "Excision of appendix",
+                "Excision of appendix (procedure)",
+            ],
         ),
         (
             dict(source_vocab="CPT", source_ui="44950", language="SPA"),
@@ -26,8 +34,11 @@ from umlsrat.lookup.lookup_syns import find_synonyms
             dict(source_vocab="ICD10CM", source_ui="T87.44"),
             [
                 "Infection of amputation stump, left lower extremity",
+                "infection of amputation stump of left lower extremity (diagnosis)",
                 "infection of amputation stump of left lower extremity",
                 "Infection of amputation stump of left lower limb",
+                "Infection of amputation stump of left leg",
+                "Infection of amputation stump of left lower limb (disorder)",
             ],
         ),
         (
