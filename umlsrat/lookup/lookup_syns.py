@@ -44,7 +44,7 @@ def find_synonyms(
         def do_norm(name: str) -> str:
             return name
 
-    def push_name(name: str) -> str:
+    def push_name(name: str) -> None:
         syn_names.push(do_norm(name))
 
     if source_vocab in lang_sabs:
