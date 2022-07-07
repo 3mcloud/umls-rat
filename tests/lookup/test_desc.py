@@ -1,6 +1,6 @@
 import pytest
 
-from umlsrat.lookup.lookup_syns import find_synonyms
+from umlsrat.lookup.lookup_desc import find_synonyms
 
 
 @pytest.mark.parametrize(
