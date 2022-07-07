@@ -42,6 +42,17 @@ from umlsrat.lookup.lookup_syns import find_synonyms
             ],
         ),
         (
+            dict(source_vocab="ICD10CM", source_ui="T87.44", normalize=True),
+            [
+                "infection of amputation stump  left lower extremity",
+                "infection of amputation stump of left lower extremity",
+                "infection of amputation stump of left lower extremity  diagnosis ",
+                "infection of amputation stump of left lower limb",
+                "infection of amputation stump of left leg",
+                "infection of amputation stump of left lower limb  disorder ",
+            ],
+        ),
+        (
             dict(source_vocab="ICD10CM", source_ui="T87.44", language="SPA"),
             [],
         ),
