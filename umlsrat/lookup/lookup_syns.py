@@ -24,7 +24,7 @@ def find_synonyms(
         raise ValueError(f"Source concept not found {source_vocab}/{source_ui}")
 
     language = api.validate_language_abbrev(language)
-    lang_sabs = api.sources_for_language(language)
+    lang_sabs = set(api.sources_for_language(language))
     lang_sabs_str = ",".join(lang_sabs)
 
     syn_names = UniqueFIFO(keyfn=str.upper)
@@ -38,6 +38,8 @@ def find_synonyms(
         for rel in api.get_relations(
             cui=cui, includeRelationLabels="SY", sabs=lang_sabs_str
         ):
-            syn_names.push(rel.get("relatedIdName"))
+            rel_atom = api.session.get_single_result(rel.get("relatedId"))
+            if rel_atom.get("rootSource") in lang_sabs:
+                syn_names.push(rel_atom.get("name"))
 
     return syn_names.items
