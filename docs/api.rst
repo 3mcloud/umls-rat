@@ -70,6 +70,18 @@ Functions for finding defined concepts.
    umlsrat.lookup.lookup_defs.find_builder
    umlsrat.lookup.lookup_defs.add_args
 
+.. _API Lookup Descriptions:
+
+Descriptions
+------------
+
+Find descriptions for a concept; i.e. find all possible names for a given concept. 
+
+.. autosummary::
+   :nosignatures:
+
+   umlsrat.lookup.lookup_desc.find_synonyms
+
 .. _API Lookup UMLS:
 
 UMLS
@@ -101,6 +113,11 @@ All method signatures are found here.
 .. rubric:: Definitions
 
 .. automodule:: umlsrat.lookup.lookup_defs
+    :members: 
+
+.. rubric:: Descriptions
+
+.. automodule:: umlsrat.lookup.lookup_desc
     :members: 
 
 .. rubric:: UMLS

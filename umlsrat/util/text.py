@@ -5,7 +5,8 @@ from typing import List, Callable, Iterable
 _ENCLOSING_CITATION = {")": "(", "]": "[", ">": "<"}
 
 
-def _clean_trailing_citation(text: str) -> str:
+def remove_trailing_parens(text: str) -> str:
+    # remove trailing parentheses e.g. "Room air (substance)" or "foo bar (klopfer: 2022)"
     close_char = text[-1]
     if close_char in _ENCLOSING_CITATION:
         stack = [close_char]
@@ -32,26 +33,22 @@ def clean_definition_text(text: str) -> str:
     if not clean:
         return clean
     # clean trailing citation
-    clean = _clean_trailing_citation(clean)
+    clean = remove_trailing_parens(clean)
     # xml tags
     clean = re.sub(r"<[^<]+?>", "", clean)
 
     return clean.strip()
 
 
-def clean_desc(desc: str) -> str:
-    # remove trailing parentheses e.g. Room air (substance)
-    return re.sub(r"\s*\(.+?\)\s*$", "", desc)
-
-
-_RM_PUNCT_PAT = re.compile(rf"[{string.punctuation}]")
+_RM_PUNCT_PAT = re.compile(rf"\s*[{string.punctuation}]\s*")
 
 
 def normalize(text_str: str) -> str:
     """Normalize string"""
     normalized = text_str.lower()
+    normalized = clean_definition_text(normalized)
     normalized = _RM_PUNCT_PAT.sub(" ", normalized)
-    return normalized
+    return normalized.strip()
 
 
 _STOP_WORDS = {"of", "the", "by"}
