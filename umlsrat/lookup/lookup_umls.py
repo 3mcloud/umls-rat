@@ -182,15 +182,71 @@ def _concepts_for_obj(api: MetaThesaurus, obj: Dict) -> List[Dict]:
         raise ValueError(f"No concepts for atom:\n{obj}")
 
 
+def _get_source_related_concepts(
+    api: MetaThesaurus,
+    cui: str,
+    allowed_relation_str: str,
+    language: str = None,
+    **add_params,
+) -> Iterator[Dict]:
+    # get all atoms associated with this umls concept
+    base_atoms = api.get_atoms_for_cui(cui, language=language, **add_params)
+
+    for base_atom in base_atoms:
+        if base_atom.get("rootSource") == "MTH":
+            # place-holder atoms for metathesaurus
+            continue
+
+        code_url = base_atom["code"]
+        if not code_url:
+            raise ValueError("'code' is not available")
+
+        if code_url.endswith("NOCODE"):
+            # this is strange
+            logger.debug(
+                "NOCODE associated with atom:\n%s", json.dumps(base_atom, indent=2)
+            )
+            continue
+
+        source_code_atom = api.session.get_single_result(code_url)
+        if not source_code_atom:
+            logger.warning(
+                f"Got null code atom for {code_url} from\n{json.dumps(base_atom, indent=2)}"
+            )
+            # dead end
+            continue
+
+        source_relations = list(
+            api.get_source_relations(
+                source_vocab=source_code_atom["rootSource"],
+                concept_id=source_code_atom["ui"],
+                includeRelationLabels=allowed_relation_str,
+                **add_params,
+            )
+        )
+
+        for rel in source_relations:
+            if "relatedId" not in rel:
+                # dead end
+                continue
+
+            related_atom = api.session.get_single_result(rel["relatedId"])
+
+            for related_concept in _concepts_for_obj(api, related_atom):
+                yield related_concept
+
+
 def _get_related_cuis(
     api: MetaThesaurus,
     cui: str,
     allowed_relations: Iterable[str],
-    language: str = None,
+    include_source_relations: bool,
+    language: str,
     **add_params,
 ) -> Iterator[str]:
     """
-    Get related concepts. **NO GUARANTEES REGARDING RETURN ORDER**
+    Get related concepts -- either direct (UMLS) relations or those related in a source vocab.
+    **NO GUARANTEES REGARDING RETURN ORDER**
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
@@ -202,7 +258,7 @@ def _get_related_cuis(
 
     seen = {cui}
 
-    def maybe_yield_concept_ui(next_concept: Dict):
+    def yield_unique_concept_ui(next_concept: Dict):
         if not next_concept:
             return
 
@@ -222,7 +278,9 @@ def _get_related_cuis(
 
     allowed_relation_str = ",".join(sorted(allowed_relations))
 
-    # first get direct relations
+    ##
+    # First get direct relations
+    ##
     for rel in api.get_relations(
         cui,
         sabs=lang_sabs_str,
@@ -231,70 +289,44 @@ def _get_related_cuis(
     ):
         atom = api.session.get_single_result(rel["relatedId"])
         for concept in _concepts_for_obj(api, atom):
-            yield from maybe_yield_concept_ui(concept)
+            yield from yield_unique_concept_ui(concept)
 
-    # get all atom concepts of this umls concept
-    atoms = api.get_atoms_for_cui(cui, language=language, **add_params)
+    if not include_source_relations:
+        return
 
-    for atom in atoms:
-        if atom.get("rootSource") == "MTH":
-            # these appear to be place-holder atoms
-            continue
-
-        code_url = atom["code"]
-        if not code_url:
-            raise ValueError("'code' is not available")
-
-        if code_url.endswith("NOCODE"):
-            # this is strange
-            logger.debug("NOCODE associated with atom:\n%s", json.dumps(atom, indent=2))
-            continue
-
-        code = api.session.get_single_result(code_url)
-        if not code:
-            logger.warning(
-                f"Got null code for {code_url} from\n{json.dumps(atom, indent=2)}"
-            )
-            # dead end
-            continue
-
-        relations = list(
-            api.get_source_relations(
-                source_vocab=code["rootSource"],
-                concept_id=code["ui"],
-                includeRelationLabels=allowed_relation_str,
-                **add_params,
-            )
-        )
-
-        for rel in relations:
-            if "relatedId" not in rel:
-                # dead end
-                continue
-
-            related = api.session.get_single_result(rel["relatedId"])
-
-            for related_concept in _concepts_for_obj(api, related):
-                yield from maybe_yield_concept_ui(related_concept)
+    ##
+    # Find all concepts related via an associated source atom;
+    ##
+    for related_concept in _get_source_related_concepts(
+        api,
+        cui=cui,
+        allowed_relation_str=allowed_relation_str,
+        language=language,
+        **add_params,
+    ):
+        yield from yield_unique_concept_ui(related_concept)
 
 
 def get_related_cuis(
     api: MetaThesaurus,
     cui: str,
     allowed_relations: Iterable[str],
+    include_source_relations: bool = False,
     language: str = None,
 ) -> List[str]:
     """
-    Get CUIs for *all* related concepts.
+    Get CUIs for related concepts.
 
     Concepts must be related via ``allowed_relations``. If no related concepts are
     found, try Obsolete and Suppressible.
 
     CUIs are returned in a fixed order.
 
+
     :param api: meta thesaurus
     :param cui: starting concept CUI
     :param allowed_relations: relations of interest
+    :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
 
     :return: list of CUIs
@@ -302,7 +334,11 @@ def get_related_cuis(
 
     related_cuis = list(
         _get_related_cuis(
-            api=api, cui=cui, allowed_relations=allowed_relations, language=language
+            api=api,
+            cui=cui,
+            allowed_relations=allowed_relations,
+            include_source_relations=include_source_relations,
+            language=language,
         )
     )
 
@@ -312,6 +348,7 @@ def get_related_cuis(
                 api=api,
                 cui=cui,
                 allowed_relations=allowed_relations,
+                include_source_relations=include_source_relations,
                 language=language,
                 includeObsolete=True,
                 includeSuppressible=True,
@@ -322,23 +359,39 @@ def get_related_cuis(
     return ordered
 
 
-def get_broader_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List[str]:
+def get_broader_cuis(
+    api: MetaThesaurus,
+    cui: str,
+    include_source_relations: bool = False,
+    language: str = None,
+) -> List[str]:
     """
     Get CUIs for broader, related concepts.
 
     CUIs are returned in a fixed order.
 
+
     :param api: meta thesaurus
     :param cui: starting concept CUI
+    :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(
-        api=api, cui=cui, allowed_relations=("RN", "CHD"), language=language
+        api=api,
+        cui=cui,
+        allowed_relations=("RN", "CHD"),
+        include_source_relations=include_source_relations,
+        language=language,
     )
 
 
-def get_narrower_cuis(api: MetaThesaurus, cui: str, language: str = None) -> List[str]:
+def get_narrower_cuis(
+    api: MetaThesaurus,
+    cui: str,
+    include_source_relations: bool = False,
+    language: str = None,
+) -> List[str]:
     """
     Get CUIs for narrower, related concepts.
 
@@ -346,9 +399,14 @@ def get_narrower_cuis(api: MetaThesaurus, cui: str, language: str = None) -> Lis
 
     :param api: meta thesaurus
     :param cui: starting concept CUI
+    :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
     :return: list of CUIs
     """
     return get_related_cuis(
-        api=api, cui=cui, allowed_relations=("RB", "PAR"), language=language
+        api=api,
+        cui=cui,
+        allowed_relations=("RB", "PAR"),
+        include_source_relations=include_source_relations,
+        language=language,
     )
