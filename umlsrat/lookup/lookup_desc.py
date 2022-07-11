@@ -68,9 +68,7 @@ def find_synonyms(
 
     else:
         syn_names = UniqueFIFO(keyfn=str.lower)
-
-        def do_norm(name: str) -> str:
-            return name
+        do_norm = text.identity
 
     def push_name(name: str) -> None:
         syn_names.push(do_norm(name))

@@ -88,3 +88,7 @@ def hammingish_partial(source_txt: str) -> Callable[[str], float]:
         return hammingish(source, target)
 
     return sort_key
+
+
+def identity(text: str) -> str:
+    return text
