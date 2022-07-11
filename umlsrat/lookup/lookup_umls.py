@@ -99,7 +99,7 @@ def term_search(
 
 
 def _do_cui_search(
-    api: MetaThesaurus, source_vocab: str, concept_id: str, desc: str = None, **kwargs
+    api: MetaThesaurus, source_vocab: str, concept_id: str, **kwargs
 ) -> List[str]:
     search_params = dict(
         inputType="sourceUi",

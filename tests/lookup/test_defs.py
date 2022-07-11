@@ -38,16 +38,6 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     assert definition == expected_def
 
 
-"""
-{source_vocab = "snomed",
-        source_code: str = None,
-        source_desc: str = None,
-        min_concepts: int = 1,
-        max_distance: int = 0,
-        target_lang: str = "ENG",}
-        """
-
-
 @pytest.mark.parametrize(
     ("kwargs", "expected_names", "a_definition"),
     (

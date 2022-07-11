@@ -17,25 +17,15 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
-def _no_cache(request):
-    return request.config.option.no_cache
+def mt_session(request):
+    return MetaThesaurusSession(
+        api_key=request.config.option.api_key,
+        use_cache=not request.config.option.no_cache,
+    )
 
 
 @pytest.fixture(scope="session")
-def _umls_version(request):
-    return request.config.option.umls_version
-
-
-@pytest.fixture(scope="session")
-def _api_key(request):
-    return request.config.option.api_key
-
-
-@pytest.fixture(scope="session")
-def mt_session(_api_key, _no_cache):
-    return MetaThesaurusSession(api_key=_api_key, use_cache=not _no_cache)
-
-
-@pytest.fixture(scope="session")
-def api(mt_session, _umls_version):
-    return MetaThesaurus(session=mt_session, umls_version=_umls_version)
+def api(request, mt_session):
+    return MetaThesaurus(
+        session=mt_session, umls_version=request.config.option.umls_version
+    )
