@@ -279,8 +279,16 @@ def test_constructor():
     assert mt
 
 
-def test_pagination(api):
-    results = api.search("star trek vs star wars", pageSize=25)
-    assert not list(results)
-    results = api.search("bone", pageSize=25, max_results=100)
-    assert len(list(results)) == 100
+@pytest.mark.parametrize(
+    ("kwargs", "expected_len"),
+    (
+        (dict(query="star trek vs star wars", pageSize=25), 0),
+        (dict(query="bone", max_results=100, pageSize=25), 100),
+        (dict(query="bamboo", max_results=100, pageSize=25), 92),
+        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1), 92),
+        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2), 92 - 25),
+    ),
+)
+def test_pagination(api, kwargs, expected_len):
+    results = list(api.search(**kwargs))
+    assert len(results) == expected_len

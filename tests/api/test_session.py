@@ -1,4 +1,33 @@
+import pytest
+from requests import HTTPError
+
 from umlsrat import const
+
+
+@pytest.mark.parametrize(
+    ("status_code",),
+    (
+        (500,),
+        (503,),
+    ),
+)
+def test_get_bad_results(mt_session, status_code):
+    results = mt_session.get_results(f"http://httpstat.us/{status_code}")
+    # this is okay because we have a generator
+    assert results
+    with pytest.raises(HTTPError) as e_info:
+        # iterating raises and error
+        next(results)
+    assert e_info.value.response.status_code == status_code
+
+
+def test_get_single_result(mt_session):
+    result = mt_session.get_single_result("http://httpstat.us/400")
+    assert result is None
+    result = mt_session.get_single_result(
+        "https://uts-ws.nlm.nih.gov/rest/content/2022AA/CUI/C0009044"
+    )
+    assert result is not None
 
 
 def test_include_flags(mt_session):
