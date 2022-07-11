@@ -12,6 +12,7 @@ from requests_cache import CachedSession
 from urllib3 import Retry
 
 from umlsrat import const
+from umlsrat.util import args_util
 
 
 def _set_retries(session):
@@ -106,7 +107,10 @@ class MetaThesaurusSession(object):
         group = parser.add_argument_group("Session")
         group.add_argument("--api-key", type=str, help="API key", default=None)
         group.add_argument(
-            "--no-cache", help="Do not use the cache", action="store_true"
+            "--use-cache",
+            help="Controls whether or not we use the response cache",
+            type=args_util.str2bool,
+            default=True,
         )
 
         return parser
@@ -119,7 +123,7 @@ class MetaThesaurusSession(object):
         :param args: parsed args
         :return: new session
         """
-        return MetaThesaurusSession(api_key=args.api_key, use_cache=not args.no_cache)
+        return MetaThesaurusSession(api_key=args.api_key, use_cache=args.use_cache)
 
     @property
     def _logger(self):

@@ -43,14 +43,14 @@ Cached requests are stored in ``~/.cache/umls-rat``. Caching can be disabled whe
 
 .. code-block:: console
 
-    PYTHONPATH=. pytest -vs tests --no-cache
+    PYTHONPATH=. pytest -vs tests --cache=False
 
 
 The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UMLS_VERSION`. The version used for testing can be modified at runtime with the ``--umls-version`` arg, eg
 
 .. code-block:: console
 
-    PYTHONPATH=. pytest -vs tests --no-cache --umls-version current
+    PYTHONPATH=. pytest -vs tests --cache=False --umls-version current
 
 
 Links

@@ -269,9 +269,10 @@ def test_validate_language_abbrev(api, abbr, expected):
 
 def test_args():
     parser = MetaThesaurus.add_args(ArgumentParser())
-    args = parser.parse_args([])
+    args = parser.parse_args(["--use-cache", "False"])
     mt = MetaThesaurus.from_namespace(args)
     assert mt
+    assert not mt.session.use_cache
 
 
 def test_constructor():
