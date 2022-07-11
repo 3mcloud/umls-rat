@@ -65,7 +65,6 @@ def find_synonyms(
     if normalize:
         syn_names = UniqueFIFO()
         do_norm = text.normalize
-
     else:
         syn_names = UniqueFIFO(keyfn=str.lower)
         do_norm = text.identity

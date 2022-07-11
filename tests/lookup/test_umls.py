@@ -33,23 +33,43 @@ def test_get_cuis_for(api, kwargs, expected_cuis):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_cuis"),
+    ("kwargs", "expected_names"),
     (
-        (dict(cui="C0559890"), ["C0574025", "C0559887"]),
-        (dict(cui="C3472551"), ["C0460009"]),
-        (dict(cui="C3887398"), ["C5551175", "C3886880", "C0009044", "C4281104"]),
-        # (dict(cui="C1956346"), []),
+        (
+            dict(cui="C0559890"),
+            [
+                "Lumbosacral region of spine structure",
+                "Structure of inter-regional junction of vertebral column",
+            ],
+        ),
+        (dict(cui="C3472551"), ["Back structure, including back of neck"]),
+        (
+            dict(cui="C3887398"),
+            [
+                "closed fracture of wrist",
+                "Closed fracture of left upper limb",
+                "Closed fracture of carpal bone",
+                "Injury of left wrist",
+            ],
+        ),
         (
             dict(cui="C0009044"),
-            ["C0016644", "C0272588", "C5551175", "C0178316", "C0016659", "C0029509"],
+            [
+                "Fracture of carpal bone",
+                "Closed fracture of upper limb",
+                "closed fracture of wrist",
+                "Fracture of upper limb",
+                "Fractures, Closed",
+                "Unspecified site injury",
+            ],
         ),
         (
             dict(cui="C0450415"),
-            ["C0205093", "C0332191", "C1180190", "C0441987", "C0205089"],
+            ["Lateral", "Binary anatomical coordinate"],
         ),
     ),
 )
-def test_get_broader_concepts(api, kwargs, expected_cuis):
+def test_get_broader_concepts(api, kwargs, expected_names):
     assert "cui" in kwargs
     cui_list = list(lookup_umls.get_broader_cuis(api, **kwargs))
 
@@ -58,13 +78,41 @@ def test_get_broader_concepts(api, kwargs, expected_cuis):
     assert len(cui_set) == len(cui_list), "Result should not return duplicates"
     assert kwargs["cui"] not in cui_set
 
-    assert cui_list == expected_cuis
+    # map to names
+    source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
+    actual_names = utilities.map_cuis_to_names(api, cui_list)
+    assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
-    # DEBUG map to names
-    source = lookup_umls.get_concept_name(api, kwargs["cui"])
-    actual = utilities.map_cuis_to_names(api, cui_list)
-    expected = utilities.map_cuis_to_names(api, expected_cuis)
-    assert actual == expected, f"Got wrong concepts for '{source}'"
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_names"),
+    (
+        (
+            dict(
+                cui="C0003611",
+                allowed_relations=("SY",),
+                language="ENG",
+            ),
+            [],
+        ),
+        (
+            dict(
+                cui="C0003611",
+                allowed_relations=("SY",),
+                include_source_relations=True,
+                language="ENG",
+            ),
+            ["Multiple Sclerosis", "Other gastrointestinal disorders"],
+        ),
+    ),
+)
+def test_get_related_cuis(api, kwargs, expected_names):
+    cuis = lookup_umls.get_related_cuis(api, **kwargs)
+
+    # map to names for easier reading
+    source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
+    actual_names = utilities.map_cuis_to_names(api, cuis)
+    assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
 @pytest.mark.parametrize(

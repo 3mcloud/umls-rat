@@ -87,7 +87,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_desc="Right (qualifier value)",
                 broader=True,
             ),
-            ["Right", "Lateral", "Side"],
+            ["Right", "Lateral"],
             "Being or located on or directed toward the side of the body to the east when facing north.",
         ),
         (
@@ -145,8 +145,9 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 source_desc="Bipolar (qualifier value)",
                 broader=True,
             ),
-            ["Subject Headings", "Thesaurus", "Vocabulary, Controlled"],
-            "A finite set of values that represent the only allowed values for a data item. These values may be codes, text, or numeric. See also codelist.",
+            ["Subject Headings"],
+            "Terms or expressions which provide the major means of access by subject to "
+            "the bibliographic unit.",
         ),
         (
             # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
@@ -284,10 +285,8 @@ def test_find_defined_concepts(
                 max_distance=2,
                 language="ENG",
             ),
-            ["Felis catus", "Genus Felis"],
-            "Genus in the family FELIDAE comprised of small felines including the "
-            "domestic cat, Felis catus (CATS) and its ancestor the wild cat, Felis "
-            "silvestris.",
+            ["Felis catus"],
+            "The domestic cat, Felis catus.",
         ),
     ),
 )
