@@ -34,25 +34,11 @@ def _resolve_semantic_types(api: MetaThesaurus, concept: Dict) -> Set[str]:
 
 
 def _clean_definition(definition: Dict) -> Dict:
-    definition = definition.copy()
-    value = text.clean_definition_text(definition.pop("value"))
-    return dict(value=value, **definition)
-
-
-def _distance(source: str, target: str) -> float:
-    source_tok = text.norm_tokenize(source)
-    target_tok = text.norm_tokenize(target)
-    h_val = text.hammingish(source_tok, target_tok)
-    return h_val
-
-
-def _distance_from_source(
-    api: MetaThesaurus, source_cui: str, neighbor_cui: str
-) -> float:
-    source = api.get_concept(source_cui).get("name")
-    target = api.get_concept(neighbor_cui).get("name")
-    dist = _distance(source, target)
-    return dist
+    # clean "value"
+    return {
+        k: text.clean_definition_text(v) if k == "value" else v
+        for k, v in definition.items()
+    }
 
 
 def _definitions_bfs(
