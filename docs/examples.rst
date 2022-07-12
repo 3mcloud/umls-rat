@@ -29,8 +29,9 @@ Given a concept id from an arbitrary vocabulary, find the corresponding UMLS CUI
    # find CUI for source asserted concept
    from umlsrat.lookup.lookup_umls import get_cuis_for
 
+   # "Cheese" concept in SNOMED
    cheese_cuis = get_cuis_for(api, source_vocab="SNOMEDCT_US", source_ui="102264005")
-
+   # "Fromage" concept in French MeSH
    fromage_cuis = get_cuis_for(api, source_vocab="MSHFRE", source_ui="D002611")
 
    assert cheese_cuis == fromage_cuis
@@ -81,7 +82,7 @@ Find defined concepts based on description only.
    # build find function
    find_fn = find_builder(api, args)
 
-   print("Broader")
+   # Find definitions for each of the following SNOMED concepts
    for ui in ["73539009", "242593005", "261188006"]:
       concepts = find_fn(source_ui=ui, broader=True)
       print(definitions_to_md(concepts))

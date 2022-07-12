@@ -4,8 +4,7 @@ from typing import List, Optional
 import pytest
 
 from umlsrat.lookup import lookup_defs, lookup_umls
-from umlsrat.util.iterators import definitions_to_md
-from utilities import extract_definitions, extract_concept_names
+from umlsrat.util import iterators
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
@@ -15,7 +14,7 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
         concepts = lookup_defs.definitions_bfs(
             api, cui, stop_on_found=True, target_vocabs=("MSH",)
         )
-        results = extract_definitions(concepts)
+        results = iterators.extract_definitions(concepts)
         if results:
             return results.pop(0)
 
@@ -36,16 +35,6 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
 def test_single_mesh_def(api, snomed_code, expected_def):
     definition = find_single_mesh_def(api, snomed_code)
     assert definition == expected_def
-
-
-"""
-{source_vocab = "snomed",
-        source_code: str = None,
-        source_desc: str = None,
-        min_concepts: int = 1,
-        max_distance: int = 0,
-        target_lang: str = "ENG",}
-        """
 
 
 @pytest.mark.parametrize(
@@ -236,12 +225,13 @@ def test_find_defined_concepts(
     api, kwargs, expected_names: List[str], a_definition: str
 ):
     concepts = lookup_defs.find_defined_concepts(api, **kwargs)
-    names = extract_concept_names(concepts)
+    names = iterators.extract_concept_names(concepts)
     assert names == expected_names
+    definitions = iterators.extract_definitions(concepts)
     if a_definition:
-        assert a_definition in extract_definitions(concepts)
+        assert a_definition in definitions
     else:
-        assert not extract_definitions(concepts)
+        assert not definitions
 
 
 @pytest.mark.parametrize(
@@ -288,16 +278,92 @@ def test_find_defined_concepts(
             ["Felis catus"],
             "The domestic cat, Felis catus.",
         ),
+        (
+            dict(
+                start_cui="C0011119",
+                broader=False,
+                stop_on_found=False,
+                max_distance=2,
+                language="ENG",
+                preserve_semantic_type=True,
+            ),
+            [
+                "Decompression Sickness",
+                "Antepartum Obstetric Air Embolism",
+                "Postpartum Obstetric Air Embolism",
+                "Altitude Sickness",
+            ],
+            "Multiple symptoms associated with reduced oxygen at high ALTITUDE.",
+        ),
+        (
+            dict(
+                start_cui="C0011119",
+                broader=False,
+                stop_on_found=False,
+                max_distance=2,
+                language="ENG",
+                preserve_semantic_type=False,
+            ),
+            [
+                "Decompression Sickness",
+                "Air Embolism",
+                "Barotrauma",
+                "Antepartum Obstetric Air Embolism",
+                "Postpartum Obstetric Air Embolism",
+                "Altitude Sickness",
+                "Blast Injuries",
+            ],
+            "Injuries resulting when a person is struck by particles impelled with "
+            "violent force from an explosion. Blast causes pulmonary concussion and "
+            "hemorrhage, laceration of other thoracic and abdominal viscera, ruptured ear "
+            "drums, and minor effects in the central nervous system.",
+        ),
+        (
+            dict(
+                start_cui="C0011119",
+                broader=False,
+                stop_on_found=True,
+                max_distance=None,
+                language="ENG",
+                preserve_semantic_type=False,
+            ),
+            ["Decompression Sickness"],
+            "A condition occurring as a result of exposure to a rapid fall in ambient "
+            "pressure. Gases, nitrogen in particular, come out of solution and form "
+            "bubbles in body fluid and blood. These gas bubbles accumulate in joint "
+            "spaces and the peripheral circulation impairing tissue oxygenation causing "
+            "disorientation, severe pain, and potentially death.",
+        ),
     ),
 )
 def test_definitions_bfs(api, kwargs, expected_names, a_definition):
     concepts = lookup_defs.definitions_bfs(api, **kwargs)
-    names = extract_concept_names(concepts)
+    names = iterators.extract_concept_names(concepts)
     assert names == expected_names
+    definitions = iterators.extract_definitions(concepts)
     if a_definition:
-        assert a_definition in extract_definitions(concepts)
+        assert a_definition in definitions
     else:
-        assert not extract_definitions(concepts)
+        assert not definitions
+
+
+def test_preserve_sem_types(api):
+    common_kwargs = dict(
+        start_cui="C0011119",
+        broader=False,
+        stop_on_found=False,
+        max_distance=2,
+        language="ENG",
+    )
+    no_preserve = lookup_defs.definitions_bfs(
+        api, **common_kwargs, preserve_semantic_type=False
+    )
+
+    do_preserve = lookup_defs.definitions_bfs(
+        api, **common_kwargs, preserve_semantic_type=True
+    )
+    # preserving semantic types should only reduce the number of results
+    assert len(do_preserve) <= len(no_preserve)
 
 
 @pytest.mark.parametrize(
@@ -374,7 +440,7 @@ def test_pretty_print(api):
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = definitions_to_md(data)
+    pp = iterators.definitions_to_md(data)
     assert (
         pp
         == """Felis catus
@@ -426,5 +492,5 @@ def test_find_builder(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
     find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)
-    defs = extract_definitions(result)
+    defs = iterators.extract_definitions(result)
     assert expected in defs

@@ -1,4 +1,8 @@
+from argparse import ArgumentParser
+
 import pytest
+
+from umlsrat.api.metathesaurus import MetaThesaurus
 
 
 @pytest.mark.parametrize(
@@ -116,6 +120,7 @@ def test_get_source_relations(api, kwargs, relation_count):
     (
         (dict(query="cheese", max_results=1), ["C0007968"]),
         (dict(query="broken back bone"), ["C5405410"]),
+        (dict(query="broken back bone", string="cheese"), ["C5405410"]),
     ),
 )
 def test_search(api, kwargs, expected_cuis):
@@ -215,7 +220,9 @@ def test_source_metadata_index(api, sab, exists):
         (dict(name="snomed"), "SNOMED CT, US Edition"),
         (dict(name="SNOMEDCT_US"), "SNOMED CT, US Edition"),
         (dict(name="LOINC", fuzzy=False), "LOINC"),
+        (dict(name="lnc", fuzzy=False), "LOINC"),
         (dict(name="MESH", fuzzy=True), "MeSH"),
+        (dict(name="MESH", fuzzy=False), None),
         # this does not resolve
         (dict(name="Spanish LOINC", fuzzy=True), None),
     ),
@@ -224,6 +231,8 @@ def test_find_vocab_info(api, kwargs, expected_short_name):
     result = api.find_source_info(**kwargs)
     if not expected_short_name:
         assert not result
+        with pytest.raises(ValueError):
+            api.validate_source_abbrev(sab=kwargs["name"])
     else:
         assert result
         assert result["shortName"] == expected_short_name
@@ -258,8 +267,29 @@ def test_validate_language_abbrev(api, abbr, expected):
             api.validate_language_abbrev(abbr)
 
 
-def test_pagination(api):
-    results = api.search("star trek vs star wars", pageSize=25)
-    assert not list(results)
-    results = api.search("bone", pageSize=25, max_results=100)
-    assert len(list(results)) == 100
+def test_args():
+    parser = MetaThesaurus.add_args(ArgumentParser())
+    args = parser.parse_args(["--use-cache", "False"])
+    mt = MetaThesaurus.from_namespace(args)
+    assert mt
+    assert not mt.session.use_cache
+
+
+def test_constructor():
+    mt = MetaThesaurus()
+    assert mt
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_len"),
+    (
+        (dict(query="star trek vs star wars", pageSize=25), 0),
+        (dict(query="bone", max_results=100, pageSize=25), 100),
+        (dict(query="bamboo", max_results=100, pageSize=25), 92),
+        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1), 92),
+        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2), 92 - 25),
+    ),
+)
+def test_pagination(api, kwargs, expected_len):
+    results = list(api.search(**kwargs))
+    assert len(results) == expected_len

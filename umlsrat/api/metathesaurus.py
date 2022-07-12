@@ -21,7 +21,11 @@ class MetaThesaurus(object):
         """
         Constructor.
 
-        :param umls_version: version of UMLS ('current' for latest). Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
+        :param session: session object. If not provided, a default session will be constructed.
+        See :py:meth:umlsrat.api.rat_session.MetaThesaurusSession.__init__
+
+        :param umls_version: version of UMLS ('current' for latest).
+        Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
         """
 
         if session:

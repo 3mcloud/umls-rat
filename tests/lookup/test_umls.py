@@ -2,34 +2,50 @@ from typing import Dict
 
 import pytest
 
-import utilities
 from umlsrat.lookup import lookup_umls
+from umlsrat.util import iterators
 
 
 @pytest.mark.parametrize(
-    ["kwargs", "expected_cuis"],
+    ["kwargs", "expected_names"],
     [
         # Entire back of trunk
-        (dict(source_vocab="SNOMEDCT_US", source_ui="450807008"), ["C3472551"]),
+        (dict(source_vocab="SNOMEDCT_US", source_ui="450807008"), ["Entire back"]),
         # Entire lumbosacral junction of vertebral column
-        (dict(source_vocab="SNOMEDCT_US", source_ui="282024004"), ["C0559890"]),
+        (
+            dict(source_vocab="SNOMEDCT_US", source_ui="282024004"),
+            ["Lumbosacral region of spine"],
+        ),
         # Closed fracture of left wrist
-        (dict(source_vocab="SNOMEDCT_US", source_ui="10937761000119101"), ["C3887398"]),
+        (
+            dict(source_vocab="SNOMEDCT_US", source_ui="10937761000119101"),
+            ["Closed fracture of left wrist"],
+        ),
         # Coronary arteriosclerosis (disorder)
         (
             dict(source_vocab="SNOMEDCT_US", source_ui="53741008"),
-            ["C0010054", "C1956346", "C0010068"],
+            [
+                "Coronary Arteriosclerosis",
+                "Coronary Artery Disease",
+                "Coronary heart disease",
+            ],
         ),
         # Right
         (
             dict(source_vocab="SNOMEDCT_US", source_ui="24028007"),
-            ["C0450415", "C0205090"],
+            ["Lateral to the right", "Right"],
         ),
     ],
 )
-def test_get_cuis_for(api, kwargs, expected_cuis):
-    cui = lookup_umls.get_cuis_for(api, **kwargs)
-    assert cui == expected_cuis
+def test_get_cuis_for(api, kwargs, expected_names):
+    cui_list = lookup_umls.get_cuis_for(api, **kwargs)
+
+    source = api.get_source_concept(
+        source_vocab=kwargs["source_vocab"], concept_id=kwargs["source_ui"]
+    )
+    source_name = source.get("name")
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
+    assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
 @pytest.mark.parametrize(
@@ -80,7 +96,7 @@ def test_get_broader_concepts(api, kwargs, expected_names):
 
     # map to names
     source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
-    actual_names = utilities.map_cuis_to_names(api, cui_list)
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
     assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
@@ -107,11 +123,15 @@ def test_get_broader_concepts(api, kwargs, expected_names):
     ),
 )
 def test_get_related_cuis(api, kwargs, expected_names):
-    cuis = lookup_umls.get_related_cuis(api, **kwargs)
+    cui_list = lookup_umls.get_related_cuis(api, **kwargs)
 
-    # map to names for easier reading
+    cui_set = set(cui_list)
+    assert len(cui_set) == len(cui_list), "Result should not return duplicates"
+    assert kwargs["cui"] not in cui_set
+
+    # map to names
     source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
-    actual_names = utilities.map_cuis_to_names(api, cuis)
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
     assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
@@ -127,13 +147,15 @@ def test_get_related_cuis(api, kwargs, expected_names):
             dict(term="Anticoagulant", max_results=1, strict_match=True),
             ["Anticoagulants"],
         ),
-        # This would solve our back problem, but alas it does not work...
-        # (dict(term="Entire back", max_results=1, strict_match=False), 'Back'),
         (
             dict(
                 term="Protein-calorie malnutrition", max_results=1, strict_match=False
             ),
             ["Protein-Energy Malnutrition"],
+        ),
+        (
+            dict(term="Furrycrackers", max_results=1, strict_match=False),
+            [],
         ),
     ),
 )

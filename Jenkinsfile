@@ -111,17 +111,25 @@ pipeline {
                                 container(name: '39-tester'){
                                     withCredentials([string(credentialsId: 'rklopfer_umls_api_key', 
                                                             variable: 'UMLS_API_KEY')]) {
-                                        sh 'python -m pytest -p no:cacheprovider -v --junitxml 39-unittests.xml tests/'
+                                        sh 'coverage run --source umlsrat -m pytest -p no:cacheprovider -v --junitxml 39-unittests.xml tests/'
                                         // running again should use cached requests, be super speedy, and also still work
                                         sh 'python -m pytest -p no:cacheprovider -v --junitxml 39-unittests-cached.xml tests/'
                                         // make sure this script works
                                         sh 'python definitions-dump.py --source-desc="Wild Animal" --language=SPA'
+                                        sh 'coverage html --title="3.9 Coverage"'
                                     }
                                 }
                             }
                             post {
                                 always {
                                     junit testResults: '39-unittests*.xml'
+                                    publishHTML (target : [allowMissing: false,
+                                                 alwaysLinkToLastBuild: true,
+                                                 keepAll: true,
+                                                 reportDir: 'htmlcov',
+                                                 reportFiles: 'index.html',
+                                                 reportName: 'Code Coverage',
+                                                 reportTitles: '3.9 Coverage'])
                                 }
                             }
                         }

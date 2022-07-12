@@ -7,7 +7,7 @@ API Docs
 MetaThesaurus
 =============
 
-This object provides access to the basic functions of the UMLS REST API. 
+This object provides access to the basic functions of the UMLS Metathesaurus REST API. 
 
 .. autosummary::
    :nosignatures:

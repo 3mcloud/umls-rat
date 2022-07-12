@@ -1,13 +1,21 @@
+import logging
+import random
+
 import pytest
 
 from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.api.rat_session import MetaThesaurusSession
+from umlsrat.util import args_util
+
+logging.basicConfig(level=logging.WARNING)
 
 
 def pytest_addoption(parser):
     parser.addoption("--api-key", type=str, help="API key", default=None)
-    parser.addoption("--no-cache", help="Do not use cache", action="store_true")
+    parser.addoption(
+        "--use-cache", help="use cache", type=args_util.str2bool, default=True
+    )
     parser.addoption(
         "--umls-version",
         type=str,
@@ -17,25 +25,20 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
-def _no_cache(request):
-    return request.config.option.no_cache
+def mt_session(request):
+    return MetaThesaurusSession(
+        api_key=request.config.option.api_key,
+        use_cache=request.config.option.use_cache,
+    )
 
 
 @pytest.fixture(scope="session")
-def _umls_version(request):
-    return request.config.option.umls_version
+def api(request, mt_session):
+    return MetaThesaurus(
+        session=mt_session, umls_version=request.config.option.umls_version
+    )
 
 
 @pytest.fixture(scope="session")
-def _api_key(request):
-    return request.config.option.api_key
-
-
-@pytest.fixture(scope="session")
-def mt_session(_api_key, _no_cache):
-    return MetaThesaurusSession(api_key=_api_key, use_cache=not _no_cache)
-
-
-@pytest.fixture(scope="session")
-def api(mt_session, _umls_version):
-    return MetaThesaurus(session=mt_session, umls_version=_umls_version)
+def rng() -> random.Random:
+    return random.Random(8374927)

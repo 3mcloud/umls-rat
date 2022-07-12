@@ -12,6 +12,7 @@ from requests_cache import CachedSession
 from urllib3 import Retry
 
 from umlsrat import const
+from umlsrat.util import args_util
 
 
 def _set_retries(session):
@@ -70,7 +71,7 @@ class MetaThesaurusSession(object):
 
         If ``api_key`` is not passed, the value will be read from the ``UMLS_API_KEY`` environment variable.
 
-        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__
+        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__. If not passed as an argument, the value will be read from the ``UMLS_API_KEY`` environment variable.
         :param use_cache: use cache for requests (default ``True``)
         """
         if api_key:
@@ -106,7 +107,10 @@ class MetaThesaurusSession(object):
         group = parser.add_argument_group("Session")
         group.add_argument("--api-key", type=str, help="API key", default=None)
         group.add_argument(
-            "--no-cache", help="Do not use the cache", action="store_true"
+            "--use-cache",
+            help="Controls whether or not we use the response cache",
+            type=args_util.str2bool,
+            default=True,
         )
 
         return parser
@@ -119,7 +123,7 @@ class MetaThesaurusSession(object):
         :param args: parsed args
         :return: new session
         """
-        return MetaThesaurusSession(api_key=args.api_key, use_cache=not args.no_cache)
+        return MetaThesaurusSession(api_key=args.api_key, use_cache=args.use_cache)
 
     @property
     def _logger(self):
