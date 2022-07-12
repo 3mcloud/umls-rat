@@ -237,47 +237,47 @@ def test_find_defined_concepts(
 @pytest.mark.parametrize(
     ("kwargs", "expected_names", "a_definition"),
     (
-        # (
-        #         # no english definitions for "faint"
-        #         dict(
-        #             start_cui="C4554554",
-        #             broader=True,
-        #             language="ENG",
-        #         ),
-        #         [],
-        #         None,
-        # ),
-        # (
-        #         # no definitions for "faint" in any language
-        #         dict(start_cui="C4554554"),
-        #         [],
-        #         None,
-        # ),
-        # (
-        #         dict(start_cui="C5397118", broader=True, language="ENG"),
-        #         ["Oxygen Therapy Care", "Therapeutic procedure"],
-        #         "Administration of oxygen and monitoring of its effectiveness",
-        # ),
-        # (
-        #         dict(start_cui="C1270222", broader=False, language="ENG"),
-        #         ["Felis catus"],
-        #         "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
-        #         "over 30 different breeds. The domestic cat is descended primarily from the "
-        #         "wild cat of Africa and extreme southwestern Asia. Though probably present in "
-        #         "towns in Palestine as long ago as 7000 years, actual domestication occurred "
-        #         "in Egypt about 4000 years ago.",
-        # ),
-        # (
-        #         dict(
-        #             start_cui="C1270222",
-        #             broader=False,
-        #             stop_on_found=False,
-        #             max_distance=2,
-        #             language="ENG",
-        #         ),
-        #         ["Felis catus"],
-        #         "The domestic cat, Felis catus.",
-        # ),
+        (
+            # no english definitions for "faint"
+            dict(
+                start_cui="C4554554",
+                broader=True,
+                language="ENG",
+            ),
+            [],
+            None,
+        ),
+        (
+            # no definitions for "faint" in any language
+            dict(start_cui="C4554554"),
+            [],
+            None,
+        ),
+        (
+            dict(start_cui="C5397118", broader=True, language="ENG"),
+            ["Oxygen Therapy Care", "Therapeutic procedure"],
+            "Administration of oxygen and monitoring of its effectiveness",
+        ),
+        (
+            dict(start_cui="C1270222", broader=False, language="ENG"),
+            ["Felis catus"],
+            "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
+            "over 30 different breeds. The domestic cat is descended primarily from the "
+            "wild cat of Africa and extreme southwestern Asia. Though probably present in "
+            "towns in Palestine as long ago as 7000 years, actual domestication occurred "
+            "in Egypt about 4000 years ago.",
+        ),
+        (
+            dict(
+                start_cui="C1270222",
+                broader=False,
+                stop_on_found=False,
+                max_distance=2,
+                language="ENG",
+            ),
+            ["Felis catus"],
+            "The domestic cat, Felis catus.",
+        ),
         (
             dict(
                 start_cui="C0011119",
