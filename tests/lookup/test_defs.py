@@ -287,12 +287,13 @@ def test_find_defined_concepts(
                 language="ENG",
                 preserve_semantic_type=True,
             ),
-            ["Decompression Sickness"],
-            "A condition occurring as a result of exposure to a rapid fall in ambient "
-            "pressure. Gases, nitrogen in particular, come out of solution and form "
-            "bubbles in body fluid and blood. These gas bubbles accumulate in joint "
-            "spaces and the peripheral circulation impairing tissue oxygenation causing "
-            "disorientation, severe pain, and potentially death.",
+            [
+                "Decompression Sickness",
+                "Antepartum Obstetric Air Embolism",
+                "Postpartum Obstetric Air Embolism",
+                "Altitude Sickness",
+            ],
+            "Multiple symptoms associated with reduced oxygen at high ALTITUDE.",
         ),
         (
             dict(
@@ -303,8 +304,35 @@ def test_find_defined_concepts(
                 language="ENG",
                 preserve_semantic_type=False,
             ),
-            ["Felis catus"],
-            "The domestic cat, Felis catus.",
+            [
+                "Decompression Sickness",
+                "Air Embolism",
+                "Barotrauma",
+                "Antepartum Obstetric Air Embolism",
+                "Postpartum Obstetric Air Embolism",
+                "Altitude Sickness",
+                "Blast Injuries",
+            ],
+            "Injuries resulting when a person is struck by particles impelled with "
+            "violent force from an explosion. Blast causes pulmonary concussion and "
+            "hemorrhage, laceration of other thoracic and abdominal viscera, ruptured ear "
+            "drums, and minor effects in the central nervous system.",
+        ),
+        (
+            dict(
+                start_cui="C0011119",
+                broader=False,
+                stop_on_found=True,
+                max_distance=None,
+                language="ENG",
+                preserve_semantic_type=False,
+            ),
+            ["Decompression Sickness"],
+            "A condition occurring as a result of exposure to a rapid fall in ambient "
+            "pressure. Gases, nitrogen in particular, come out of solution and form "
+            "bubbles in body fluid and blood. These gas bubbles accumulate in joint "
+            "spaces and the peripheral circulation impairing tissue oxygenation causing "
+            "disorientation, severe pain, and potentially death.",
         ),
     ),
 )
@@ -312,10 +340,11 @@ def test_definitions_bfs(api, kwargs, expected_names, a_definition):
     concepts = lookup_defs.definitions_bfs(api, **kwargs)
     names = extract_concept_names(concepts)
     assert names == expected_names
+    definitions = extract_definitions(concepts)
     if a_definition:
-        assert a_definition in extract_definitions(concepts)
+        assert a_definition in definitions
     else:
-        assert not extract_definitions(concepts)
+        assert not definitions
 
 
 def test_preserve_sem_types(api):

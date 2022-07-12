@@ -46,7 +46,7 @@ def _definitions_bfs(
     start_cui: str,
     get_neighbors: Callable[[MetaThesaurus, str], List[str]],
     stop_on_found: Optional[bool] = True,
-    max_distance: int = 0,
+    max_distance: int = None,
     target_vocabs: Optional[Iterable[str]] = None,
     language: str = "ENG",
     preserve_semantic_type: bool = False,
@@ -64,7 +64,7 @@ def _definitions_bfs(
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (0/None = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :param language: target language
     :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
@@ -72,7 +72,15 @@ def _definitions_bfs(
     """
     assert api
     assert start_cui
+    if max_distance is None:
+        max_distance = 0
     assert max_distance >= 0
+    if not stop_on_found and not max_distance:
+        logger.warning(
+            f"stop_on_found = {stop_on_found} and max_distance = {max_distance}; this "
+            f"could result in an unintentionally massive search space. Recommend setting "
+            f"`max_distance=2` and go from there."
+        )
 
     # first get target vocabs based on language
     if target_vocabs:
@@ -87,26 +95,19 @@ def _definitions_bfs(
         assert target_vocabs, f"No vocabularies for language abbreviation '{language}'"
 
     # If we want to preserve semantic type, we need to get them for the start CUI
-    start_sem_types = None
+
     if preserve_semantic_type:
-        start_concept = api.get_concept(start_cui)
-        start_sem_types = _resolve_semantic_types(api, start_concept)
+        start_sem_types = _resolve_semantic_types(api, api.get_concept(start_cui))
 
-    ##
-    # pre visit enforces semantic type consistency
-    def pre_visit(
-        api: MetaThesaurus, current_cui: str, current_dist: int, distances: FIFO
-    ):
-        if not preserve_semantic_type:
-            return Action.NONE
-        current_concept = api.get_concept(current_cui)
-        current_sem_types = _resolve_semantic_types(api, current_concept)
+        def allowed_sem_type(concept: Dict) -> bool:
+            sem_types = set(d.get("name") for d in concept.get("semanticTypes"))
+            return bool(start_sem_types & sem_types)
 
-        # if there is overlap: keep it. otherwise: skip it
-        if current_sem_types & start_sem_types:
-            return Action.NONE
-        else:
-            return Action.SKIP
+    else:
+        start_sem_types = None
+
+        def allowed_sem_type(concept: Dict) -> bool:
+            return True
 
     ##
     # visit will accumulate definitions
@@ -138,6 +139,10 @@ def _definitions_bfs(
         current_concept["definitions"] = cleaned.items
         _resolve_semantic_types(api, current_concept)
         current_concept["distanceFromOrigin"] = current_dist
+
+        # only add concepts with an allowed semantic type
+        if not allowed_sem_type(current_concept):
+            return
 
         # reorder dict for readability
         reordered_concept = collections.OrderedDict(
@@ -178,7 +183,6 @@ def _definitions_bfs(
         visit=visit,
         get_neighbors=get_neighbors,
         post_visit=post_visit,
-        pre_visit=pre_visit,
     )
 
     return defined_concepts
@@ -189,7 +193,7 @@ def definitions_bfs(
     start_cui: str,
     broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
-    max_distance: Optional[int] = 0,
+    max_distance: Optional[int] = None,
     target_vocabs: Optional[Iterable[str]] = None,
     language: Optional[str] = "ENG",
     preserve_semantic_type: Optional[bool] = False,
@@ -207,19 +211,12 @@ def definitions_bfs(
     :param start_cui: starting Concept ID
     :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
-    :param max_distance: maximum allowed distance from `start_cui` (Default = 0 = Infinity)
+    :param max_distance: maximum allowed distance from `start_cui` (Default = None = 0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
     :param language: only consider concepts in this language
     :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
     :return: a list of Concepts with Definitions
     """
-
-    if not stop_on_found and not max_distance:
-        logger.warning(
-            f"stop_on_found = {stop_on_found} and max_distance = {max_distance}; this "
-            f"could result in an unintentionally massive search space. Recommend setting "
-            f"`max_distance=2` and go from there."
-        )
 
     def get_neighbors(api: MetaThesaurus, cui: str) -> List[str]:
         if broader:
@@ -246,7 +243,7 @@ def find_defined_concepts(
     source_desc: str = None,
     broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
-    max_distance: int = 0,
+    max_distance: Optional[int] = None,
     language: str = "ENG",
     preserve_semantic_type: bool = False,
 ) -> List[Dict]:
@@ -271,13 +268,11 @@ def find_defined_concepts(
     :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: stop searching after reaching this distance from the original source \
-    concept. (Default = 0 = Infinity)
+    concept. (Default = None = Infinity)
     :param language: only consider concepts in this language
     :param preserve_semantic_type: only search concept which have the same semantic type as the starting concept
     :return: a list of Concepts with Definitions
     """
-    assert stop_on_found >= 0
-    assert max_distance >= 0
 
     if source_ui:
         assert source_vocab, f"Must provide source vocab for code {source_ui}"

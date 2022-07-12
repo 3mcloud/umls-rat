@@ -8,7 +8,7 @@ from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.api.rat_session import MetaThesaurusSession
 from umlsrat.util import args_util
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 
 def pytest_addoption(parser):
