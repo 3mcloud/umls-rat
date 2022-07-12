@@ -71,7 +71,7 @@ class MetaThesaurusSession(object):
 
         If ``api_key`` is not passed, the value will be read from the ``UMLS_API_KEY`` environment variable.
 
-        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__
+        :param api_key: API key acquired from `here <https://uts.nlm.nih.gov/uts/signup-login>`__. If not passed as an argument, the value will be read from the ``UMLS_API_KEY`` environment variable.
         :param use_cache: use cache for requests (default ``True``)
         """
         if api_key:
