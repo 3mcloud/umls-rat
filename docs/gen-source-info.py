@@ -83,7 +83,10 @@ def main():
     for title, group in lang_groups:
         rst_string += f"\n{title}\n"
         rst_string += "=" * len(title) + "\n\n"
-        rst_string += to_rst_table(group, title=title) + "\n\n"
+        rst_string += (
+            to_rst_table(sorted(group, key=lambda _: _["abbreviation"]), title=title)
+            + "\n\n"
+        )
 
     with open(out_file, "w", encoding="utf-8") as ofp:
         print(rst_string, file=ofp)
