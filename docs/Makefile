@@ -14,10 +14,10 @@ help:
 
 .PHONY: help Makefile
 
-write-license-info: 
-	PYTHONPATH="$(SOURCEDIR)/.." python source-license-info.py --out-file "$(SOURCEDIR)/source-licenses.rst"
+gen-source-info:
+	PYTHONPATH="$(SOURCEDIR)/.." python gen-source-info.py --out-file "$(SOURCEDIR)/source-info.rst"
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile write-license-info
+%: Makefile gen-source-info
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

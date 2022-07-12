@@ -94,7 +94,7 @@ def main():
         "--out-file",
         help="Write RST output to this file.",
         type=str,
-        default="source-licenses.rst",
+        default="source-info.rst",
     )
 
     args = parser.parse_args()
@@ -103,9 +103,9 @@ def main():
 
     rst_string = (
         "***************\n"
-        "Source Licenses\n"
+        "Source Info\n"
         "***************\n"
-        f"Information regarding licensing of the sources contained in UMLS version {api.umls_version}. "
+        f"Information regarding the sources contained in UMLS Metathesaurus® version {api.umls_version}. "
         f"`Basic UMLS License Agreement <https://uts.nlm.nih.gov/uts/assets/LicenseAgreement.pdf>`_ "
         f"has been copied under `details`_\n"
         "\n"
@@ -124,7 +124,6 @@ def main():
             rst_string += f"  * {text}\n"
 
     rst_string += "\n\n" + rlevel_details()
-    # print(rst_string)
 
     out_file = args.out_file
     with open(out_file, "w", encoding="utf-8") as ofp:
