@@ -1,6 +1,41 @@
 import textwrap
 from itertools import cycle, islice
-from typing import List, Dict
+from typing import List, Dict, Iterable
+
+from umlsrat.api.metathesaurus import MetaThesaurus
+from umlsrat.lookup import lookup_umls
+
+
+def map_cuis_to_names(api: MetaThesaurus, cuis: Iterable[str]) -> List[str]:
+    """
+    Map CUIs to concept names.
+    :param api: meta thesaurus object
+    :param cuis: CUIs
+    :return: names
+    """
+    return [lookup_umls.get_concept_name(api, cui) for cui in cuis]
+
+
+def extract_concept_names(concepts: List[Dict]) -> List[str]:
+    """
+    Extract names from concepts.
+    :param concepts: concept dicts
+    :return: names
+    """
+    return [_["name"] for _ in concepts]
+
+
+def extract_definitions(concepts: List[Dict]) -> List[str]:
+    """
+    Extract definition text from concepts.
+    :param concepts: concept dicts
+    :return: definitions
+    """
+    defs = []
+    for concept in concepts:
+        for d in concept["definitions"]:
+            defs.append(d)
+    return [d["value"] for d in defs]
 
 
 def _entry_to_string(name: str, definitions: List[Dict]) -> str:

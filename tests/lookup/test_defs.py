@@ -4,8 +4,7 @@ from typing import List, Optional
 import pytest
 
 from umlsrat.lookup import lookup_defs, lookup_umls
-from umlsrat.util.iterators import definitions_to_md
-from utilities import extract_definitions, extract_concept_names
+from umlsrat.util import iterators
 
 
 def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
@@ -15,7 +14,7 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
         concepts = lookup_defs.definitions_bfs(
             api, cui, stop_on_found=True, target_vocabs=("MSH",)
         )
-        results = extract_definitions(concepts)
+        results = iterators.extract_definitions(concepts)
         if results:
             return results.pop(0)
 
@@ -226,12 +225,13 @@ def test_find_defined_concepts(
     api, kwargs, expected_names: List[str], a_definition: str
 ):
     concepts = lookup_defs.find_defined_concepts(api, **kwargs)
-    names = extract_concept_names(concepts)
+    names = iterators.extract_concept_names(concepts)
     assert names == expected_names
+    definitions = iterators.extract_definitions(concepts)
     if a_definition:
-        assert a_definition in extract_definitions(concepts)
+        assert a_definition in definitions
     else:
-        assert not extract_definitions(concepts)
+        assert not definitions
 
 
 @pytest.mark.parametrize(
@@ -338,9 +338,9 @@ def test_find_defined_concepts(
 )
 def test_definitions_bfs(api, kwargs, expected_names, a_definition):
     concepts = lookup_defs.definitions_bfs(api, **kwargs)
-    names = extract_concept_names(concepts)
+    names = iterators.extract_concept_names(concepts)
     assert names == expected_names
-    definitions = extract_definitions(concepts)
+    definitions = iterators.extract_definitions(concepts)
     if a_definition:
         assert a_definition in definitions
     else:
@@ -440,7 +440,7 @@ def test_pretty_print(api):
         api, source_vocab="snomed", source_ui="448169003"
     )
 
-    pp = definitions_to_md(data)
+    pp = iterators.definitions_to_md(data)
     assert (
         pp
         == """Felis catus
@@ -492,5 +492,5 @@ def test_find_builder(api, arg_parser, cli_args, kwargs, expected):
     args = arg_parser.parse_args(cli_args)
     find_fn = lookup_defs.find_builder(api, args)
     result = find_fn(**kwargs)
-    defs = extract_definitions(result)
+    defs = iterators.extract_definitions(result)
     assert expected in defs

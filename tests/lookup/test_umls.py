@@ -2,8 +2,8 @@ from typing import Dict
 
 import pytest
 
-import utilities
 from umlsrat.lookup import lookup_umls
+from umlsrat.util import iterators
 
 
 @pytest.mark.parametrize(
@@ -44,7 +44,7 @@ def test_get_cuis_for(api, kwargs, expected_names):
         source_vocab=kwargs["source_vocab"], concept_id=kwargs["source_ui"]
     )
     source_name = source.get("name")
-    actual_names = utilities.map_cuis_to_names(api, cui_list)
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
     assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
@@ -96,7 +96,7 @@ def test_get_broader_concepts(api, kwargs, expected_names):
 
     # map to names
     source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
-    actual_names = utilities.map_cuis_to_names(api, cui_list)
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
     assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
@@ -131,7 +131,7 @@ def test_get_related_cuis(api, kwargs, expected_names):
 
     # map to names
     source_name = lookup_umls.get_concept_name(api, kwargs["cui"])
-    actual_names = utilities.map_cuis_to_names(api, cui_list)
+    actual_names = iterators.map_cuis_to_names(api, cui_list)
     assert actual_names == expected_names, f"Got wrong concepts for '{source_name}'"
 
 
