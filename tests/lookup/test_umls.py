@@ -153,6 +153,10 @@ def test_get_related_cuis(api, kwargs, expected_names):
             ),
             ["Protein-Energy Malnutrition"],
         ),
+        (
+            dict(term="Furrycrackers", max_results=1, strict_match=False),
+            [],
+        ),
     ),
 )
 def test_term_search(api, kwargs, expected_names):
