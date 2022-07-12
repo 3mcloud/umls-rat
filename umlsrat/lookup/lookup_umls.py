@@ -126,7 +126,6 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
 
     #. Search for this concept using search API
     #. Same search including Obsolete and Suppressible
-    #. Get source-asserted synonymous (SY-related) concepts and search for those concepts
 
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. SNOMED
@@ -148,25 +147,7 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
     if cuis:
         return cuis
 
-    def get_source_related(label: str):
-        relations = api.get_source_relations(
-            source_vocab=source_vocab,
-            concept_id=source_ui,
-            includeRelationLabels=label,
-        )
-
-        concepts = [
-            api.session.get_single_result(rel["relatedId"]) for rel in relations
-        ]
-
-        return [(_["rootSource"], _["ui"]) for _ in concepts]
-
-    # check synonyms
-    for rc_source, rc_ui in get_source_related("SY"):
-        cuis = _do_cui_search(api, rc_source, rc_ui)
-        if cuis:
-            return cuis
-
+    # we cannot find any CUIs for this concept
     return []
 
 
