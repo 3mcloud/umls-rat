@@ -59,14 +59,15 @@ def _definitions_bfs(
     are returned in order of closest to farthest (relative to ``start_cui``). Within each concept,
     definitions are sorted by length (shortest to longest).
 
-    :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
+
     :param get_neighbors: fn to get neighbors of a CUI (e.g. get_broader or get_narrower)
-    :param language: target language
     :param api: MetaThesaurus API
     :param start_cui: starting Concept ID
     :param stop_on_found: stop searching after processing first level containing defined concepts
     :param max_distance: maximum allowed distance from `start_cui` (0 = Infinity)
     :param target_vocabs: only allow definitions from these vocabularies
+    :param language: target language
+    :param preserve_semantic_type: preserve the semantic type assigned to ``start_cui``
     :return: a list of Concepts with Definitions
     """
     assert api
@@ -213,7 +214,7 @@ def definitions_bfs(
     :return: a list of Concepts with Definitions
     """
 
-    if not stop_on_found or max_distance:
+    if not stop_on_found and not max_distance:
         logger.warning(
             f"stop_on_found = {stop_on_found} and max_distance = {max_distance}; this "
             f"could result in an unintentionally massive search space. Recommend setting "

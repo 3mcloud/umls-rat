@@ -1,3 +1,4 @@
+import logging
 import random
 
 import pytest
@@ -6,6 +7,8 @@ from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.api.rat_session import MetaThesaurusSession
 from umlsrat.util import args_util
+
+logging.basicConfig(level=logging.INFO)
 
 
 def pytest_addoption(parser):
