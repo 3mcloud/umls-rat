@@ -6,21 +6,28 @@ import itertools
 import logging
 import os
 import sys
-from typing import Iterable, Callable, Dict, List
+from typing import Iterable, Dict, List
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 
 logger = logging.getLogger(os.path.basename(__file__))
 
 
-def my_group_by(iterable: Iterable, key: Callable):
-    """You need to sort before grouping in most cases."""
-    for key_val, group in itertools.groupby(sorted(iterable, key=key), key=key):
-        yield key_val, list(group)
-
-
-def get_language(obj):
+def get_language(obj: Dict):
     return obj.get("language").get("expandedForm")
+
+
+def group_by_language(iterable: Iterable[Dict]):
+    """You need to sort before grouping in most cases."""
+
+    def group_gen():
+        for lang, group in itertools.groupby(
+            sorted(iterable, key=get_language), key=get_language
+        ):
+            # entries are sorted by abbreviation
+            yield lang, sorted(group, key=lambda _: _["abbreviation"])
+
+    return sorted(group_gen(), key=lambda kv: -len(kv[1]))
 
 
 def to_rst_table(iterable: Iterable[Dict], title: str) -> str:
@@ -78,15 +85,10 @@ def main():
         "\n"
     )
 
-    lang_groups = my_group_by(api.source_metadata_index.values(), key=get_language)
-    lang_groups = sorted(lang_groups, key=lambda kv: -len(kv[1]))
-    for title, group in lang_groups:
+    for title, group in group_by_language(api.source_metadata_index.values()):
         rst_string += f"\n{title}\n"
         rst_string += "=" * len(title) + "\n\n"
-        rst_string += (
-            to_rst_table(sorted(group, key=lambda _: _["abbreviation"]), title=title)
-            + "\n\n"
-        )
+        rst_string += to_rst_table(group, title=title) + "\n\n"
 
     with open(out_file, "w", encoding="utf-8") as ofp:
         print(rst_string, file=ofp)
