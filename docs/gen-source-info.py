@@ -80,8 +80,10 @@ def main():
         "***********\n"
         "Source Info\n"
         "***********\n"
-        f"Information regarding the sources contained in UMLS Metathesaurus® version {api.umls_version}. "
-        f"`Basic UMLS License Agreement <https://uts.nlm.nih.gov/uts/assets/LicenseAgreement.pdf>`_\n"
+        f"Information regarding the sources contained in UMLS Metathesaurus® version {api.umls_version}. \n"
+        f"\n"
+        f"* `Basic UMLS License Agreement <https://uts.nlm.nih.gov/uts/assets/LicenseAgreement.pdf>`_\n"
+        f"* `Vocabulary Documentation <https://www.nlm.nih.gov/research/umls/sourcereleasedocs/index.html>`_\n"
         "\n"
     )
 
