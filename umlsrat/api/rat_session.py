@@ -5,7 +5,8 @@ import os
 from os.path import expanduser
 from typing import Optional, Any, Dict, List, Iterator
 
-from ratelimit import limits
+from ratelimit import limits, RateLimitException
+from backoff import on_exception, expo
 from requests import Session, HTTPError, Response
 from requests.adapters import HTTPAdapter
 from requests_cache import CachedSession
@@ -140,6 +141,7 @@ class MetaThesaurusSession(object):
         else:
             return response
 
+    @on_exception(expo, RateLimitException, max_tries=8)
     @limits(calls=20, period=1)
     def _get_http(self, url, params):
         """
