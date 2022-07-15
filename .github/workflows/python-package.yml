@@ -36,6 +36,8 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        UMLS_API_KEY: ${{ secrets.UMLS_API_KEY }}
       run: |
         coverage run --source umlsrat -m pytest -p no:cacheprovider -v --junitxml unittests.xml tests/
         # running again should use cached requests, be super speedy, and also still work
