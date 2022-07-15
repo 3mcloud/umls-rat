@@ -63,4 +63,4 @@ Links
 =====
 
 * `Source on Github <https://github.mmm.com/OneNLU/umls-rat>`_.
-* `Latest documentation <https://jenkins.firebird.mmm.com/job/MMODAL/job/NLU-ML-Libraries/job/umls-rat/job/main/Documentation/index.html#>`_.
+* `Latest documentation <FIXME>`_.
