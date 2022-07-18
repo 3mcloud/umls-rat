@@ -14,10 +14,7 @@ help:
 
 .PHONY: help Makefile
 
-gen-source-info:
-	PYTHONPATH="$(SOURCEDIR)/.." python gen-source-info.py --out-file "$(SOURCEDIR)/source-info.rst"
-
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-%: Makefile gen-source-info
+%: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
