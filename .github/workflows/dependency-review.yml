@@ -9,8 +9,6 @@ on:
   pull_request:
     branches:
     - main
-    types: 
-    - ready_for_review
 
 permissions:
   contents: read
@@ -18,7 +16,6 @@ permissions:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     steps:
       - name: 'Checkout Repository'
         uses: actions/checkout@v3
