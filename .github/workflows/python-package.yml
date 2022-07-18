@@ -10,6 +10,9 @@ on:
     branches: [ "main" ]
   schedule:
     - cron: "0 4 * * *"
+  pull_request:
+    types:
+    - ready_for_review
 
 jobs:
   build:
