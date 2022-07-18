@@ -9,8 +9,7 @@ on:
   pull_request:
     branches:
     - main
-  pull_request:
-    types:
+    types: 
     - ready_for_review
 
 permissions:
