@@ -63,5 +63,5 @@ The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UML
 Links
 =====
 
-* `Source on Github <https://github.mmm.com/OneNLU/umls-rat>`_.
+* `Source on Github <https://github.com/3mcloud/umls-rat>`_.
 * `Latest documentation <https://urls-rat.readthedocs.io/en/latest/>`_.
