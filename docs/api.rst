@@ -80,6 +80,7 @@ Find descriptions for a concept; i.e. find all possible names for a given concep
 .. autosummary::
    :nosignatures:
 
+   umlsrat.lookup.lookup_desc.get_synonyms
    umlsrat.lookup.lookup_desc.find_synonyms
 
 .. _API Lookup UMLS:

@@ -30,6 +30,11 @@ def find_single_mesh_def(api, snomed_code: str) -> Optional[str]:
             "10937761000119101",
             "Fractures in which the break in bone is not accompanied by an external wound.",
         ),
+        (
+            "182166001",
+            "The gliding joint formed by the outer extremity of the CLAVICLE and the "
+            "inner margin of the ACROMION PROCESS of the SCAPULA.",
+        ),
     ],
 )
 def test_single_mesh_def(api, snomed_code, expected_def):
@@ -38,8 +43,42 @@ def test_single_mesh_def(api, snomed_code, expected_def):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_names", "a_definition"),
+    ("kwargs", "expected_names", "expected_definition"),
     (
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="450807008",
+                broader=True,
+                language="ENG",
+            ),
+            ["Back structure, including back of neck"],
+            "subdivision of body proper, each instance of which has as its direct parts "
+            "some back of neck and some back of trunk. Examples: There is only one back "
+            "of body proper.",
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="10937761000119101",
+                broader=True,
+                language="ENG",
+            ),
+            ["Closed fracture of carpal bone"],
+            "A traumatic break in one or more of the carpal bones that does not involve a "
+            "break in the adjacent skin.",
+        ),
+        (
+            dict(
+                source_vocab="snomed",
+                source_ui="182166001",
+                broader=True,
+                language="ENG",
+            ),
+            ["Acromioclavicular joint structure"],
+            "The junction of the upper distal end of the scapula to the distal edge of "
+            "the collarbone, also known as the acromion and the clavicle.",
+        ),
         (
             dict(
                 source_vocab="snomed",
@@ -139,6 +178,19 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             "the bibliographic unit.",
         ),
         (
+            # setting max distance, gets rid of the garbage
+            # Bipolar (qualifier value) (snomed/260994008)
+            dict(
+                source_vocab="snomed",
+                source_ui="260994008",
+                source_desc="Bipolar (qualifier value)",
+                broader=True,
+                max_distance=2,
+            ),
+            [],
+            None,
+        ),
+        (
             # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
             dict(
                 source_vocab="snomed",
@@ -222,14 +274,14 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     ),
 )
 def test_find_defined_concepts(
-    api, kwargs, expected_names: List[str], a_definition: str
+    api, kwargs, expected_names: List[str], expected_definition: str
 ):
     concepts = lookup_defs.find_defined_concepts(api, **kwargs)
     names = iterators.extract_concept_names(concepts)
     assert names == expected_names
     definitions = iterators.extract_definitions(concepts)
-    if a_definition:
-        assert a_definition in definitions
+    if expected_definition:
+        assert expected_definition in definitions
     else:
         assert not definitions
 
@@ -277,6 +329,26 @@ def test_find_defined_concepts(
             ),
             ["Felis catus"],
             "The domestic cat, Felis catus.",
+        ),
+        (
+            dict(start_cui="C1270222", broader=False, language="ENG"),
+            ["Felis catus"],
+            "The domestic cat, Felis catus, of the carnivore family FELIDAE, comprising "
+            "over 30 different breeds. The domestic cat is descended primarily from the "
+            "wild cat of Africa and extreme southwestern Asia. Though probably present in "
+            "towns in Palestine as long ago as 7000 years, actual domestication occurred "
+            "in Egypt about 4000 years ago.",
+        ),
+        (
+            dict(
+                start_cui="C1270222",
+                broader=True,
+                stop_on_found=True,
+                max_distance=2,
+                language="ENG",
+            ),
+            ["Family Felidae"],
+            "Taxonomic family which includes domestic and wild cats such as lions and tigers.",
         ),
         (
             dict(
