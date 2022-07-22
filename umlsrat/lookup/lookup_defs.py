@@ -239,7 +239,7 @@ def definitions_bfs(
 def find_defined_concepts(
     api: MetaThesaurus,
     source_vocab: str = None,
-    source_ui: str = None,
+    concept_id: str = None,
     source_desc: str = None,
     broader: Optional[bool] = True,
     stop_on_found: Optional[bool] = True,
@@ -263,7 +263,7 @@ def find_defined_concepts(
 
     :param api: MetaThesaurus API
     :param source_vocab: source vocab
-    :param source_ui: source concept id
+    :param concept_id: source concept id
     :param source_desc: source concept description
     :param broader: search broader concepts. If false, search narrower.
     :param stop_on_found: stop searching after processing first level containing defined concepts
@@ -274,8 +274,8 @@ def find_defined_concepts(
     :return: a list of Concepts with Definitions
     """
 
-    if source_ui:
-        assert source_vocab, f"Must provide source vocab for code {source_ui}"
+    if concept_id:
+        assert source_vocab, f"Must provide source vocab for code {concept_id}"
     else:
         assert (
             source_desc
@@ -283,8 +283,8 @@ def find_defined_concepts(
 
     if logger.isEnabledFor(logging.INFO):
         msg = f"Finding {language} definition(s) of"
-        if source_ui:
-            msg = f"{msg} {source_vocab}/{source_ui}"
+        if concept_id:
+            msg = f"{msg} {source_vocab}/{concept_id}"
 
         if source_desc:
             msg = f"{msg} [{source_desc}]"
@@ -304,9 +304,9 @@ def find_defined_concepts(
 
         return data
 
-    if source_ui:
+    if concept_id:
         cuis_from_code = lookup_umls.get_cuis_for(
-            api, source_vocab=source_vocab, source_ui=source_ui
+            api, source_vocab=source_vocab, concept_id=concept_id
         )
         if cuis_from_code:
             logger.info(f"Broader BFS for base CUIs {cuis_from_code} ")
@@ -325,7 +325,7 @@ def find_defined_concepts(
                 )
             logger.info("No broader concepts with definitions.")
         else:
-            logger.info(f"UMLS concept not found for {source_vocab}/{source_ui}")
+            logger.info(f"UMLS concept not found for {source_vocab}/{concept_id}")
 
     # did not find the concept directly (by code)
     if source_desc:
@@ -338,7 +338,7 @@ def find_defined_concepts(
             api,
             term=cleaned,
             max_results=max_search_results,
-            strict_match=bool(source_ui),
+            strict_match=bool(concept_id),
         )
 
         if search_result:
@@ -373,7 +373,7 @@ def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     # sa_search = df_group.add_argument_group("Source Asserted Search")
     df_group.add_argument("--source-vocab", help="source vocab", type=str, default=None)
     df_group.add_argument(
-        "--source-ui", help="source concept id", type=str, default=None
+        "--concept-id", help="source concept id", type=str, default=None
     )
     df_group.add_argument(
         "--source-desc", help="source concept description", type=str, default=None
@@ -443,12 +443,12 @@ def find_builder(api: MetaThesaurus, parsed_args: argparse.Namespace):
         is_cui_search = "start_cui" in merged_kwargs
         is_source_search = (
             "source_vocab" in merged_kwargs
-            or "source_ui" in merged_kwargs
+            or "concept_id" in merged_kwargs
             or "source_desc" in merged_kwargs
         )
         assert operator.xor(is_cui_search, is_source_search), (
             "Expected either 'start_cui' or some source asserted info such as "
-            "'source_vocab', 'source_ui' 'source_desc' -- not both."
+            "'source_vocab', 'concept_id' 'source_desc' -- not both."
         )
 
         if is_cui_search:

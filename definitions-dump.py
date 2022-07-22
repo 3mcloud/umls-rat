@@ -39,8 +39,8 @@ def main():
     out_dir = args.out_dir
     out_dir = os.path.join(out_dir, args.language)
 
-    if args.source_ui:
-        of_base = f"{args.source_ui}-{args.source_ui}"
+    if args.concept_id:
+        of_base = f"{args.source_vocab}-{args.concept_id}"
     else:
         of_base = f"{args.source_desc}"
 

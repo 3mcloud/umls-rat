@@ -97,7 +97,7 @@ def get_synonyms(
 def find_synonyms(
     api: MetaThesaurus,
     source_vocab: str,
-    source_ui: str,
+    concept_id: str,
     language: str = "ENG",
     normalize: bool = False,
 ) -> List[str]:
@@ -135,7 +135,7 @@ def find_synonyms(
 
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. ICD10CM
-    :param source_ui: concept ID in the source vocab
+    :param concept_id: concept ID in the source vocab
     :param language: target language
     :param normalize: normalize names
     :return: list of names for this concept
@@ -149,16 +149,16 @@ def find_synonyms(
     # get text norm function
     txt_norm = _get_norm_fn(normalize)
 
-    base_concept = api.get_source_concept(source_vocab, source_ui)
+    base_concept = api.get_source_concept(source_vocab, concept_id)
     if not base_concept:
-        raise ValueError(f"Source concept not found {source_vocab}/{source_ui}")
+        raise ValueError(f"Source concept not found {source_vocab}/{concept_id}")
 
     if source_vocab in lang_sabs:
         # The name of the base concept always comes first -- provided that it is a vocab associated
         # with the desired language.
         syn_names.push(txt_norm(base_concept.get("name")))
 
-    for cui in lookup_umls.get_cuis_for(api, source_vocab, source_ui):
+    for cui in lookup_umls.get_cuis_for(api, source_vocab, concept_id):
         _append_cui_descriptions(
             api=api,
             cui=cui,

@@ -81,7 +81,7 @@ def test_get_synonyms(api, kwargs, expected_names):
     ("kwargs", "expected_syns"),
     (
         (
-            dict(source_vocab="CPT", source_ui="44950"),
+            dict(source_vocab="CPT", concept_id="44950"),
             [
                 "Appendectomy",
                 "Appendectomies",
@@ -93,19 +93,19 @@ def test_get_synonyms(api, kwargs, expected_names):
             ],
         ),
         (
-            dict(source_vocab="CPT", source_ui="44950", language="SPA"),
+            dict(source_vocab="CPT", concept_id="44950", language="SPA"),
             ["Apendicectomía", "Apendectomía"],
         ),
         (
-            dict(source_vocab="CPT", source_ui="44950", language="FRE"),
+            dict(source_vocab="CPT", concept_id="44950", language="FRE"),
             ["Appendicectomie"],
         ),
         (
-            dict(source_vocab="CPT", source_ui="44950", language="GER"),
+            dict(source_vocab="CPT", concept_id="44950", language="GER"),
             ["Appendektomie"],
         ),
         (
-            dict(source_vocab="ICD10CM", source_ui="T87.44"),
+            dict(source_vocab="ICD10CM", concept_id="T87.44"),
             [
                 "Infection of amputation stump, left lower extremity",
                 "infection of amputation stump of left lower extremity",
@@ -116,7 +116,7 @@ def test_get_synonyms(api, kwargs, expected_names):
             ],
         ),
         (
-            dict(source_vocab="ICD10CM", source_ui="T87.44", normalize=True),
+            dict(source_vocab="ICD10CM", concept_id="T87.44", normalize=True),
             [
                 "infection of amputation stump left lower extremity",
                 "infection of amputation stump of left lower extremity",
@@ -125,7 +125,7 @@ def test_get_synonyms(api, kwargs, expected_names):
             ],
         ),
         (
-            dict(source_vocab="ICD10CM", source_ui="T87.44", language="SPA"),
+            dict(source_vocab="ICD10CM", concept_id="T87.44", language="SPA"),
             [],
         ),
     ),
