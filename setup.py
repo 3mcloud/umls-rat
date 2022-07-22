@@ -1,14 +1,13 @@
-import os
-
 from setuptools import setup, find_packages
 
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-version = os.environ.get("PYPI_VERSION", "0.0.0.dev0+local")
+version = "0.6.0.dev3"
 
 setup(
     name="umls-rat",
+    version=version,
     description="UMLS RAT (REST API Tool) provides a reasonable "
     "interface to the UMLS MetaThesaurus via the REST API.",
     long_description=long_description,
