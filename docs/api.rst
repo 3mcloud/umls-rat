@@ -46,6 +46,7 @@ This object provides access to the basic functions of the UMLS Metathesaurus RES
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_relations
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_parents
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_ancestors
+   umlsrat.api.metathesaurus.MetaThesaurus.crosswalk
 
 .. _API Lookup:
 

@@ -158,6 +158,10 @@ def find_synonyms(
         # with the desired language.
         syn_names.push(txt_norm(base_concept.get("name")))
 
+    # this does not appear to enforce the SY relationship
+    # for atom in api.crosswalk(source_vocab, concept_id, targetSource=",".join(lang_sabs)):
+    #     syn_names.push(txt_norm(atom.get("name")))
+
     for cui in lookup_umls.get_cuis_for(api, source_vocab, concept_id):
         _append_cui_descriptions(
             api=api,

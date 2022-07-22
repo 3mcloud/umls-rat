@@ -132,5 +132,5 @@ def test_get_synonyms(api, kwargs, expected_names):
 )
 def test_find_synonyms(api, kwargs, expected_syns):
     syns = find_synonyms(api, **kwargs)
-    assert len(syns) == len(expected_syns)
+    # assert len(syns) == len(expected_syns)
     assert syns == expected_syns
