@@ -9,7 +9,6 @@ version = os.environ.get("PYPI_VERSION", "0.0.0.dev0+local")
 
 setup(
     name="umls-rat",
-    version=version,
     description="UMLS RAT (REST API Tool) provides a reasonable "
     "interface to the UMLS MetaThesaurus via the REST API.",
     long_description=long_description,
