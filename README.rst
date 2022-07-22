@@ -7,7 +7,8 @@ UMLS RAT
 .. image:: https://github.com/3mcloud/umls-rat/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/3mcloud/umls-rat/actions/workflows/python-package.yml 
 
+..
+    Includes don't work with GitHub 
+.. include:: ./docs/intro.rst
 
-.. include:: docs/intro.rst
-
-.. include:: docs/links.rst
+.. include:: ./docs/links.rst
