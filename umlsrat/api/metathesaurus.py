@@ -451,7 +451,7 @@ class MetaThesaurus(object):
         **params,
     ) -> Iterator[Dict]:
         """
-        Get a "Source Asserted" relations
+        Get source asserted relations
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`__
 
@@ -502,7 +502,7 @@ class MetaThesaurus(object):
     ) -> Iterator[Dict]:
 
         """
-        Get a "Source Asserted" parents
+        Get source asserted parents
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`__
 
@@ -553,7 +553,7 @@ class MetaThesaurus(object):
         concept_id: str,
     ) -> Iterator[Dict]:
         """
-        Get a "Source Asserted" ancestors
+        Get source asserted ancestors
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
