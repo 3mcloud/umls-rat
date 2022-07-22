@@ -397,7 +397,7 @@ class MetaThesaurus(object):
 
     def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
         """
-        Get a "Source Asserted" concept. e.g. a concept from SNOMED, LOINC, etc
+        Get a source asserted concept. e.g. a concept from SNOMED, LOINC, etc
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`__
 

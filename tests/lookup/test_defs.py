@@ -48,7 +48,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="450807008",
+                concept_id="450807008",
                 broader=True,
                 language="ENG",
             ),
@@ -60,7 +60,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="10937761000119101",
+                concept_id="10937761000119101",
                 broader=True,
                 language="ENG",
             ),
@@ -71,7 +71,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="182166001",
+                concept_id="182166001",
                 broader=True,
                 language="ENG",
             ),
@@ -82,7 +82,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="282024004",
+                concept_id="282024004",
                 broader=True,
                 language="ENG",
             ),
@@ -92,7 +92,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="48348007",
+                concept_id="48348007",
                 broader=True,
                 language="ENG",
             ),
@@ -111,7 +111,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Right (qualifier value) (snomed/24028007)
             dict(
                 source_vocab="snomed",
-                source_ui="24028007",
+                concept_id="24028007",
                 source_desc="Right (qualifier value)",
                 broader=True,
             ),
@@ -122,7 +122,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Protein-calorie malnutrition (disorder) (snomed/3371e7b7-f04a-40aa-83c2-3fb703539922)
             dict(
                 source_vocab="snomed",
-                source_ui="3371e7b7-f04a-40aa-83c2-3fb703539922",
+                concept_id="3371e7b7-f04a-40aa-83c2-3fb703539922",
                 source_desc="Protein-calorie malnutrition (disorder)",
                 broader=True,
             ),
@@ -133,7 +133,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Anticoagulant (rxnorm/58798db8-1fb8-4655-9baf-c6d19d9d1ce9)
             dict(
                 source_vocab="snomed",
-                source_ui="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
+                concept_id="58798db8-1fb8-4655-9baf-c6d19d9d1ce9",
                 source_desc="Anticoagulant",
                 broader=True,
             ),
@@ -144,7 +144,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Bipolar joint prosthesis (physical object) (snomed/c31fc990-0824-4d8e-962b-86f56b33e580)
             dict(
                 source_vocab="snomed",
-                source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
+                concept_id="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
                 broader=True,
             ),
@@ -155,7 +155,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # cannot find this one
             dict(
                 source_vocab="snomed",
-                source_ui="a209c041-2376-4482-8044-a724ed9cb8c1",
+                concept_id="a209c041-2376-4482-8044-a724ed9cb8c1",
                 source_desc="Faint (qualifier value)",
                 broader=True,
                 language="ENG",
@@ -169,7 +169,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Bipolar (qualifier value) (snomed/260994008)
             dict(
                 source_vocab="snomed",
-                source_ui="260994008",
+                concept_id="260994008",
                 source_desc="Bipolar (qualifier value)",
                 broader=True,
             ),
@@ -182,7 +182,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Bipolar (qualifier value) (snomed/260994008)
             dict(
                 source_vocab="snomed",
-                source_ui="260994008",
+                concept_id="260994008",
                 source_desc="Bipolar (qualifier value)",
                 broader=True,
                 max_distance=2,
@@ -194,7 +194,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Entire costovertebral angle of twelfth rib (body structure) (snomed/312886007)
             dict(
                 source_vocab="snomed",
-                source_ui="312886007",
+                concept_id="312886007",
                 source_desc="Entire costovertebral angle of twelfth rib (body structure)",
                 broader=True,
             ),
@@ -205,7 +205,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Cancer Society (snomed/9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e)
             dict(
                 source_vocab="snomed",
-                source_ui="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
+                concept_id="9bd4c0aa-d3b0-434e-8a60-de6f9f338b7e",
                 source_desc="Cancer Society",
                 broader=True,
             ),
@@ -216,7 +216,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
             # Cancer Society (snomed/138875005)
             dict(
                 source_vocab="snomed",
-                source_ui="138875005",
+                concept_id="138875005",
                 source_desc="Cancer Society",
                 broader=True,
             ),
@@ -226,7 +226,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                concept_id="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
                 broader=True,
                 stop_on_found=False,
@@ -253,7 +253,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                concept_id="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
                 broader=False,
                 stop_on_found=False,
@@ -444,7 +444,7 @@ def test_preserve_sem_types(api):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
+                concept_id="37f13bfd-5fce-4c66-b8e4-1fefdd88a7e2",
                 source_desc="Room air (substance)",
                 broader=True,
                 stop_on_found=False,
@@ -461,7 +461,7 @@ def test_preserve_sem_types(api):
         (
             dict(
                 source_vocab="snomed",
-                source_ui="c31fc990-0824-4d8e-962b-86f56b33e580",
+                concept_id="c31fc990-0824-4d8e-962b-86f56b33e580",
                 source_desc="Bipolar joint prosthesis (physical object)",
                 broader=True,
                 stop_on_found=False,
@@ -509,7 +509,7 @@ def test_max_distance(api):
 
 def test_pretty_print(api):
     data = lookup_defs.find_defined_concepts(
-        api, source_vocab="snomed", source_ui="448169003"
+        api, source_vocab="snomed", concept_id="448169003"
     )
 
     pp = iterators.definitions_to_md(data)
@@ -537,13 +537,13 @@ def arg_parser():
     ("cli_args", "kwargs", "expected"),
     (
         (
-            ["--source-vocab=snomed", "--source-ui=67362008"],
+            ["--source-vocab=snomed", "--concept-id=67362008"],
             dict(),
             "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
         ),
         (
             [],
-            dict(source_vocab="snomed", source_ui="67362008"),
+            dict(source_vocab="snomed", concept_id="67362008"),
             "An abnormal balloon- or sac-like dilatation in the wall of AORTA.",
         ),
         (

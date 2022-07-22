@@ -10,20 +10,20 @@ from umlsrat.util import iterators
     ["kwargs", "expected_names"],
     [
         # Entire back of trunk
-        (dict(source_vocab="SNOMEDCT_US", source_ui="450807008"), ["Entire back"]),
+        (dict(source_vocab="SNOMEDCT_US", concept_id="450807008"), ["Entire back"]),
         # Entire lumbosacral junction of vertebral column
         (
-            dict(source_vocab="SNOMEDCT_US", source_ui="282024004"),
+            dict(source_vocab="SNOMEDCT_US", concept_id="282024004"),
             ["Lumbosacral region of spine"],
         ),
         # Closed fracture of left wrist
         (
-            dict(source_vocab="SNOMEDCT_US", source_ui="10937761000119101"),
+            dict(source_vocab="SNOMEDCT_US", concept_id="10937761000119101"),
             ["Closed fracture of left wrist"],
         ),
         # Coronary arteriosclerosis (disorder)
         (
-            dict(source_vocab="SNOMEDCT_US", source_ui="53741008"),
+            dict(source_vocab="SNOMEDCT_US", concept_id="53741008"),
             [
                 "Coronary Arteriosclerosis",
                 "Coronary Artery Disease",
@@ -32,7 +32,7 @@ from umlsrat.util import iterators
         ),
         # Right
         (
-            dict(source_vocab="SNOMEDCT_US", source_ui="24028007"),
+            dict(source_vocab="SNOMEDCT_US", concept_id="24028007"),
             ["Lateral to the right", "Right"],
         ),
     ],
@@ -41,7 +41,7 @@ def test_get_cuis_for(api, kwargs, expected_names):
     cui_list = lookup_umls.get_cuis_for(api, **kwargs)
 
     source = api.get_source_concept(
-        source_vocab=kwargs["source_vocab"], concept_id=kwargs["source_ui"]
+        source_vocab=kwargs["source_vocab"], concept_id=kwargs["concept_id"]
     )
     source_name = source.get("name")
     actual_names = iterators.map_cuis_to_names(api, cui_list)
