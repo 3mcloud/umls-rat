@@ -33,7 +33,6 @@ author = "Russell Klopfer"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
-    "sphinx_rtd_theme",
     "sphinx_copybutton",
 ]
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
@@ -64,14 +63,3 @@ html_static_path = ["_static"]
 
 html_logo = "_static/logo-3m.svg"
 
-
-BRANCH_NAME = os.getenv("CHANGE_BRANCH", os.getenv("BRANCH_NAME", "master"))
-
-html_context = {
-    "github_host": "github.mmm.com",
-    "display_github": True,  # Integrate GitHub
-    "github_user": "OneNLU",  # Username
-    "github_repo": "umls-rat",  # Repo name
-    "github_version": BRANCH_NAME,  # Version
-    "conf_py_path": "/docs/",  # Path in the checkout to the docs root
-}

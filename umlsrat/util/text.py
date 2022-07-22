@@ -1,5 +1,4 @@
 import re
-import string
 from typing import List, Callable, Iterable
 
 _ENCLOSING_CITATION = {")": "(", "]": "[", ">": "<"}
@@ -40,14 +39,14 @@ def clean_definition_text(text: str) -> str:
     return clean.strip()
 
 
-_RM_PUNCT_PAT = re.compile(rf"\s*[{string.punctuation}]\s*")
+_RM_PUNCT_PAT = re.compile(r"\s*[,;:?_{|}.=()\[\]!/<>\"\\~-]\s*")
 
 
 def normalize(text_str: str) -> str:
     """Normalize string"""
-    normalized = text_str.lower()
-    normalized = clean_definition_text(normalized)
+    normalized = clean_definition_text(text_str.lower())
     normalized = _RM_PUNCT_PAT.sub(" ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
     return normalized.strip()
 
 

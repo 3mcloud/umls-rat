@@ -191,6 +191,51 @@ def test_get_source_ancestors(api, kwargs, expected_names):
     assert names == expected_names
 
 
+@pytest.mark.parametrize(
+    ("kwargs", "expected_names"),
+    (
+        (
+            dict(source_vocab="snomed", concept_id="388594007", targetSource="MSH"),
+            ["Raccoons"],
+        ),
+        (
+            dict(source_vocab="CPT", concept_id="44950", targetSource="CPT"),
+            ["Appendectomy", "Appendectomy", "Excision Procedures on the Appendix"],
+        ),
+        (
+            dict(source_vocab="ICD10CM", concept_id="T87.44", language="SPA"),
+            ["infección de muñón de amputación de extremidad inferior izquierda"],
+        ),
+    ),
+)
+def test_crosswalk(api, kwargs, expected_names):
+    result = list(api.crosswalk(**kwargs))
+    names = [_.get("name") for _ in result]
+    assert names == expected_names
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected_str"),
+    (
+        (
+            dict(language="SPA"),
+            "ICPCSPA,WHOSPA,CPTSP,MSHSPA,MEDLINEPLUS_SPA,SCTSPA,MDRSPA,LNC-ES-ES,LNC-ES-MX,LNC-ES-AR",
+        ),
+        (dict(language="SPA", sabs="LNC-ES-MX, MSH"), None),
+        (dict(language="SPA", sabs="MSH"), None),
+        (dict(language="SPA", sabs="LNC-ES-MX,LNC-ES-AR"), "LNC-ES-MX,LNC-ES-AR"),
+        (dict(language="ENG", sabs="MSH"), "MSH"),
+    ),
+)
+def test_language_sabs_str(api, kwargs, expected_str):
+    if expected_str:
+        sabs_str = api.get_language_sabs_str(**kwargs)
+        assert sabs_str == expected_str
+    else:
+        with pytest.raises(ValueError):
+            api.get_language_sabs_str(**kwargs)
+
+
 def test_source_metadata(api):
     assert sum(1 for _ in api._source_metadata) == 224
 

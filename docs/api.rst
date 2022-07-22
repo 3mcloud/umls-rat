@@ -46,6 +46,7 @@ This object provides access to the basic functions of the UMLS Metathesaurus RES
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_relations
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_parents
    umlsrat.api.metathesaurus.MetaThesaurus.get_source_ancestors
+   umlsrat.api.metathesaurus.MetaThesaurus.crosswalk
 
 .. _API Lookup:
 
@@ -80,6 +81,7 @@ Find descriptions for a concept; i.e. find all possible names for a given concep
 .. autosummary::
    :nosignatures:
 
+   umlsrat.lookup.lookup_desc.get_synonyms
    umlsrat.lookup.lookup_desc.find_synonyms
 
 .. _API Lookup UMLS:

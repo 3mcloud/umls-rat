@@ -9,7 +9,7 @@ Get definitions for this out-dated "back" concept: `450807008`
 
 .. code-block:: console
 
-    python definitions-dump.py --source-ui=450807008 --source-vocab=SNOMEDCT_US
+    python definitions-dump.py --concept-id=450807008 --source-vocab=SNOMEDCT_US
 
 
 ::
@@ -25,7 +25,7 @@ Now get one in Spanish
 
 .. code-block:: console
 
-    python definitions-dump.py --source-ui=450807008 --source-vocab=SNOMEDCT_US --language=SPA
+    python definitions-dump.py --concept-id=450807008 --source-vocab=SNOMEDCT_US --language=SPA
 
 
 ::

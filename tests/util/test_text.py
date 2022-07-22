@@ -1,9 +1,16 @@
 import random
+import string
 from typing import List
 
 import pytest
 
 from umlsrat.util import text
+
+
+def test_normalize():
+    expected = set("#$%&' *+  @ ^`")
+    actual = set(text.normalize(string.punctuation))
+    assert actual == expected
 
 
 @pytest.mark.parametrize(

@@ -115,7 +115,7 @@ def _do_cui_search(
     return ordered
 
 
-def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[str]:
+def get_cuis_for(api: MetaThesaurus, source_vocab: str, concept_id: str) -> List[str]:
     """
     Get UMLS CUIs for a source concept.
 
@@ -129,20 +129,20 @@ def get_cuis_for(api: MetaThesaurus, source_vocab: str, source_ui: str) -> List[
 
     :param api: MetaThesaurus
     :param source_vocab: source vocabulary e.g. SNOMED
-    :param source_ui: concept ID in the source vocab
+    :param concept_id: concept ID in the source vocab
     :return: CUI or None if not found
     """
 
-    assert source_ui
+    assert concept_id
     source_vocab = api.validate_source_abbrev(source_vocab)
 
-    cuis = _do_cui_search(api, source_vocab, source_ui)
+    cuis = _do_cui_search(api, source_vocab, concept_id)
     if cuis:
         return cuis
 
     ## might have an obsolete concept
     cuis = _do_cui_search(
-        api, source_vocab, source_ui, includeObsolete=True, includeSuppressible=True
+        api, source_vocab, concept_id, includeObsolete=True, includeSuppressible=True
     )
     if cuis:
         return cuis

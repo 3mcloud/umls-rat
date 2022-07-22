@@ -397,7 +397,7 @@ class MetaThesaurus(object):
 
     def get_source_concept(self, source_vocab: str, concept_id: str) -> Optional[Dict]:
         """
-        Get a "Source Asserted" concept. e.g. a concept from SNOMED, LOINC, etc
+        Get a source asserted concept. e.g. a concept from SNOMED, LOINC, etc
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/index.html>`__
 
@@ -451,7 +451,7 @@ class MetaThesaurus(object):
         **params,
     ) -> Iterator[Dict]:
         """
-        Get a "Source Asserted" relations
+        Get source asserted relations
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/relations/index.html>`__
 
@@ -502,7 +502,7 @@ class MetaThesaurus(object):
     ) -> Iterator[Dict]:
 
         """
-        Get a "Source Asserted" parents
+        Get source asserted parents
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/parents-and-children/index.html>`__
 
@@ -553,7 +553,7 @@ class MetaThesaurus(object):
         concept_id: str,
     ) -> Iterator[Dict]:
         """
-        Get a "Source Asserted" ancestors
+        Get source asserted ancestors
 
         `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/ancestors-and-descendants/index.html>`__
 
@@ -594,6 +594,31 @@ class MetaThesaurus(object):
 
         return self.session.get_results(uri)
 
+    def crosswalk(
+        self, source_vocab: str, concept_id: str, language: str = None, **params
+    ) -> Iterator[Dict]:
+        """
+        Crosswalk vocabularies. Find all source atoms which share the same CUI.
+
+        `UMLS Doc <https://documentation.uts.nlm.nih.gov/rest/source-asserted-identifiers/crosswalk/>`__
+
+
+        :param source_vocab: source Vocabulary
+        :param concept_id: concept ID
+        :param language: target language
+        :return: generator yielding atom clusters
+        """
+        source_vocab = self.validate_source_abbrev(source_vocab)
+        assert concept_id
+        uri = f"{self._rest_uri}/crosswalk/{self.umls_version}/source/{source_vocab}/{concept_id}"
+
+        if language:
+            params["targetSource"] = self.get_language_sabs_str(
+                language, params.pop("targetSource", None)
+            )
+
+        return self.session.get_results(uri, **params)
+
     ##
     # Source vocabulary metadata and lookup.
     ##
@@ -629,50 +654,7 @@ class MetaThesaurus(object):
                 "expandedForm": "English"
               },
               "restrictionLevel": 0,
-              "acquisitionContact": null,
-              "contentContact": {
-                "classType": "ContactInformation",
-                "handle": null,
-                "name": "LOINC c/o Regenstrief Institute",
-                "title": null,
-                "organization": "The Regenstrief Institute, Inc",
-                "address1": "1101 West 10th Street",
-                "address2": null,
-                "city": "Indianapolis",
-                "stateOrProvince": "IN",
-                "country": "United States",
-                "zipCode": "46202",
-                "telephone": "(317) 274-9000",
-                "fax": null,
-                "email": "loinc@loinc.org",
-                "url": "https://loinc.org/",
-                "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
-              },
-              "licenseContact": {
-                "classType": "ContactInformation",
-                "handle": null,
-                "name": "LOINC c/o Regenstrief Institute",
-                "title": null,
-                "organization": "The Regenstrief Institute, Inc",
-                "address1": "1101 West 10th Street",
-                "address2": null,
-                "city": "Indianapolis",
-                "stateOrProvince": "IN",
-                "country": "United States",
-                "zipCode": "46202",
-                "telephone": "(317) 274-9000",
-                "fax": null,
-                "email": "loinc@loinc.org",
-                "url": "https://loinc.org/",
-                "value": "|LOINC c/o Regenstrief Institute||The Regenstrief Institute, Inc|1101 West 10th Street||Indianapolis|IN|United States|46202|(317) 274-9000||loinc@loinc.org|https://loinc.org/|"
-              },
-              "contextType": "FULL-NOSIB-MULTIPLE",
-              "shortName": "LOINC",
-              "hierarchicalName": null,
-              "preferredName": "LOINC, 271",
-              "synonymousNames": [
-                "Logical Observation Identifier Names and Codes"
-              ]
+              ...
             }
 
         :return: source metadata indexed by abbreviation
@@ -808,3 +790,31 @@ class MetaThesaurus(object):
         if self.sources_for_language(abbr_upper):
             return abbr_upper
         raise ValueError(f"No sources found for language abbrev '{lab}'")
+
+    def get_language_sabs_str(self, language: str, sabs: Optional[str] = None) -> str:
+        """
+        Return a comma-separated list of source abbreviations for a target language. If asabs string
+        is provided, we simply validate that it belongs to the target language.
+
+        :param language: target language
+        :param sabs: comma-separated list of source abbreviations
+        :return:
+        """
+        if not language:
+            return ""
+
+        lab = self.validate_language_abbrev(language)
+        lang_sab_list = self.sources_for_language(lab)
+
+        if sabs:
+            existing_set = {_.strip() for _ in sabs.split(",")}
+            lang_sab_set = set(lang_sab_list)
+            not_in_language = existing_set - lang_sab_set
+            if not_in_language:
+                raise ValueError(
+                    f"{not_in_language} source vocabularies are not associated with language '{language}'"
+                )
+            # so if you have specified sabs already, we just validate them and send them back
+            return sabs
+        else:
+            return ",".join(lang_sab_list)
