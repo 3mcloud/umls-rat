@@ -6,7 +6,8 @@ UMLS RAT
     :alt: Documentation Status
 .. image:: https://github.com/3mcloud/umls-rat/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/3mcloud/umls-rat/actions/workflows/python-package.yml 
-
+.. image:: https://badge.fury.io/py/umls-rat.svg
+   :target: https://pypi.python.org/pypi/umls-rat/
 ..
     Includes don't work with GitHub https://github.com/github/markup/issues/172
     docs/intro.rst
