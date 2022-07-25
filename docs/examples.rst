@@ -83,8 +83,8 @@ Find defined concepts based on description only.
    find_fn = find_builder(api, args)
 
    # Find definitions for each of the following SNOMED concepts
-   for ui in ["73539009", "242593005", "261188006"]:
-      concepts = find_fn(source_ui=ui, broader=True)
+   for cid in ["73539009", "242593005", "261188006"]:
+      concepts = find_fn(concept_id=cid, broader=True)
       print(definitions_to_md(concepts))
       print("_" * 40)
 
