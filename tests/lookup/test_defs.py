@@ -406,6 +406,16 @@ def test_find_defined_concepts(
             "spaces and the peripheral circulation impairing tissue oxygenation causing "
             "disorientation, severe pain, and potentially death.",
         ),
+        (
+            dict(start_cui="C0022646", broader=True),
+            ["Kidney"],
+            "Of or pertaining to the kidney.",
+        ),
+        (
+            dict(start_cui="C0022646", broader=False),
+            ["Kidney"],
+            "Of or pertaining to the kidney.",
+        ),
     ),
 )
 def test_definitions_bfs(api, kwargs, expected_names, a_definition):
