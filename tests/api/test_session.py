@@ -11,12 +11,8 @@ from umlsrat import const
 
 class ResponseCodeHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        status_code = 200
-        try:
-            parsed = urlparse(self.path)
-            status_code = int(parsed.path.strip("/"))
-        except ValueError:
-            pass
+        parsed = urlparse(self.path)
+        status_code = int(parsed.path.strip("/"))
 
         self.send_response(status_code)
         self.end_headers()
@@ -27,7 +23,7 @@ _HOSTPORT_STR = ":".join(map(str, _HOSTPORT_PAIR))
 
 
 def server(host: str, port: int):
-    s = HTTPServer(("localhost", port), ResponseCodeHandler)
+    s = HTTPServer((host, port), ResponseCodeHandler)
     s.serve_forever()
 
 
