@@ -39,13 +39,16 @@ def clean_definition_text(text: str) -> str:
     return clean.strip()
 
 
-_RM_PUNCT_PAT = re.compile(r"\s*[,;:?_{|}.=()\[\]!/<>\"\\~-]\s*")
+_NOS_PAT = re.compile(r",?\s*NOS$")
+_PUNCT_PAT = re.compile(r"\s*[,;:?_{|}.=()\[\]!/<>\"\\~-]\s*")
 
 
 def normalize(text_str: str) -> str:
     """Normalize string"""
-    normalized = clean_definition_text(text_str.lower())
-    normalized = _RM_PUNCT_PAT.sub(" ", normalized)
+    # remove NOS (SNOMED ; Not Otherwise Specified)
+    normalized = _NOS_PAT.sub("", text_str)
+    normalized = clean_definition_text(normalized.lower())
+    normalized = _PUNCT_PAT.sub(" ", normalized)
     normalized = re.sub(r"\s+", " ", normalized)
     return normalized.strip()
 
