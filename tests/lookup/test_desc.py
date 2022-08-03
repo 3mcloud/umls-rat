@@ -110,7 +110,7 @@ def test_get_synonyms(api, kwargs, expected_names):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_syns"),
+    ("kwargs", "expected"),
     (
         (
             dict(source_vocab="CPT", concept_id="44950"),
@@ -217,9 +217,15 @@ def test_get_synonyms(api, kwargs, expected_names):
                 "Unspecified precerebral artery, with cerebral infarction",
             ],
         ),
+        (
+            dict(source_vocab="ICD10CM", concept_id="R06", language="ENG"),
+            "Abnormal respiratory system physiology",
+        ),
     ),
 )
-def test_find_synonyms(api, kwargs, expected_syns):
+def test_find_synonyms(api, kwargs, expected):
     syns = find_synonyms(api, **kwargs)
-    # assert len(syns) == len(expected_syns)
-    assert syns == expected_syns
+    if isinstance(expected, str):
+        assert expected in syns
+    else:
+        assert syns == expected

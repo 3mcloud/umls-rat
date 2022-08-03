@@ -50,21 +50,33 @@ def test_get_relations(api, kwargs, rel_count):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "atom_count"),
+    ("kwargs", "atom_count", "expected_aui"),
     (
-        (dict(cui="C3472551", includeObsolete=True, includeSuppressible=True), 5),
-        (dict(cui="C0009044", language="ENG"), 14),
+        (dict(cui="C3472551"), 0, None),
+        (
+            dict(cui="C3472551", includeObsolete=True, includeSuppressible=True),
+            5,
+            "A32611696",
+        ),
+        (dict(cui="C0009044", language="ENG"), 14, "A0542680"),
+        (dict(cui="C1260922", language="ENG"), 59, "A33193650"),
+        (dict(cui="C1260922", language="ENG", pageSize=1000), 59, "A33193650"),
     ),
 )
-def test_get_atoms_for_cui(api, kwargs, atom_count):
-    data = list(api.get_atoms_for_cui(**kwargs))
-    assert data
-    assert len(data) == atom_count
+def test_get_atoms_for_cui(api, kwargs, atom_count, expected_aui):
+    atoms = list(api.get_atoms_for_cui(**kwargs))
+    assert atoms is not None
+    assert len(atoms) == atom_count
+    if atoms:
+        assert expected_aui in set(a.get("ui") for a in atoms)
 
 
 @pytest.mark.parametrize(
     ("aui",),
-    (("A0243916",),),
+    (
+        ("A0243916",),
+        ("A33193650",),
+    ),
 )
 def test_get_atom(api, aui):
     atom = api.get_atom(aui=aui)
