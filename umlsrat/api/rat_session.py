@@ -5,8 +5,8 @@ import os
 from os.path import expanduser
 from typing import Optional, Any, Dict, List, Iterator
 
-from ratelimit import limits, RateLimitException
 from backoff import on_exception, expo
+from ratelimit import limits, RateLimitException
 from requests import Session, HTTPError, Response
 from requests.adapters import HTTPAdapter
 from requests_cache import CachedSession
@@ -218,6 +218,9 @@ class MetaThesaurusSession(object):
         if not response_json:
             return
 
+        # get page count from first call
+        page_count = response_json.get("pageCount", None)
+
         if "pageNumber" not in response_json:
             raise ValueError(
                 "Expected pagination fields in response:\n"
@@ -243,7 +246,7 @@ class MetaThesaurusSession(object):
                 if n_yielded == max_results:
                     return
 
-            if response_json.get("pageCount", None) == params["pageNumber"]:
+            if page_count == params["pageNumber"]:
                 # no more pages
                 return
 

@@ -26,25 +26,8 @@ def _append_cui_descriptions(
     def push_name(name: str) -> None:
         syn_names.push(txt_norm(name))
 
-    for rel in api.get_relations(
-        cui=cui, includeRelationLabels="SY", sabs=lang_sabs_str
-    ):
-        rel_atom = api.session.get_single_result(rel.get("relatedId"))
-        if rel_atom.get("rootSource") not in lang_sabs:
-            continue
-
-        if "atoms" in rel_atom:
-            # add the name of the cluster
-            push_name(rel_atom.get("name"))
-
-            # get the atoms in the cluster
-            sub_atoms_url = rel_atom.get("atoms")
-            sub_atoms = api.session.get_results(sub_atoms_url)
-            # add atom names
-            for a in sub_atoms:
-                push_name(a.get("name"))
-        else:
-            push_name(rel_atom.get("name"))
+    for atom in api.get_atoms_for_cui(cui, sabs=lang_sabs_str):
+        push_name(atom.get("name"))
 
     return syn_names.items
 
@@ -157,10 +140,6 @@ def find_synonyms(
         # The name of the base concept always comes first -- provided that it is a vocab associated
         # with the desired language.
         syn_names.push(txt_norm(base_concept.get("name")))
-
-    # this does not appear to enforce the SY relationship
-    # for atom in api.crosswalk(source_vocab, concept_id, targetSource=",".join(lang_sabs)):
-    #     syn_names.push(txt_norm(atom.get("name")))
 
     for cui in lookup_umls.get_cuis_for(api, source_vocab, concept_id):
         _append_cui_descriptions(

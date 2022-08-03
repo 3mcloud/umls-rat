@@ -7,9 +7,15 @@ import pytest
 from umlsrat.util import text
 
 
-def test_normalize():
+def test_normalize_punct():
     expected = set("#$%&' *+  @ ^`")
     actual = set(text.normalize(string.punctuation))
+    assert actual == expected
+
+
+@pytest.mark.parametrize(("txt_input", "expected"), (("Raccoon, NOS", "raccoon"),))
+def test_normalize(txt_input, expected):
+    actual = text.normalize(txt_input)
     assert actual == expected
 
 
