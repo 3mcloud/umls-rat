@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.rst", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-version = "0.6.0"
+version = "0.6.1"
 
 setup(
     name="umls-rat",
