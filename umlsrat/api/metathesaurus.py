@@ -613,7 +613,7 @@ class MetaThesaurus(object):
         uri = f"{self._rest_uri}/crosswalk/{self.umls_version}/source/{source_vocab}/{concept_id}"
 
         if language:
-            params["targetSource"] = self.get_language_sabs_str(
+            params["targetSource"] = self.get_sabs_str(
                 language, params.pop("targetSource", None)
             )
 
@@ -791,7 +791,13 @@ class MetaThesaurus(object):
             return abbr_upper
         raise ValueError(f"No sources found for language abbrev '{lab}'")
 
-    def get_language_sabs_str(self, language: str, sabs: Optional[str] = None) -> str:
+    def _valid_ordered_split_sabs(self, sabs_str: str) -> List[str]:
+        # maintaining order is important for caching
+        return sorted(
+            self.validate_source_abbrev(_.strip()) for _ in sabs_str.split(",")
+        )
+
+    def get_sabs_str(self, language: str, sabs: Optional[str] = None) -> str:
         """
         Return a comma-separated list of source abbreviations for a target language. If asabs string
         is provided, we simply validate that it belongs to the target language.
@@ -805,17 +811,14 @@ class MetaThesaurus(object):
                 return ""
             else:
                 # simply validate the sabs
-                for _ in sabs.split(","):
-                    self.validate_source_abbrev(_.strip())
-                return sabs
+                return ",".join(self._valid_ordered_split_sabs(sabs))
 
         lab = self.validate_language_abbrev(language)
         lang_sab_list = self.sources_for_language(lab)
 
         if sabs:
-            existing_set = {
-                self.validate_source_abbrev(_.strip()) for _ in sabs.split(",")
-            }
+            existing = self._valid_ordered_split_sabs(sabs)
+            existing_set = set(existing)
             lang_sab_set = set(lang_sab_list)
             not_in_language = existing_set - lang_sab_set
             if not_in_language:

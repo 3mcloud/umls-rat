@@ -252,7 +252,7 @@ def _get_related_cuis(
             yield next_cui
             seen.add(next_cui)
 
-    sabs_str = api.get_language_sabs_str(language, sabs)
+    sabs_str = api.get_sabs_str(language, sabs)
 
     allowed_relation_str = ",".join(sorted(allowed_relations))
 

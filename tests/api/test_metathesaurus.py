@@ -239,13 +239,13 @@ def test_crosswalk(api, kwargs, expected_names):
         (dict(language="ENG", sabs="MSH"), "MSH"),
     ),
 )
-def test_language_sabs_str(api, kwargs, expected_str):
+def test_sabs_str(api, kwargs, expected_str):
     if expected_str:
-        sabs_str = api.get_language_sabs_str(**kwargs)
+        sabs_str = api.get_sabs_str(**kwargs)
         assert sabs_str == expected_str
     else:
         with pytest.raises(ValueError):
-            api.get_language_sabs_str(**kwargs)
+            api.get_sabs_str(**kwargs)
 
 
 def test_source_metadata(api):
