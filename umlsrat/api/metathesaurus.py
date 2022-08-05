@@ -801,13 +801,21 @@ class MetaThesaurus(object):
         :return:
         """
         if not language:
-            return ""
+            if not sabs:
+                return ""
+            else:
+                # simply validate the sabs
+                for _ in sabs.split(","):
+                    self.validate_source_abbrev(_.strip())
+                return sabs
 
         lab = self.validate_language_abbrev(language)
         lang_sab_list = self.sources_for_language(lab)
 
         if sabs:
-            existing_set = {_.strip() for _ in sabs.split(",")}
+            existing_set = {
+                self.validate_source_abbrev(_.strip()) for _ in sabs.split(",")
+            }
             lang_sab_set = set(lang_sab_list)
             not_in_language = existing_set - lang_sab_set
             if not_in_language:

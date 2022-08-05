@@ -222,6 +222,7 @@ def _get_related_cuis(
     cui: str,
     allowed_relations: Iterable[str],
     include_source_relations: bool,
+    sabs: str,
     language: str,
     **add_params,
 ) -> Iterator[str]:
@@ -251,11 +252,7 @@ def _get_related_cuis(
             yield next_cui
             seen.add(next_cui)
 
-    if language:
-        language = api.validate_language_abbrev(language)
-        lang_sabs_str = ",".join(api.sources_for_language(language))
-    else:
-        language, lang_sabs_str = None, None
+    sabs_str = api.get_language_sabs_str(language, sabs)
 
     allowed_relation_str = ",".join(sorted(allowed_relations))
 
@@ -264,7 +261,7 @@ def _get_related_cuis(
     ##
     for rel in api.get_relations(
         cui,
-        sabs=lang_sabs_str,
+        sabs=sabs_str,
         includeRelationLabels=allowed_relation_str,
         **add_params,
     ):
@@ -294,6 +291,7 @@ def get_related_cuis(
     allowed_relations: Iterable[str],
     include_source_relations: bool = False,
     language: str = None,
+    sabs: str = None,
 ) -> List[str]:
     """
     Get CUIs for related concepts.
@@ -309,6 +307,7 @@ def get_related_cuis(
     :param allowed_relations: relations of interest
     :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
+    :param sabs: comma separated list of source abbreviations
 
     :return: list of CUIs
     """
@@ -319,6 +318,7 @@ def get_related_cuis(
             cui=cui,
             allowed_relations=allowed_relations,
             include_source_relations=include_source_relations,
+            sabs=sabs,
             language=language,
         )
     )
@@ -330,13 +330,14 @@ def get_related_cuis(
                 cui=cui,
                 allowed_relations=allowed_relations,
                 include_source_relations=include_source_relations,
+                sabs=sabs,
                 language=language,
                 includeObsolete=True,
                 includeSuppressible=True,
             )
         )
 
-    ordered = sorted(related_cuis, key=cui_order.cui_name_sim(api, cui))
+    ordered = sorted(related_cuis)
     return ordered
 
 
@@ -345,6 +346,7 @@ def get_broader_cuis(
     cui: str,
     include_source_relations: bool = False,
     language: str = None,
+    sabs: str = None,
 ) -> List[str]:
     """
     Get CUIs for broader, related concepts.
@@ -356,6 +358,7 @@ def get_broader_cuis(
     :param cui: starting concept CUI
     :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
+    :param sabs: comma separated list of source abbreviations
     :return: list of CUIs
     """
     return get_related_cuis(
@@ -364,6 +367,7 @@ def get_broader_cuis(
         allowed_relations=("RN", "CHD"),
         include_source_relations=include_source_relations,
         language=language,
+        sabs=sabs,
     )
 
 
@@ -372,6 +376,7 @@ def get_narrower_cuis(
     cui: str,
     include_source_relations: bool = False,
     language: str = None,
+    sabs: str = None,
 ) -> List[str]:
     """
     Get CUIs for narrower, related concepts.
@@ -382,6 +387,7 @@ def get_narrower_cuis(
     :param cui: starting concept CUI
     :param include_source_relations: include CUIs related by atomic source relations
     :param language: target language
+    :param sabs: comma separated list of source abbreviations
     :return: list of CUIs
     """
     return get_related_cuis(
@@ -390,4 +396,5 @@ def get_narrower_cuis(
         allowed_relations=("RB", "PAR"),
         include_source_relations=include_source_relations,
         language=language,
+        sabs=sabs,
     )

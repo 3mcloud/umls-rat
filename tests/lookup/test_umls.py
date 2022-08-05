@@ -54,35 +54,36 @@ def test_get_cuis_for(api, kwargs, expected_names):
         (
             dict(cui="C0559890"),
             [
-                "Lumbosacral region of spine structure",
                 "Structure of inter-regional junction of vertebral column",
+                "Lumbosacral region of spine structure",
             ],
         ),
         (dict(cui="C3472551"), ["Back structure, including back of neck"]),
         (
             dict(cui="C3887398"),
             [
-                "closed fracture of wrist",
-                "Closed fracture of left upper limb",
                 "Closed fracture of carpal bone",
+                "Closed fracture of left upper limb",
                 "Injury of left wrist",
+                "closed fracture of wrist",
             ],
         ),
         (
             dict(cui="C0009044"),
             [
                 "Fracture of carpal bone",
-                "Closed fracture of upper limb",
-                "closed fracture of wrist",
-                "Fracture of upper limb",
                 "Fractures, Closed",
                 "Unspecified site injury",
+                "Fracture of upper limb",
+                "Closed fracture of upper limb",
+                "closed fracture of wrist",
             ],
         ),
         (
             dict(cui="C0450415"),
             ["Lateral", "Binary anatomical coordinate"],
         ),
+        (dict(cui="C0999672"), ["Cricetomys emini", "Cricetomys"]),
     ),
 )
 def test_get_broader_concepts(api, kwargs, expected_names):
