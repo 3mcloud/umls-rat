@@ -794,7 +794,7 @@ class MetaThesaurus(object):
     def _valid_ordered_split_sabs(self, sabs_str: str) -> List[str]:
         # maintaining order is important for caching
         return sorted(
-            self.validate_source_abbrev(_.strip()) for _ in sabs_str.split(",")
+            set(self.validate_source_abbrev(_.strip()) for _ in sabs_str.split(","))
         )
 
     def get_sabs_str(self, language: str, sabs: Optional[str] = None) -> str:
