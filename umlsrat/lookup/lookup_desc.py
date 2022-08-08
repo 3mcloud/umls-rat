@@ -1,4 +1,4 @@
-from typing import List, Callable, Set
+from typing import List, Callable
 
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.lookup import lookup_umls
@@ -19,14 +19,12 @@ def _append_cui_descriptions(
     cui: str,
     syn_names: UniqueFIFO,
     txt_norm: Callable[[str], str],
-    lang_sabs: Set[str],
+    sabs: str,
 ) -> List[str]:
-    lang_sabs_str = ",".join(lang_sabs)
-
     def push_name(name: str) -> None:
         syn_names.push(txt_norm(name))
 
-    for atom in api.get_atoms_for_cui(cui, sabs=lang_sabs_str):
+    for atom in api.get_atoms_for_cui(cui, sabs=sabs):
         push_name(atom.get("name"))
 
     return syn_names.items
@@ -63,16 +61,14 @@ def get_synonyms(
     :param normalize: normalize names
     :return: list of names for this concept
     """
-    # validate language abbreviation
-    language = api.validate_language_abbrev(language)
     # get source vocab abbreviations for language
-    lang_sabs = set(api.sources_for_language(language))
+    sabs = api.get_sabs_str(language)
     # create name queue
     syn_names = UniqueFIFO(keyfn=str.lower)
     # get text norm function
     txt_norm = _get_norm_fn(normalize)
     _append_cui_descriptions(
-        api=api, cui=cui, syn_names=syn_names, txt_norm=txt_norm, lang_sabs=lang_sabs
+        api=api, cui=cui, syn_names=syn_names, txt_norm=txt_norm, sabs=sabs
     )
     return syn_names.items
 
@@ -123,10 +119,8 @@ def find_synonyms(
     :param normalize: normalize names
     :return: list of names for this concept
     """
-    # validate language abbreviation
-    language = api.validate_language_abbrev(language)
     # get source vocab abbreviations for language
-    lang_sabs = set(api.sources_for_language(language))
+    sabs = api.get_sabs_str(language)
     # create name queue
     syn_names = UniqueFIFO(keyfn=str.lower)
     # get text norm function
@@ -136,7 +130,7 @@ def find_synonyms(
     if not base_concept:
         raise ValueError(f"Source concept not found {source_vocab}/{concept_id}")
 
-    if source_vocab in lang_sabs:
+    if source_vocab in sabs.split(","):
         # The name of the base concept always comes first -- provided that it is a vocab associated
         # with the desired language.
         syn_names.push(txt_norm(base_concept.get("name")))
@@ -147,7 +141,7 @@ def find_synonyms(
             cui=cui,
             txt_norm=txt_norm,
             syn_names=syn_names,
-            lang_sabs=lang_sabs,
+            sabs=sabs,
         )
 
     return syn_names.items
