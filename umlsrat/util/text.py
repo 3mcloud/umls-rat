@@ -9,7 +9,7 @@ def remove_trailing_parens(text: str) -> str:
     close_char = text[-1]
     if close_char in _ENCLOSING_CITATION:
         stack = [close_char]
-        open_char = _ENCLOSING_CITATION[text[-1]]
+        open_char = _ENCLOSING_CITATION.get(close_char)
         i = len(text) - 2
         while i >= 0:
             cur_char = text[i]

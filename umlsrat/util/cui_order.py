@@ -25,8 +25,12 @@ def sem_type_name_sim(
 
 
 def cui_name_sim(api: MetaThesaurus, source_cui: str) -> Callable[[str], Any]:
-    source = api.get_concept(source_cui).get("name")
-    return desc_name_sim(api, source)
+    source_name = api.get_concept(source_cui).get("name")
+    if source_name is None:
+        mth_atom = list(api.get_atoms_for_cui(source_cui, sabs="MTH")).pop()
+        source_name = mth_atom.get("name")
+    assert source_name, f"No name for CUI {source_cui}"
+    return desc_name_sim(api, source_name)
 
 
 def desc_name_sim(api: MetaThesaurus, desc: str) -> Callable[[str], Any]:
