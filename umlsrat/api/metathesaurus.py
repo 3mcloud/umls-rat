@@ -2,7 +2,7 @@ import argparse
 import functools
 import logging
 import operator
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional, Tuple
 
 from umlsrat import const
 from umlsrat.api.rat_session import MetaThesaurusSession
@@ -746,7 +746,7 @@ class MetaThesaurus(object):
             return info["abbreviation"]
 
     @functools.lru_cache(maxsize=2)
-    def sources_for_language(self, lab: str) -> List[str]:
+    def sources_for_language(self, lab: str) -> Tuple[str]:
         """
         Get a list of source abbreviations associated with a given language (abbreviation).
 
@@ -755,17 +755,18 @@ class MetaThesaurus(object):
 
         .. code-block: js
 
-            ['DMDICD10', 'DMDUMD', 'ICPCGER', 'WHOGER',
-             'MDRGER', 'LNC-DE-AT', 'LNC-DE-DE', 'MSHGER']
+            ('DMDICD10', 'DMDUMD', 'ICPCGER', 'LNC-DE-AT',
+                'LNC-DE-DE', 'MDRGER', 'MSHGER', 'WHOGER')
 
         :param lab: language abbreviation
         :return: list of source abbreviations
         """
-        return [
+        sabs_list = [
             source["abbreviation"]
             for source in self.source_metadata_index.values()
             if source["language"]["abbreviation"] == lab
-        ]
+        ]  # type: List[str]
+        return tuple(sorted(sabs_list))
 
     def validate_language_abbrev(self, lab: str) -> str:
         """
@@ -814,12 +815,12 @@ class MetaThesaurus(object):
                 return ",".join(self._valid_ordered_split_sabs(sabs))
 
         lab = self.validate_language_abbrev(language)
-        lang_sab_list = self.sources_for_language(lab)
+        lang_sab_tpl = self.sources_for_language(lab)
 
         if sabs:
             existing = self._valid_ordered_split_sabs(sabs)
             existing_set = set(existing)
-            lang_sab_set = set(lang_sab_list)
+            lang_sab_set = set(lang_sab_tpl)
             not_in_language = existing_set - lang_sab_set
             if not_in_language:
                 raise ValueError(
@@ -828,4 +829,4 @@ class MetaThesaurus(object):
             # so if you have specified sabs already, we just validate them and send them back
             return sabs
         else:
-            return ",".join(lang_sab_list)
+            return ",".join(lang_sab_tpl)
