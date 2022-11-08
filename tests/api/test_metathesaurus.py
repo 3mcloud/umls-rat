@@ -39,9 +39,9 @@ def test_get_definitions(api, cui, definitions):
 @pytest.mark.parametrize(
     ("kwargs", "rel_count"),
     (
-        (dict(cui="C0009044"), 227),
+        (dict(cui="C0009044"), 247),
         (dict(cui="C0009044", sabs=["MTH"]), 6),
-        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 294),
+        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 314),
     ),
 )
 def test_get_relations(api, kwargs, rel_count):
@@ -131,8 +131,14 @@ def test_get_source_relations(api, kwargs, relation_count):
     ("kwargs", "expected_cuis"),
     (
         (dict(query="cheese", max_results=1), ["C0007968"]),
-        (dict(query="broken back bone"), ["C5405410"]),
-        (dict(query="broken back bone", string="cheese"), ["C5405410"]),
+        (
+            dict(query="broken back bone"),
+            ["C5693200", "C5405410", "C5693010", "C5693009"],
+        ),
+        (
+            dict(query="broken back bone", string="cheese"),
+            ["C5693200", "C5405410", "C5693010", "C5693009"],
+        ),
     ),
 )
 def test_search(api, kwargs, expected_cuis):
@@ -253,7 +259,7 @@ def test_sabs_str(api, kwargs, expected_str):
 
 
 def test_source_metadata(api):
-    assert sum(1 for _ in api._source_metadata) == 224
+    assert sum(1 for _ in api._source_metadata) == 184
 
 
 @pytest.mark.parametrize(
@@ -302,7 +308,7 @@ def test_find_vocab_info(api, kwargs, expected_short_name):
 @pytest.mark.parametrize(
     ("abbr", "expected_len", "expected_element"),
     (
-        ("ENG", 150, "ICD10CM"),
+        ("ENG", 107, "ICD10CM"),
         ("SPA", 10, "MSHSPA"),
         ("GER", 8, "MSHGER"),
         ("CZE", 2, "MSHCZE"),
@@ -346,9 +352,15 @@ def test_constructor():
     (
         (dict(query="star trek vs star wars", pageSize=25), 0),
         (dict(query="bone", max_results=100, pageSize=25), 100),
-        (dict(query="bamboo", max_results=100, pageSize=25), 92),
-        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1), 92),
-        (dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2), 92 - 25),
+        (dict(query="bamboo", max_results=100, pageSize=25), 99),  # 99 bamboo concepts
+        (
+            dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1),
+            99,
+        ),  # starting on page 1 yields all of them
+        (
+            dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2),
+            99 - 25,
+        ),  # starting on page 2 skips 25 of them
     ),
 )
 def test_pagination(api, kwargs, expected_len):
