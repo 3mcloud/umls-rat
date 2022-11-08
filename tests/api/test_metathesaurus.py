@@ -231,7 +231,11 @@ def test_crosswalk(api, kwargs, expected_names):
     (
         (
             dict(language="SPA"),
-            "ICPCSPA,WHOSPA,CPTSP,MSHSPA,MEDLINEPLUS_SPA,SCTSPA,MDRSPA,LNC-ES-ES,LNC-ES-MX,LNC-ES-AR",
+            "CPTSP,ICPCSPA,LNC-ES-AR,LNC-ES-ES,LNC-ES-MX,MDRSPA,MEDLINEPLUS_SPA,MSHSPA,SCTSPA,WHOSPA",
+        ),
+        (
+            dict(language="GER"),
+            "DMDICD10,DMDUMD,ICPCGER,LNC-DE-AT,LNC-DE-DE,MDRGER,MSHGER,WHOGER",
         ),
         (dict(language="SPA", sabs="LNC-ES-MX, MSH"), None),
         (dict(language="SPA", sabs="MSH"), None),
