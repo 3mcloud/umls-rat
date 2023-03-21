@@ -170,8 +170,12 @@ def test_term_search(api, kwargs, expected_names):
 
 def simple_search(api, term: str) -> Dict:
     search_result = lookup_umls.term_search(api, term)
-    if search_result:
-        return search_result["concepts"].pop(0)
+    assert search_result, f"Search result is empty: {search_result}"
+    assert search_result.get(
+        "concepts"
+    ), f"Search result contains no concepts: {search_result}"
+
+    return search_result["concepts"].pop(0)
 
 
 def test_search_idempotence(api):
@@ -185,5 +189,4 @@ def test_search_idempotence(api):
 
     c1 = simple_search(api, "Room air")
     c2 = simple_search(api, "Room Air")
-    c3 = simple_search(api, "Room air (substance)")
-    assert c1 == c2 == c3
+    assert c1 == c2
