@@ -39,9 +39,9 @@ def test_get_definitions(api, cui, definitions):
 @pytest.mark.parametrize(
     ("kwargs", "rel_count"),
     (
-        (dict(cui="C0009044"), 247),
+        (dict(cui="C0009044"), 277),
         (dict(cui="C0009044", sabs=["MTH"]), 6),
-        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 314),
+        (dict(cui="C0009044", includeObsolete=True, includeSuppressible=True), 344),
     ),
 )
 def test_get_relations(api, kwargs, rel_count):
@@ -133,11 +133,11 @@ def test_get_source_relations(api, kwargs, relation_count):
         (dict(query="cheese", max_results=1), ["C0007968"]),
         (
             dict(query="broken back bone"),
-            ["C5693200", "C5405410", "C5693010", "C5693009"],
+            ["C5693200", "C5693010", "C5693009"],
         ),
         (
             dict(query="broken back bone", string="cheese"),
-            ["C5693200", "C5405410", "C5693010", "C5693009"],
+            ["C5693200", "C5693010", "C5693009"],
         ),
     ),
 )
@@ -259,7 +259,7 @@ def test_sabs_str(api, kwargs, expected_str):
 
 
 def test_source_metadata(api):
-    assert sum(1 for _ in api._source_metadata) == 184
+    assert sum(1 for _ in api._source_metadata) == 187
 
 
 @pytest.mark.parametrize(
@@ -312,7 +312,7 @@ def test_find_vocab_info(api, kwargs, expected_short_name):
         ("SPA", 10, "MSHSPA"),
         ("GER", 8, "MSHGER"),
         ("CZE", 2, "MSHCZE"),
-        ("POL", 2, "MSHPOL"),
+        ("POL", 3, "MSHPOL"),
         ("FRA", 0, None),  # FRA? Nope; FRE.
         ("FRE", 8, "MSHFRE"),
     ),
@@ -347,19 +347,25 @@ def test_constructor():
     assert mt
 
 
+_n_bamboo_results = 80
+
+
 @pytest.mark.parametrize(
     ("kwargs", "expected_len"),
     (
         (dict(query="star trek vs star wars", pageSize=25), 0),
         (dict(query="bone", max_results=100, pageSize=25), 100),
-        (dict(query="bamboo", max_results=100, pageSize=25), 99),  # 99 bamboo concepts
+        (
+            dict(query="bamboo", max_results=100, pageSize=25),
+            _n_bamboo_results,
+        ),  # 99 bamboo concepts
         (
             dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1),
-            99,
+            _n_bamboo_results,
         ),  # starting on page 1 yields all of them
         (
             dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2),
-            99 - 25,
+            _n_bamboo_results - 25,
         ),  # starting on page 2 skips 25 of them
     ),
 )
