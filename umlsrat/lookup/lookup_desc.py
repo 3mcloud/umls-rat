@@ -10,7 +10,6 @@ def _get_norm_fn(normalize: bool) -> Callable[[str], str]:
     if normalize:
         return text.normalize
     else:
-
         return text.identity
 
 
@@ -37,7 +36,7 @@ def get_synonyms(
     normalize: bool = False,
 ) -> List[str]:
     """
-    Find unique, synonymous concept names. Uniqueness is determined by
+    Find unique, synonymous concept names. Return order is determined by the API. Uniqueness is determined by
     case-insensitive exact string match or by the normalized form if ``normalize=True``.
 
     >>> from umlsrat.api.metathesaurus import MetaThesaurus
@@ -46,14 +45,16 @@ def get_synonyms(
 
     .. code-block:: js
 
-            [
-                "Raccoon",
-                "Raccoons",
-                "Procyons",
-                "Procyon",
-                "Genus Procyon",
-                "Genus Procyon (organism)",
-            ]
+        [
+            "raccoon",
+            "Procyon",
+            "Procyon, NOS",
+            "raccoons",
+            "Procyons",
+            "Genus Procyon",
+            "Genus Procyon (organism)",
+        ]
+
 
     :param api: MetaThesaurus
     :param cui: CUI
@@ -81,8 +82,9 @@ def find_synonyms(
     normalize: bool = False,
 ) -> List[str]:
     """
-    Find unique, synonymous concept names given a source concept. Uniqueness is determined by
-    case-insensitive exact string match or by the normalized form if ``normalize=True``.
+    Find unique, synonymous concept names given a source concept. Return order is determined by
+    the API. Uniqueness is determined by case-insensitive exact string match or by the normalized
+    form if ``normalize=True``.
 
     >>> from umlsrat.api.metathesaurus import MetaThesaurus
     >>> from umlsrat.lookup.lookup_desc import find_synonyms

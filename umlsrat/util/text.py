@@ -44,7 +44,7 @@ _PUNCT_PAT = re.compile(r"\s*[,;:?_{|}.=()\[\]!/<>\"\\~-]\s*")
 
 
 def normalize(text_str: str) -> str:
-    """Normalize string"""
+    """Remove common metadata strings, remove punctuation, lowercase, remove redundant whitespace"""
     # remove NOS (SNOMED ; Not Otherwise Specified)
     normalized = _NOS_PAT.sub("", text_str)
     normalized = clean_definition_text(normalized.lower())
