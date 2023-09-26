@@ -30,6 +30,8 @@ jobs:
     # https://github.com/marketplace/actions/install-poetry-action
     - name: Install Poetry
       uses: snok/install-poetry@v1
+    - name: Install dependencies
+      run: poetry install
     - name: Test with pytest
       env:
         UMLS_API_KEY: ${{ secrets.UMLS_API_KEY }}
