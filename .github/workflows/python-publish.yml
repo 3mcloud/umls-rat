@@ -32,6 +32,9 @@ jobs:
     - name: Set package version
       run: |
         poetry version ${{  github.ref_name }}
+    - name: Build pagckage
+      run: |
+        poetry build
     - name: Publish package
       run: |
         poetry publish --password ${{ secrets.PYPI_API_TOKEN }}

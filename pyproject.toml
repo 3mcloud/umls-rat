@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "umls-rat"
+name = "umlsrat"
 version = "0.0.0dev0"
 description = "UMLS RAT (REST API Tool) provides a reasonable interface to the UMLS MetaThesaurus via the REST API."
 authors = ["Russell Klopfer <rklopfer@mmm.com>"]
 license = "MIT"
-readme = "README.md"
+readme = "README.rst"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
