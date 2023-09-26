@@ -36,9 +36,10 @@ class MetaThesaurus(object):
         if umls_version:
             self.umls_version = umls_version
         else:
-            self.umls_version = const.DEFAULT_UMLS_VERSION
+            self.umls_version = self.session.get_current_version()
+            self._logger.info("Using latest UMLS version '%s'", self.umls_version)
 
-        self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._rest_uri = const.UMLS_REST_ENDPOINT
 
         if self.session.use_cache and self.umls_version == "current":
             # may want to simply disable caching if version is 'current'
@@ -62,8 +63,8 @@ class MetaThesaurus(object):
         group.add_argument(
             "--umls-version",
             type=str,
-            help="UMLS version to use",
-            default=const.DEFAULT_UMLS_VERSION,
+            help="UMLS version to use. By default, fetch the exact current version string.",
+            default=None,
         )
 
         return parser
@@ -500,7 +501,6 @@ class MetaThesaurus(object):
         source_vocab: str,
         concept_id: str,
     ) -> Iterator[Dict]:
-
         """
         Get source asserted parents
 

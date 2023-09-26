@@ -3,7 +3,6 @@ import random
 
 import pytest
 
-from umlsrat import const
 from umlsrat.api.metathesaurus import MetaThesaurus
 from umlsrat.api.rat_session import MetaThesaurusSession
 from umlsrat.util import args_util
@@ -20,7 +19,7 @@ def pytest_addoption(parser):
         "--umls-version",
         type=str,
         help="UMLS version",
-        default=const.DEFAULT_UMLS_VERSION,
+        default=None,
     )
 
 
