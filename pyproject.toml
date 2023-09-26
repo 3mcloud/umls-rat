@@ -1,3 +1,23 @@
+[tool.poetry]
+name = "umls-rat"
+version = "0.0.0dev0"
+description = "UMLS RAT (REST API Tool) provides a reasonable interface to the UMLS MetaThesaurus via the REST API."
+authors = ["Russell Klopfer <rklopfer@mmm.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+backoff = "^2.2.1"
+ratelimit = "^2.2.1"
+requests-cache = "^1.1.0"
+requests = "^2.31.0"
+urllib3 = "^2.0.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.2"
+coverage = "^7.3.1"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
