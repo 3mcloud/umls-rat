@@ -6,6 +6,13 @@
 Welcome to UMLS RAT's documentation!
 ====================================
 
+.. toctree::
+   :maxdepth: 2
+
+   api
+   examples
+   umls-info
+
 .. include:: intro.rst
 
 .. _API Key:
@@ -49,16 +56,27 @@ The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UML
 
     poetry run python -m pytest -sv tests --cache=False --umls-version current
 
+Build Documentation
+-------------------
 
-.. toctree::
-   :maxdepth: 2
+Install docs dependencies. 
 
-   api
-   examples
-   umls-info
+.. code-block:: console
 
-.. include:: links.rst
+    poetry install --with docs
 
+Buidl the docs 
+
+.. code-block:: console
+
+    poetry run make -C docs clean html
+
+
+Links
+=====
+
+* `Latest documentation <https://urls-rat.readthedocs.io/en/latest/>`_.
+* `Source on Github <https://github.com/3mcloud/umls-rat>`_.
 
 Indices and tables
 ==================
