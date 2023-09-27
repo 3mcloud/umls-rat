@@ -21,9 +21,6 @@ Install
     
     pip install umls-rat
 
-..
-    docs/links.rst
-
 Links
 =====
 

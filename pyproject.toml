@@ -1,10 +1,16 @@
 [tool.poetry]
-name = "umlsrat"
+name = "umls-rat"
 version = "0.0.0dev0"
 description = "UMLS RAT (REST API Tool) provides a reasonable interface to the UMLS MetaThesaurus via the REST API."
 authors = ["Russell Klopfer <rklopfer@mmm.com>"]
 license = "MIT"
 readme = "README.rst"
+repository = "https://github.com/3mcloud/umls-rat"
+documentation = "https://urls-rat.readthedocs.io"
+keywords = ["umls"]
+packages = [
+    { include = "umlsrat" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
@@ -17,6 +23,12 @@ urllib3 = "^2.0.5"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
 coverage = "^7.3.1"
+
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "6.1.3"
+sphinx-copybutton = "^0.5.2"
+python-docs-theme = "^2023.7"
 
 [build-system]
 requires = ["poetry-core"]
