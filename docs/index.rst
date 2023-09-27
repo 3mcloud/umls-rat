@@ -6,6 +6,13 @@
 Welcome to UMLS RAT's documentation!
 ====================================
 
+.. toctree::
+   :maxdepth: 2
+
+   api
+   examples
+   umls-info
+
 .. include:: intro.rst
 
 .. _API Key:
@@ -24,42 +31,52 @@ Note that you may need to add an SSL certificate which can be done by setting th
 Development
 ===========
 
-Install requirements. 
+Install poetry environment. 
 
 .. code-block:: console
 
-    pip install pytest
-    pip install -r requirements.txt
+    poetry install
 
 Execute unit tests. Set ``UMLS_API_KEY`` or pass in with ``--api-key`` arg.
 
 .. code-block:: console
 
-    python -m pytest -sv tests
+    poetry run python -m pytest -sv tests
 
 Cached requests are stored in ``~/.cache/umls-rat``. Caching can be disabled when running the tests, with the ``--no-cache`` flag, eg
 
 .. code-block:: console
 
-    python -m pytest -sv tests --cache=False
+    poetry run python -m pytest -sv tests --cache=False
 
 
 The default version of UMLS used is a constant :const:`umlsrat.const.DEFAULT_UMLS_VERSION`. The version used for testing can be modified at runtime with the ``--umls-version`` arg, eg
 
 .. code-block:: console
 
-    python -m pytest -sv tests --cache=False --umls-version current
+    poetry run python -m pytest -sv tests --cache=False --umls-version current
+
+Build Documentation
+-------------------
+
+Install docs dependencies. 
+
+.. code-block:: console
+
+    poetry install --with docs
+
+Buidl the docs 
+
+.. code-block:: console
+
+    poetry run make -C docs clean html
 
 
-.. toctree::
-   :maxdepth: 2
+Links
+=====
 
-   api
-   examples
-   umls-info
-
-.. include:: links.rst
-
+* `Latest documentation <https://urls-rat.readthedocs.io/en/latest/>`_.
+* `Source on Github <https://github.com/3mcloud/umls-rat>`_.
 
 Indices and tables
 ==================

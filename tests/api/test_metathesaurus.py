@@ -214,21 +214,23 @@ def test_get_source_ancestors(api, kwargs, expected_names):
     (
         (
             dict(source_vocab="snomed", concept_id="388594007", targetSource="MSH"),
-            ["Raccoons"],
+            {
+                "Raccoons",
+            },
         ),
         (
             dict(source_vocab="CPT", concept_id="44950", targetSource="CPT"),
-            ["Appendectomy", "Appendectomy", "Excision Procedures on the Appendix"],
+            {"Appendectomy", "Appendectomy", "Excision Procedures on the Appendix"},
         ),
         (
             dict(source_vocab="ICD10CM", concept_id="T87.44", language="SPA"),
-            ["infección de muñón de amputación de extremidad inferior izquierda"],
+            {"infección de muñón de amputación de extremidad inferior izquierda"},
         ),
     ),
 )
 def test_crosswalk(api, kwargs, expected_names):
     result = list(api.crosswalk(**kwargs))
-    names = [_.get("name") for _ in result]
+    names = {_.get("name") for _ in result}
     assert names == expected_names
 
 

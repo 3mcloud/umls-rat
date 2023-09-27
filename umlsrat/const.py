@@ -1,4 +1,4 @@
-DEFAULT_UMLS_VERSION = "2023AA"
+UMLS_REST_ENDPOINT = "https://uts-ws.nlm.nih.gov/rest"
 
 API_KEY_ENV_VAR = "UMLS_API_KEY"
 

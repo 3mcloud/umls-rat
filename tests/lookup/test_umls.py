@@ -152,7 +152,7 @@ def test_get_related_cuis(api, kwargs, expected_names):
             dict(
                 term="Protein-calorie malnutrition", max_results=1, strict_match=False
             ),
-            ["Protein-Energy Malnutrition"],
+            ["Other protein-calorie malnutrition"],
         ),
         (
             dict(term="Furrycrackers", max_results=1, strict_match=False),

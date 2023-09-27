@@ -1,5 +1,0 @@
-backoff
-ratelimit
-requests
-requests-cache>=1.0.0
-urllib3

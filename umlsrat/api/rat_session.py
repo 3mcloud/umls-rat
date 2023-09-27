@@ -97,6 +97,26 @@ class MetaThesaurusSession(object):
 
         self.session = _configure_session(self.session)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.session.close()
+
+    def get_current_version(self) -> str:
+        """
+        Get the precise current version of UMLS. (e.g. 2023AA)
+        """
+        # use a temp session to ensure cache is disabled
+        with MetaThesaurusSession(api_key=self._api_key, use_cache=False) as s:
+            # get info for "Controlled Vocabulary"
+            content_base = const.UMLS_REST_ENDPOINT + "/content/"
+            result = s.get_single_result(content_base + "current/CUI/C0282503")
+            # parse version from atoms url
+            version = result["atoms"][len(content_base) :].split("/")[0]
+
+        return version
+
     @staticmethod
     def add_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         """
