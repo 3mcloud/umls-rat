@@ -11,6 +11,9 @@ from umlsrat.api.rat_session import MetaThesaurusSession
 class MetaThesaurus(object):
     """
     `UMLS MetaThesaurus API <https://documentation.uts.nlm.nih.gov/rest/home.html>`_ interface with caching.
+
+    :param session: session object. If not provided, a default session will be constructed. See :py:meth:umlsrat.api.rat_session.MetaThesaurusSession.__init__
+    :param umls_version: version of UMLS. By default, the specific latest version (e.g. 2023AA) is determined from the API.
     """
 
     def __init__(
@@ -18,16 +21,6 @@ class MetaThesaurus(object):
         session: Optional[MetaThesaurusSession] = None,
         umls_version: Optional[str] = None,
     ):
-        """
-        Constructor.
-
-        :param session: session object. If not provided, a default session will be constructed.
-        See :py:meth:umlsrat.api.rat_session.MetaThesaurusSession.__init__
-
-        :param umls_version: version of UMLS ('current' for latest).
-        Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
-        """
-
         if session:
             self.session = session
         else:
@@ -36,9 +29,10 @@ class MetaThesaurus(object):
         if umls_version:
             self.umls_version = umls_version
         else:
-            self.umls_version = const.DEFAULT_UMLS_VERSION
+            self.umls_version = self.session.get_current_version()
+            self._logger.info("Using latest UMLS version '%s'", self.umls_version)
 
-        self._rest_uri = "https://uts-ws.nlm.nih.gov/rest"
+        self._rest_uri = const.UMLS_REST_ENDPOINT
 
         if self.session.use_cache and self.umls_version == "current":
             # may want to simply disable caching if version is 'current'
@@ -62,8 +56,8 @@ class MetaThesaurus(object):
         group.add_argument(
             "--umls-version",
             type=str,
-            help="UMLS version to use",
-            default=const.DEFAULT_UMLS_VERSION,
+            help="UMLS version to use. By default, fetch the exact current version string.",
+            default=None,
         )
 
         return parser
@@ -500,7 +494,6 @@ class MetaThesaurus(object):
         source_vocab: str,
         concept_id: str,
     ) -> Iterator[Dict]:
-
         """
         Get source asserted parents
 
