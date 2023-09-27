@@ -11,6 +11,9 @@ from umlsrat.api.rat_session import MetaThesaurusSession
 class MetaThesaurus(object):
     """
     `UMLS MetaThesaurus API <https://documentation.uts.nlm.nih.gov/rest/home.html>`_ interface with caching.
+
+    :param session: session object. If not provided, a default session will be constructed. See :py:meth:umlsrat.api.rat_session.MetaThesaurusSession.__init__
+    :param umls_version: version of UMLS. By default, the specific latest version (e.g. 2023AA) is determined from the API.
     """
 
     def __init__(
@@ -18,16 +21,6 @@ class MetaThesaurus(object):
         session: Optional[MetaThesaurusSession] = None,
         umls_version: Optional[str] = None,
     ):
-        """
-        Constructor.
-
-        :param session: session object. If not provided, a default session will be constructed.
-        See :py:meth:umlsrat.api.rat_session.MetaThesaurusSession.__init__
-
-        :param umls_version: version of UMLS ('current' for latest).
-        Defaults to :py:const:umlsrat.const.DEFAULT_UMLS_VERSION
-        """
-
         if session:
             self.session = session
         else:
