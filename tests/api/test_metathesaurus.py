@@ -349,28 +349,27 @@ def test_constructor():
     assert mt
 
 
-_n_bamboo_results = 80
+def _count_search_results(api, query: str, **kwargs) -> int:
+    results = list(api.search(query=query, **kwargs))
+    return len(results)
 
 
-@pytest.mark.parametrize(
-    ("kwargs", "expected_len"),
-    (
-        (dict(query="star trek vs star wars", pageSize=25), 0),
-        (dict(query="bone", max_results=100, pageSize=25), 100),
-        (
-            dict(query="bamboo", max_results=100, pageSize=25),
-            _n_bamboo_results,
-        ),  # 99 bamboo concepts
-        (
-            dict(query="bamboo", max_results=100, pageSize=25, pageNumber=1),
-            _n_bamboo_results,
-        ),  # starting on page 1 yields all of them
-        (
-            dict(query="bamboo", max_results=100, pageSize=25, pageNumber=2),
-            _n_bamboo_results - 25,
-        ),  # starting on page 2 skips 25 of them
-    ),
-)
-def test_pagination(api, kwargs, expected_len):
-    results = list(api.search(**kwargs))
-    assert len(results) == expected_len
+def test_pagination(api):
+    # this returns nothing
+    assert _count_search_results(api, query="star trek vs star wars", pageSize=25) == 0
+    assert _count_search_results(api, query="bone", max_results=100, pageSize=25) == 100
+    _n_bamboo_results = _count_search_results(api, query="bamboo", pageSize=25)
+    # starting on page 1 yields all of them
+    assert (
+        _count_search_results(
+            api, query="bamboo", max_results=100, pageSize=25, pageNumber=1
+        )
+        == _n_bamboo_results
+    )
+    # starting on page 2 skips 25 of them
+    assert (
+        _count_search_results(
+            api, query="bamboo", max_results=100, pageSize=25, pageNumber=2
+        )
+        == _n_bamboo_results - 25
+    )
