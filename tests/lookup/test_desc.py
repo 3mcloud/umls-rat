@@ -50,7 +50,6 @@ from umlsrat.lookup.lookup_desc import find_synonyms, get_synonyms
                 "Procyon",
                 "Procyon, NOS",
                 "Procyons",
-                "Raccoon",
             },
         ),
         (

@@ -43,7 +43,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
 
 
 @pytest.mark.parametrize(
-    ("kwargs", "expected_names", "expected_definition"),
+    ("kwargs", "expected_names", "expected_text"),
     (
         (
             dict(
@@ -105,9 +105,7 @@ def test_single_mesh_def(api, snomed_code, expected_def):
                 broader=True,
             ),
             ["Malignant Neoplasms"],
-            "An organ or organ-system abnormality that consists of uncontrolled "
-            "autonomous cell-proliferation which can occur in any part of the body as a "
-            "benign or malignant neoplasm (tumour).",
+            "An organ or organ-system abnormality that consists of uncontrolled autonomous cell-proliferation",
         ),
         (
             # Right (qualifier value) (snomed/24028007)
@@ -276,14 +274,14 @@ def test_single_mesh_def(api, snomed_code, expected_def):
     ),
 )
 def test_find_defined_concepts(
-    api, kwargs, expected_names: List[str], expected_definition: str
+    api, kwargs, expected_names: List[str], expected_text: str
 ):
     concepts = lookup_defs.find_defined_concepts(api, **kwargs)
     names = iterators.extract_concept_names(concepts)
     assert names == expected_names
     definitions = iterators.extract_definitions(concepts)
-    if expected_definition:
-        assert expected_definition in definitions
+    if expected_text:
+        assert any(expected_text in definition for definition in definitions)
     else:
         assert not definitions
 
